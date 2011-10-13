@@ -3,7 +3,7 @@
 setup() {
     dir_name() { echo ${1%/*}; }
     SCRIPT_HOME=$(cd $(dir_name $0) && pwd)
-    . $SCRIPT_HOME/../config/backup.conf
+    . $SCRIPT_HOME/../config/sync.conf
     EXECDIR=${0%/*}
     DATE=`date +%Y%m%d`
 }
