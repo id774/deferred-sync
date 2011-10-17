@@ -13,7 +13,11 @@ mirror_to_remote() {
 backup_to_remote() {
     echo -n "* Executing backup to remote on "
     date "+%Y/%m/%d %T"
-    mirror_to_remote $REMOTE_HOST $REMOTE_DIR
+    for REMOTE_HOST in $REMOTE_HOSTS
+    do
+        mirror_to_remote $REMOTE_HOST $REMOTE_DIR
+    done
+    unset REMOTE_HOST
 }
 
 backup_to_remote

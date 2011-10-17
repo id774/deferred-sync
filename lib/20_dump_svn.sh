@@ -9,7 +9,11 @@ get_svndump() {
 dump_svn() {
     echo -n "* Executing svndump on "
     date "+%Y/%m/%d %T"
-    get_svndump $REPO_NAME $REPO_DIR
+    for REPO_NAME in $REPO_NAMES
+    do
+        get_svndump $REPO_NAME $REPO_PATH/$REPO_NAME
+    done
+    unset REPO_NAME
 }
 
 dump_svn
