@@ -50,12 +50,13 @@ sync.conf で設定することができる。
 
 次の環境で動作を保証する。
 
-- Red Hat Enterprise Linux 6
-- CentOS 6
+- Red Hat Enterprise Linux 5/6
+- CentOS 5/6
 - Scientific Linux 6
-- Debian GNU/Linux 6.0
-- Ubuntu 10.04 LTS
-- Solaris 10
+- Debian GNU/Linux 5.0/6.0
+- Ubuntu 10.04 LTS/11.10
+- Solaris 10/11
+- Mac OS X 10.6/10.7
 
 
 運用例
@@ -86,6 +87,17 @@ sync.conf で設定することができる。
 ハイパーバイザー上の別の仮想マシンでも良い。
 
 
+適用例
+ リポジトリサーバーやデータベースサーバーの対障害用
+バックアップ、ファイルサーバーや NAS のバックアップ
+などに利用できる。
+ 他には静的な Web コンテンツの遅延同期をして DNS
+ラウンドロビンで自動更新させるなどの活用方法もある。
+ リモートサーバーと通信可能なときのみ同期をおこなう
+ので Mac の TimeMachine のようにクライアント PC の
+バックアップソリューションとして利用することもできる。
+
+
 設定ファイル config/sync.conf の説明
 
  deferred-sync の設定ファイルであり全体の動作を定義
@@ -108,7 +120,7 @@ sync.conf で設定することができる。
 
 各モジュールの説明
 
-lib/dump_svn.sh
+* lib/dump_svn.sh
 SVN ダンプを取得する。
 
 [概要]
@@ -142,7 +154,7 @@ get_svndump 関数
 に SVN ダンプを取得し保存する。
 
 
-lib/dump_mysql.sh
+* lib/dump_mysql.sh
 MySQL ダンプを取得する。
 
 [概要]
@@ -174,7 +186,7 @@ get_mysqldump 関数
 に MySQL ダンプを取得し保存する。
 
 
-lib/incremental_backup.sh
+* lib/incremental_backup.sh
 世代バックアップを取得する。
 
 [概要]
@@ -191,6 +203,9 @@ backup_to_remote を利用して退避したディレクトリ
 いずれにせよ incremental_backup では保護対象の
 ファイルを退避用のディレクトリに集めただけなの
 で、これに追加して何らかの保護をする必要がある。
+通常は backup_to_remote モジュールでリモート
+ホストに同期するが、このディレクトリを外部記憶
+媒体にコピーするなど他の方法も考えられる。
 
 [世代管理]
 保護対象のファイルは rsync の --delete 機能を
@@ -252,7 +267,7 @@ exec_rsync 関数
 実際に rsync を実行する。
 
 
-lib/backup_to_remote.sh
+* lib/backup_to_remote.sh
 リモートホストへのファイル転送をおこなう
 
 [概要]
@@ -298,5 +313,5 @@ rsync する。
 終了する。 (ping が返すリターンコードがそのまま戻る)
 
 
-モジュールは他にも任意に作成し追加しても良い
+モジュールは他にも任意に作成し追加しても良い。
 

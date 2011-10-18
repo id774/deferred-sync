@@ -1,10 +1,14 @@
 # lib/backup_to_remote.sh
 
 mirror_to_remote() {
+    OPTS="-avz --delete -e ssh"
+    if [ -n "$DRY_RUN" ]; then
+      OPTS="$OPTS --dry-run"
+    fi
     if [ -d $BACKUPTO ]; then
-        echo "rsync -avz --delete -e ssh $BACKUPTO root@$1:$2"
+        echo "rsync $OPTS $BACKUPTO root@$0:$2"
         ping -c 1 $1 > /dev/null 2>&1 && \
-          rsync -avz --delete -e ssh $BACKUPTO root@$1:$2
+          rsync $OPTS $BACKUPTO root@$1:$2
         echo "Return code is $?"
     fi
 }

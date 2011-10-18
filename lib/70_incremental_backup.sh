@@ -28,6 +28,9 @@ rsync_options() {
     if [ -f $EXCLUDEFILE ]; then
         OPTS="$OPTS --exclude-from=$EXCLUDEFILE"
     fi
+    if [ -n "$DRY_RUN" ]; then
+      OPTS="$OPTS --dry-run"
+    fi
 }
 
 exec_rsync() {
