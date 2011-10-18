@@ -1,8 +1,54 @@
+deferred-sync
 
+名前
+ deferred-sync - 遅延した同期をおこないファイルを保護する
+
+書式
+
+説明
+ deferred-sync はローカルで保護対象とするべきファイルを
+一箇所のディレクトリに集め、世代管理をおこない、リモート
+ホストに同期してバックアップする。
+
+ターゲットとするディレクトリは複数指定することができる。
+また独立したモジュールと呼ばれるコードを追加することに
+より Subversion (SVN) や MySQL, PostgreSQL といったリポ
+ジトリやデータベースのダンプを取得し対象とすることも可能
+である。
+
+どのモジュールを有効にするかは全体の動作を定義する
+sync.conf で設定することができる。
+
+主なディレクトリとファイルの構成は以下の通りである。
+.
+|
++-bin 
+|   runner.sh 実行ファイル
+|
++-conf
+|   sync.conf 全体の動作を決定する設定ファイル
+|
++-lib
+|   get_resources.sh      リソースの取得をおこなうモジュール
+|   dump_svn.sh           SVN ダンプを取得するモジュール
+|   dump_mysql.sh         MySQL ダンプを取得するモジュール
+|   incremental_backup.sh 世代バックアップをするモジュール
+|   backup_to_remote.sh   リモートホストへ同期するモジュール
+|     このディレクトリには任意にモジュールを作成し追加可能である
+|
++-installer
+|   install_deferredsync.sh インストーラー
+|     引数で指定したディレクトリに deferred-sync を
+|     インストールする
+|
++-doc
+    README.ja 本ドキュメント
+
+
+各モジュールの説明
 
 lib/dump_svn.sh
 SVN ダンプを取得する。
-説明書
 
 [概要]
 SVN をダンプし zip でアーカイブする。
@@ -38,8 +84,6 @@ get_svndump 関数
 lib/dump_mysql.sh
 MySQL ダンプを取得する。
 
-説明書
-
 [概要]
 MySQL のデータベースをダンプし zip でアーカイブする。
 mysqldump は冗長性が高いため zip で圧縮することで
@@ -69,11 +113,8 @@ get_mysqldump 関数
 に MySQL ダンプを取得し保存する。
 
 
-
 lib/incremental_backup.sh
 増分バックアップを取得する。
-
-説明書
 
 [概要]
 ローカルホスト内で、保護対象のファイル一式を
@@ -152,8 +193,6 @@ exec_rsync 関数
 
 lib/backup_to_remote.sh
 リモートホストへのファイル転送をおこなう
-
-説明書
 
 [概要]
 rsync で自動的に他のホストへ保護対象のファイル
