@@ -3,7 +3,7 @@
 load_module() {
     while [ $# -gt 0 ]
     do
-        . $SCRIPT_HOME/lib/$1.sh
+        . $SCRIPT_HOME/lib/*$1.sh
         shift
     done
 }
@@ -21,12 +21,10 @@ load_modules_all() {
 }
 
 load_modules() {
-    if [ -n $LOAD_MODULES_ALL ]; then
+    if [ $LOAD_MODULES_ALL = "true" ]; then
         load_modules_all
-    elif [ -n $MODULES ]; then
-        load_modules_by_config
     else
-        load_modules_all
+        load_modules_by_config
     fi
 }
 

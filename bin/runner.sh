@@ -3,6 +3,7 @@
 setup() {
     test -n "$1" || CONFIG=config/sync.conf
     test -n "$1" && CONFIG=$1
+    test "$1" = "--test" && CONFIG=test/test.conf
     dir_name() { echo ${1%/*}; }
     SCRIPT_HOME=$(cd $(dir_name $0) && pwd)/..
     . $SCRIPT_HOME/$CONFIG

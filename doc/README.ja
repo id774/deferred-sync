@@ -334,15 +334,26 @@ rsync する。
 
 テスト
 
+ test/test.conf はテスト実行時の設定ファイルである。
+bin/runner.sh の引数には設定ファイル名を指定すること
+ができる。
+
+ 以下のように test/test.conf を指定することで、本来
+とは異なるテスト用の設定で処理を実行できる。
+bin/runner.sh test/test.conf
+
+ また --test が引数に指定されると test/test.conf が
+指定されたものと見なされ読み込まれる。
+bin/runner.sh --test
+
  設定ファイルで以下の通り記述することで rsync が実際
 には実行されずテスト実行される。
 DRY_RUN=true
 
- test/test.conf はテスト実行時の設定ファイルである。
-bin/runner.sh の引数には設定ファイル名を指定すること
-ができる。
- 以下のように test/test.conf を指定することで、本来
-とは異なるテスト用の設定で処理を実行できる。
-bin/runner.sh test/test.conf
+ テスト用設定ファイルでは DRY_RUN=true にするとテスト
+をスムーズにおこなうことができる。
+
+
+
 
 

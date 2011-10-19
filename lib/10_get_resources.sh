@@ -1,4 +1,4 @@
-echo "module get_resources loaded"
+echo "- module get_resources loaded"
 uname -a
 uptime
 free -t

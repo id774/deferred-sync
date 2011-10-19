@@ -28,7 +28,7 @@ rsync_options() {
     if [ -f $EXCLUDEFILE ]; then
         OPTS="$OPTS --exclude-from=$EXCLUDEFILE"
     fi
-    if [ -n "$DRY_RUN" ]; then
+    if [ "$DRY_RUN" = "true" ]; then
       OPTS="$OPTS --dry-run"
     fi
 }
@@ -51,5 +51,5 @@ run_rsync() {
     exec_rsync
 }
 
-echo "module run_rsync loaded"
+echo "- module run_rsync loaded"
 run_rsync

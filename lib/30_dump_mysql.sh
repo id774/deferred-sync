@@ -19,5 +19,5 @@ dump_mysql() {
     unset MYSQL_DB
 }
 
-echo "module dump_mysql loaded"
+echo "- module dump_mysql loaded"
 dump_mysql
