@@ -2,6 +2,8 @@
 
 get_mysqldump() {
     echo "mysqldump $1"
+    test -f $MYSQLDUMP/$1.zip && \
+      rm $MYSQLDUMP/$1.zip
     mysqldump --add-drop-table --add-locks --password=$3 -u $2 \
         $1 > $MYSQLDUMP/mysqldump/$1.sql \
         && zip $MYSQLDUMP/mysqldump/$1.zip $MYSQLDUMP/mysqldump/$1.sql \

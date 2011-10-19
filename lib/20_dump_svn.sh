@@ -2,6 +2,8 @@
 
 get_svndump() {
     echo "svndump $1"
+    test -f $SVNDUMP/$1.zip && \
+      rm $SVNDUMP/$1.zip
     svnadmin dump $2 > $SVNDUMP/$1.dump \
         && zip $SVNDUMP/$1.zip $SVNDUMP/$1.dump \
         && rm $SVNDUMP/$1.dump
