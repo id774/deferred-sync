@@ -5,12 +5,12 @@ mirror_to_remote() {
     if [ -n "$DRY_RUN" ]; then
       OPTS="$OPTS --dry-run"
     fi
-    if [ -d $BACKUPTO ]; then
-        echo "rsync $OPTS $BACKUPTO root@$0:$2"
+    #if [ -d $BACKUPTO ]; then
+        echo "rsync $OPTS $BACKUPTO root@$1:$2"
         ping -c 1 $1 > /dev/null 2>&1 && \
           rsync $OPTS $BACKUPTO root@$1:$2
         echo "Return code is $?"
-    fi
+    #fi
 }
 
 backup_to_remote() {
@@ -23,4 +23,5 @@ backup_to_remote() {
     unset REMOTE_HOST
 }
 
+echo "module backup_to_remote loaded"
 backup_to_remote

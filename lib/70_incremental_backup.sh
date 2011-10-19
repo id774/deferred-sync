@@ -34,13 +34,13 @@ rsync_options() {
 }
 
 exec_rsync() {
-    while [ $# -gt 0 ]
+    for BACKUPDIR in $BACKUPDIRS
     do
-        echo "rsync $OPTS $1 $BACKUPTO"
-        rsync $OPTS $1 $BACKUPTO
+        echo "rsync $OPTS $BACKUPDIR $BACKUPTO"
+        rsync $OPTS $BACKUPDIR $BACKUPTO
         echo "Return code is $?"
-        shift
     done
+    unset BACKUPDIR
 }
 
 run_rsync() {
@@ -48,7 +48,8 @@ run_rsync() {
     rsync_options
     echo -n "* Executing backup with rsync on "
     date "+%Y/%m/%d %T"
-    exec_rsync $BACKUPDIRS
+    exec_rsync
 }
 
+echo "module run_rsync loaded"
 run_rsync

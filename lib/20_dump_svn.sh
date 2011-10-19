@@ -18,4 +18,5 @@ dump_svn() {
     unset SVN_REPO
 }
 
+echo "module dump_svn loaded"
 dump_svn
