@@ -61,6 +61,7 @@ rsync (及び ssh) に依存する。
 |   install.sh
 |     引数で指定したディレクトリに deferred-sync を
 |     インストールする
+|     引数が無い場合 /opt/deferred-sync インストールされる
 |
 +-test
 |   test.conf テスト実行時に読み込まれる
@@ -141,10 +142,10 @@ rsync (及び ssh) に依存する。
 インストール
 ============
 
- installer/installer.sh を実行することで
+ installer/install.sh を実行することで
 ソフトウェアをインストールすることができる。
 
- installer/installer.sh
+ installer/install.sh
 
 第 1 引数にはインストール先のディレクトリを指定する。
 デフォルトは /opt/deferred-sync である。
@@ -156,13 +157,13 @@ rsync (及び ssh) に依存する。
 場合は sudo を利用する必要が無い。
 
 (ユーザーのホームディレクトリにインストールする例)
-installer/installer.sh ~/local/deferred-sync nosudo
+installer/install.sh ~/local/deferred-sync nosudo
 
 (/usr/local/deferred-sync にインストールする例)
-installer/installer.sh /usr/local/deferred-sync
+installer/install.sh /usr/local/deferred-sync
 
 (/opt/deferred-sync にインストールする例)
-installer/installer.sh
+installer/install.sh
 
 インストールが完了したら次項に示す設定ファイルを
 編集し、動作をカスタマイズすること。
@@ -188,6 +189,49 @@ installer/installer.sh
 したがって、この設定ファイルは管理担当ユーザーが
 参照のみ可能となるようパーミッションを設定しておく
 ことが望ましい。
+
+
+==============
+主要な設定項目
+==============
+
+設定ファイル config/sync.conf は単なる実行形式の
+スクリプトとして読み込まれるため柔軟な設定が可能である。
+
+主な設定項目としては以下がある。
+
+BACKUPDIRS
+世代バックアップの対象とするディレクトリ。
+複数指定可能である。
+
+BACKUPTO
+バックアップ先として対比するディレクトリ。
+ローカルホストの上記のディレクトリに集約される。
+
+EXPIREDAYS
+履歴を何日間まで残すか。
+この日数を超えた世代バックアップは削除される。
+
+EXCLUDEFILE
+バックアップの対象外とするファイル名。
+
+JOBLOG
+実行結果のログファイル名。
+
+ADMIN_MAIL_ADDRESS
+ここにシステム管理者のメールアドレスを記載すると
+終了時に結果がメールされる。
+
+LOAD_MODULES_ALL
+強制的にすべてのモジュールを読み込む。
+通常は false に設定する。
+
+MODULES
+利用するモジュール名を個別に指定する。
+
+たとえば SVN のダンプを取得し世代管理した上で
+リモートホストに転送するなら以下の通りになる。
+MODULES="dump_svn incremental_backup backup_to_remote"
 
 
 ================
@@ -247,6 +291,27 @@ LOAD_MODULES_ALL=false のとき
 ======================
 主要なモジュールの説明
 ======================
+
+* lib/get_resources.sh
+ログファイルにリソース状況を出力する。
+
+[概要]
+このモジュールは実行時に uptime や free, df 等を
+利用してリソースの概況を取得し出力する。
+
+ログに取得しない場合はロードする必要は無い。
+
+
+* lib/system_upgrade.sh
+システムを最新化する。
+
+[概要]
+システムを最新化するモジュールである。
+
+このモジュールは RHEL 系または Debian 系の
+Linux ディストリビューションでしか動作しない。
+Solaris 及び Mac OS X は対象外である。
+
 
 * lib/dump_svn.sh
 SVN ダンプを取得する。
