@@ -19,7 +19,7 @@ update_redhat_or_centos() {
 upgrade_from_network() {
     test -f /etc/debian_version && update_debian_or_ubuntu
     test -f /etc/redhat-release && update_redhat_or_centos
-    which freshclam > /dev/null && freshclam
+    which freshclam > /dev/null 2>&1 && freshclam
 }
 
 system_upgrade() {

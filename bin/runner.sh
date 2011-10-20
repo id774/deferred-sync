@@ -13,7 +13,8 @@ setup() {
 
 send_mail_to_admin() {
     nkf -w $JOBLOG | \
-      mail -s "[cron-log][`/bin/hostname`] Deferred Sync Log" $ADMIN_MAIL_ADDRESS
+      mail -s "[cron-log][`/bin/hostname`] Deferred Sync Log" \
+      $ADMIN_MAIL_ADDRESS
 }
 
 deferred_sync() {
