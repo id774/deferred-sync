@@ -58,7 +58,7 @@ rsync (及び ssh) に依存する。
 |     このディレクトリには任意にモジュールを作成し追加できる
 |
 +-installer
-|   install_deferredsync.sh
+|   install.sh
 |     引数で指定したディレクトリに deferred-sync を
 |     インストールする
 |
@@ -137,6 +137,37 @@ rsync (及び ssh) に依存する。
 - Mac OS X 10.6/10.7
 
 
+============
+インストール
+============
+
+ installer/installer.sh を実行することで
+ソフトウェアをインストールすることができる。
+
+ installer/installer.sh
+
+第 1 引数にはインストール先のディレクトリを指定する。
+デフォルトは /opt/deferred-sync である。
+このディレクトリは通常 root 権限が無いと書き込めない
+ため、内部的に sudo を利用する。
+
+第 2 引数には nosudo を指定する。
+たとえば第 1 引数に ~/local/deferred-sync を指定した
+場合は sudo を利用する必要が無い。
+
+(ユーザーのホームディレクトリにインストールする例)
+installer/installer.sh ~/local/deferred-sync nosudo
+
+(/usr/local/deferred-sync にインストールする例)
+installer/installer.sh /usr/local/deferred-sync
+
+(/opt/deferred-sync にインストールする例)
+installer/installer.sh
+
+インストールが完了したら次項に示す設定ファイルを
+編集し、動作をカスタマイズすること。
+
+
 =============================
 設定ファイル config/sync.conf
 =============================
@@ -213,9 +244,9 @@ LOAD_MODULES_ALL=false のとき
 が指定順に読み込まれる。
 
 
-==================
-各モジュールの説明
-==================
+======================
+主要なモジュールの説明
+======================
 
 * lib/dump_svn.sh
 SVN ダンプを取得する。
