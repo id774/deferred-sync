@@ -42,19 +42,28 @@ rsync (及び ssh) に依存する。
 |     モジュールを順次読み込む
 |
 +-conf
-|   sync.conf 全体の動作を決定する設定ファイル
+|   sync.conf
+|     全体の動作を決定する設定ファイル
 |
 +-etc
-|   sync_exclude 処理対象外を羅列したファイル
+|   sync_exclude
+|     処理対象外を羅列したファイル
 |     一行ずつファイル名または拡張子を記述する
 |     いずれかにマッチしたファイルは処理の対象外となる
 |
 +-lib
-|   get_resources.sh      リソースの取得をおこなうモジュール
-|   dump_svn.sh           SVN ダンプを取得するモジュール
-|   dump_mysql.sh         MySQL ダンプを取得するモジュール
-|   incremental_backup.sh 世代バックアップをするモジュール
-|   backup_to_remote.sh   リモートホストへ同期するモジュール
+|   get_resources.sh
+|     リソースの取得をおこなうモジュール
+|   system_upgrade.sh
+|     システムを最新化するモジュール
+|   dump_svn.sh
+|     SVN ダンプを取得するモジュール
+|   dump_mysql.sh
+|     MySQL ダンプを取得するモジュール
+|   incremental_backup.sh
+|     世代バックアップをするモジュール
+|   backup_to_remote.sh
+|     リモートホストへ同期するモジュール
 |     このディレクトリには任意にモジュールを作成し追加できる
 |
 +-installer
@@ -64,11 +73,13 @@ rsync (及び ssh) に依存する。
 |     引数が無い場合 /opt/deferred-sync インストールされる
 |
 +-test
-|   test.conf テスト実行時に読み込まれる
+|   test.conf
+|     テスト実行時に読み込まれる
 |     このディレクトリにはテストのためのコードが置かれる
 |
 +-doc
-    README.ja 本ドキュメント
+    README.ja
+      本ドキュメント
 
 
 ========
@@ -136,6 +147,8 @@ rsync (及び ssh) に依存する。
 - Ubuntu 10.04 LTS/11.10
 - Solaris 10/11
 - Mac OS X 10.6/10.7
+
+ 一部のモジュールは Solaris と Mac OS X に未対応である。
 
 
 ============
@@ -205,7 +218,7 @@ BACKUPDIRS
 複数指定可能である。
 
 BACKUPTO
-バックアップ先として対比するディレクトリ。
+バックアップ先として退避するディレクトリ。
 ローカルホストの上記のディレクトリに集約される。
 
 EXPIREDAYS

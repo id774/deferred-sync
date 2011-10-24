@@ -30,7 +30,6 @@ deploy() {
     done
 }
 
-
 deploy_to_target() {
     echo "Installing from $SCRIPT_HOME to $TARGET/"
     test -d $TARGET && $SUDO rm -rf $TARGET/
