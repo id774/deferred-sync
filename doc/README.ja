@@ -391,6 +391,15 @@ get_mysqldump 関数
 設定ファイルで定義された変数 MYSQLDUMP のディレクトリ
 に MySQL ダンプを取得し保存する。
 
+複数のデータベースをダンプする場合は、ダンプのための
+ユーザーを作成し mysqldump に必要な権限を付与する。
+
+ grant select, lock tables, show view on DB_NAME.* to
+ backup@localhost identified by 'PASSWORD';
+
+MYSQL_USER 及び MYSQL_PASS に定義するユーザー名は
+バックアップのためのユーザーアカウントを指定する。
+
 
 * lib/incremental_backup.sh
 世代バックアップを取得する。
