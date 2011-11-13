@@ -7,7 +7,7 @@ setup() {
 
     case $OSTYPE in
       *darwin*)
-        OPTIONS=-Rv
+        OPTIONS=-pPRv
         OWNER=root:wheel
         ;;
       *)
@@ -25,7 +25,7 @@ setup() {
 deploy() {
     while [ $# -gt 0 ]
     do
-        $SUDO cp $OPTIONS $SCRIPT_HOME/$1/ $TARGET/
+        $SUDO cp $OPTIONS $SCRIPT_HOME/$1 $TARGET/
         shift
     done
 }
