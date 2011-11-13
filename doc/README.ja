@@ -312,6 +312,10 @@ LOAD_MODULES_ALL=false のとき
 このモジュールは実行時に uptime や free, df 等を
 利用してリソースの概況を取得し出力する。
 
+このモジュールは RHEL 系または Debian 系の
+Linux ディストリビューションでしか動作しない。
+Solaris 及び Mac OS X は対象外である。
+
 ログに取得しない場合はロードする必要は無い。
 
 
