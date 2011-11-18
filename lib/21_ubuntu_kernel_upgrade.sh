@@ -6,6 +6,7 @@ purge_old_kernels() {
     METALINUXPKG="linux-(image|headers|restricted-modules)-(generic|i386|server|common|rt|xen)"
     OLDKERNELS=$(dpkg -l|awk '{print $2}'|grep -E $LINUXPKG |grep -vE $METALINUXPKG|grep -v $CURKERNEL)
     apt-get -y purge $OLDKERNELS
+    echo "Return code is $?"
 }
 
 ubuntu_kernel_upgrade() {
