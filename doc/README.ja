@@ -331,7 +331,7 @@ Solaris 及び Mac OS X は対象外である。
 
 
 * lib/ubuntu_kernel_upgrade
-Ubuntu のカーネルをカーネルをアップグレードする。
+Ubuntu のカーネルをアップグレードする。
 
 [概要]
 Ubuntu ではデフォルトでカーネルがホールドされており
