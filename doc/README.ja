@@ -65,6 +65,8 @@ rsync (及び ssh) に依存する。
 |   backup_to_remote.sh
 |     リモートホストへ同期するモジュール
 |     このディレクトリには任意にモジュールを作成し追加できる
+|   get_remote_dir.sh
+|     リモートのディレクトリをローカルに同期するモジュール
 |
 +-installer
 |   install.sh
@@ -566,4 +568,27 @@ rsync する。
 
 モジュールは他にも任意に作成し追加しても良い。
 
+
+* lib/get_remote_dir.sh
+リモートのディレクトリをローカルに同期する
+
+[概要]
+backup_to_remote とは反対に、リモートで稼動している
+サーバーのディレクトリをローカルに同期する。
+バックアップサーバー側を主体として運用環境のファイルを
+退避するために使われる。
+
+[仕様]
+以下の例では remote_server で予めバックアップされた
+/home/backup 以下のディレクトリを /home/remote に
+同期している。
+
+(例)
+GET_HOST="remote_server"
+GET_REMOTE_DIR="/home/backup"
+GET_TARGET_DIR="/home/remote/remote_server"
+
+リモートでも deferred-sync を動作させ、世代バックアップ
+を生成しておくことが望ましい。その場合本モジュールを
+利用することで履歴を含めたバックアップを退避できる。
 
