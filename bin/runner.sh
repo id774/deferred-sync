@@ -1,9 +1,16 @@
 #!/bin/sh
 
 setup() {
-    test -n "$1" || CONFIG=config/sync.conf
-    test -n "$1" && CONFIG=$1
-    test "$1" = "--test" && CONFIG=test/test.conf
+    if [ -n $1 ]; then
+      test -n "$1" && CONFIG=$1
+      test "$1" = "--test" && CONFIG=test/test.conf
+    else
+      CONFIG=config/sync.conf
+      test -f /etc/deferred_sync.conf && \
+        CONFIG=/etc/deferred_sync.conf
+      test -f /usr/local/etc/deferred_sync.conf && \
+        CONFIG=/usr/local/etc/deferred_sync.conf
+    fi
     dir_name() { echo ${1%/*}; }
     SCRIPT_HOME=$(cd $(dir_name $0) && pwd)/..
     . $SCRIPT_HOME/$CONFIG
