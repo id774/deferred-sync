@@ -41,7 +41,7 @@ rsync (及び ssh) に依存する。
 |   loader.sh
 |     モジュールを順次読み込む
 |
-+-conf
++-config
 |   sync.conf
 |     全体の動作を決定する設定ファイル
 |
@@ -208,9 +208,9 @@ installer/install.sh
 設定ファイルは以下の順序で優先される。
 1. /usr/local/etc/deferred-sync.conf
 2. /etc/deferred-sync.conf
-3. conf/sync.conf
+3. config/sync.conf
 
-/etc/deferred-sync.conf が存在する場合は conf/sync.conf
+/etc/deferred-sync.conf が存在する場合は config/sync.conf
 より優先され、さらに /usr/local/etc/deferred-sync.conf
 が存在する場合はそちらが優先される。
 またいかなる場合でも引数が指定された場合は引数に指定され
