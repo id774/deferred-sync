@@ -17,8 +17,11 @@ deferred-sync
 ジトリやデータベースのダンプを取得し対象とすることも可能
 である。
 
-どのモジュールを有効にするかは全体の動作を定義する
-sync.conf で設定することができる。
+単なるファイルの同期以外にもシステムの自動処理として
+あらゆる処理を実行することができる。モジュールと呼ばれる
+シェルスクリプトのファイルに自動的に処理したい内容を記述
+すれば良い。モジュールのうちどの処理を有効にするかは
+環境設定ファイルである sync.conf で設定する。
 
 ファイルの世代管理やリモートホストへの転送のために rsync
 を内部的に利用している。したがって耐障害性や信頼性は
@@ -52,21 +55,23 @@ rsync (及び ssh) に依存する。
 |     いずれかにマッチしたファイルは処理の対象外となる
 |
 +-lib
+|   モジュールと呼ばれるシェルスクリプトが格納される
+|   既定で用意されたモジュールには以下のものがある
+|
 |   get_resources.sh
-|     リソースの取得をおこなうモジュール
+|     リソースの取得をおこなう
 |   system_upgrade.sh
-|     システムを最新化するモジュール
+|     システムを最新化する
 |   dump_svn.sh
-|     SVN ダンプを取得するモジュール
+|     SVN ダンプを取得する
 |   dump_mysql.sh
-|     MySQL ダンプを取得するモジュール
+|     MySQL ダンプを取得する
 |   incremental_backup.sh
-|     世代バックアップをするモジュール
+|     世代バックアップをする
 |   backup_to_remote.sh
-|     リモートホストへ同期するモジュール
-|     このディレクトリには任意にモジュールを作成し追加できる
+|     リモートホストへ同期する
 |   get_remote_dir.sh
-|     リモートのディレクトリをローカルに同期するモジュール
+|     リモートのディレクトリをローカルに同期する
 |
 +-installer
 |   install.sh
@@ -140,15 +145,13 @@ rsync (及び ssh) に依存する。
 
  一般的な GNU/Linux 及び UNIX 互換環境で動作する。
 
-次の環境で動作する。
-
-- Red Hat Enterprise Linux 5/6
-- CentOS 5/6
-- Scientific Linux 6
-- Debian GNU/Linux 5.0/6.0
-- Ubuntu 10.04 LTS/11.10
-- Solaris 10/11
-- Mac OS X 10.6/10.7
+- Red Hat Enterprise Linux 5 以降
+- CentOS 5 以降
+- Scientific Linux 5 以降
+- Debian GNU/Linux 5 以降
+- Ubuntu 8.04 LTS 以降
+- Solaris 10 以降
+- Mac OS X 10.5 以降
 
  一部のモジュールは Solaris と Mac OS X に未対応である。
 
