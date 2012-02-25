@@ -210,17 +210,6 @@ installer/install.sh
 参照のみ可能となるようパーミッションを設定しておく
 ことが望ましい。
 
-設定ファイルは以下の順序で優先される。
-1. /usr/local/etc/deferred-sync.conf
-2. /etc/deferred-sync.conf
-3. config/sync.conf
-
-/etc/deferred-sync.conf が存在する場合は config/sync.conf
-より優先され、さらに /usr/local/etc/deferred-sync.conf
-が存在する場合はそちらが優先される。
-またいかなる場合でも引数が指定された場合は引数に指定され
-た設定ファイルが優先される。
-
 
 ==============
 主要な設定項目
