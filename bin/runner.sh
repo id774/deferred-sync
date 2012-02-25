@@ -1,13 +1,13 @@
 #!/bin/sh
 
 setup() {
-    if [ -n $1 ]; then
+    if [ -n "$1" ]; then
       test -n "$1" && CONFIG=$1
       test "$1" = "--test" && CONFIG=test/test.conf
     else
       CONFIG=config/sync.conf
-      test -f /etc/deferred_sync.conf && \
-        CONFIG=/etc/deferred_sync.conf
+      test -f /etc/deferred-sync.conf && \
+        CONFIG=/etc/deferred-sync.conf
       test -f /usr/local/etc/deferred_sync.conf && \
         CONFIG=/usr/local/etc/deferred_sync.conf
     fi
