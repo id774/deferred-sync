@@ -47,6 +47,8 @@ rsync (及び ssh) に依存する。
 +-config
 |   sync.conf
 |     全体の動作を決定する設定ファイル
+|     ただしファイルの実体は /etc/opt に移動し
+|     このファイルはシンボリックとするべきである
 |
 +-etc
 |   sync_exclude
