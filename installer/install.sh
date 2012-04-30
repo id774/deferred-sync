@@ -12,7 +12,7 @@ setup() {
         ;;
       *)
         OPTIONS=-Rvd
-        OWNER=root:root
+        OWNER=root:adm
         ;;
     esac
 
@@ -37,6 +37,32 @@ deploy_to_target() {
     deploy bin config etc lib
 }
 
+scheduling() {
+    $SUDO cp $OPTIONS $SCRIPT_HOME/cron/deferred-sync \
+      /etc/cron.daily/deferred-sync
+    $SUDO mkdir -p /etc/opt/deferred-sync
+    $SUDO cp $OPTIONS $SCRIPT_HOME/config/sync.conf \
+      /etc/opt/deferred-sync/sync.conf
+    $SUDO rm $TARGET/config/sync.conf
+    $SUDO ln -s /etc/opt/deferred-sync/sync.conf \
+      $TARGET/config/sync.conf
+}
+
+logrotate() {
+    $SUDO cp $OPTIONS $SCRIPT_HOME/cron/logrotate.d/deferred-sync \
+      /etc/logrotate.d/deferred-sync
+    $SUDO mkdir -p /var/log/deferred-sync
+    $SUDO touch /var/log/deferred-sync/sync.log
+    $SUDO chown $OWNER /var/log/deferred-sync/sync.log
+    $SUDO chmod 640 /var/log/deferred-sync/sync.log
+}
+
+setup_cron() {
+    echo "Setting up for cron job"
+    scheduling
+    logrotate
+}
+
 set_permission() {
     $SUDO chown -R $OWNER $TARGET
 }
@@ -44,6 +70,7 @@ set_permission() {
 installer() {
     setup $*
     deploy_to_target
+    test -n "$1" || setup_cron
     test -n "$2" || set_permission
 }
 

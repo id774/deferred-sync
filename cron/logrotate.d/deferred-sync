@@ -1,0 +1,8 @@
+/var/log/deferred-sync/sync.log {
+  daily
+  compress
+  delaycompress
+  missingok
+  create 0640 root adm
+  rotate 30
+}

@@ -79,7 +79,12 @@ rsync (及び ssh) に依存する。
 |   install.sh
 |     引数で指定したディレクトリに deferred-sync を
 |     インストールする
-|     引数が無い場合 /opt/deferred-sync インストールされる
+|     引数が無い場合 /opt/deferred-sync にインストールされる
+|
++-cron
+|   deferred-sync
+|     オプション無しでインストーラーを実行した場合
+|     この cron スクリプトが配置される
 |
 +-test
 |   test.conf
@@ -188,7 +193,11 @@ installer/install.sh /usr/local/deferred-sync
 installer/install.sh
 
 インストールが完了したら次項に示す設定ファイルを
-編集し、動作をカスタマイズすること。
+編集し、動作をカスタマイズする。
+
+引数無しで実行した場合は、自動的に /etc/cron.daily と
+/etc/logrotate.d にファイルが配置され、日々の自動実行と
+ログローテーションが既定で設定される。
 
 
 =============================

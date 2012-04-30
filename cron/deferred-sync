@@ -1,0 +1,6 @@
+#!/bin/sh
+
+test -x /opt/deferred-sync/bin/runner.sh && \
+  /opt/deferred-sync/bin/runner.sh
+
+exit 0
