@@ -43,6 +43,8 @@ scheduling() {
     $SUDO mkdir -p /etc/opt/deferred-sync
     $SUDO cp $OPTIONS $SCRIPT_HOME/config/sync.conf \
       /etc/opt/deferred-sync/sync.conf
+    $SUDO chown $OWNER /etc/opt/deferred-sync/sync.conf
+    $SUDO chmod 640 /etc/opt/deferred-sync/sync.conf
     $SUDO rm $TARGET/config/sync.conf
     $SUDO ln -s /etc/opt/deferred-sync/sync.conf \
       $TARGET/config/sync.conf
