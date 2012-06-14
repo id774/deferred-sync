@@ -272,18 +272,19 @@ backup_to_remote とは反対に、リモートで稼動している
 
 [仕様]
 以下の例では remote_server で予めバックアップされた
-/home/backup 以下のディレクトリを /home/remote に
+/home/backup 以下のディレクトリを
+/home/remote/remote_server に
 同期している。
 
+GET_HOSTS はリモートホスト名を指定する。
+スペースで区切って複数指定することができる。
+GET_TARGET_DIR の下にホスト名ごとのディレクトリが
+作成されその下にバックアップされる。
+
 (例)
-GET_HOST="remote_server"
+GET_HOSTS="remote_server web_server 192.168.1.55
 GET_REMOTE_DIR="/home/backup"
-GET_TARGET_DIR="/home/remote/remote_server"
-
-リモートでも deferred-sync を動作させ、世代バックアップ
-を生成しておくことが望ましい。その場合本モジュールを
-利用することで履歴を含めたバックアップを退避できる。
-
+GET_TARGET_DIR="/home/remote
 
 
 
