@@ -6,7 +6,7 @@ get_remote() {
       OPTS="$OPTS --dry-run"
     fi
     if [ -d $GET_TARGET_DIR ]; then
-        echo "rsync $OPTS root@$GET_HOST:$GET_REMOTE_DIR $GET_TARGET_DIR"
+        echo "rsync $OPTS root@$GET_HOST:$GET_REMOTE_DIR $GET_TARGET_DIR/$1"
         ping -c 1 $1 > /dev/null 2>&1 && \
           rsync $OPTS root@$GET_HOST:$GET_REMOTE_DIR $GET_TARGET_DIR/$1
         echo "Return code is $?"
