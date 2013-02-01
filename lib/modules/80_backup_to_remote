@@ -3,7 +3,7 @@
 mirror_to_remote() {
     OPTS="-avz --delete -e ssh"
     if [ "$DRY_RUN" = "true" ]; then
-      OPTS="$OPTS --dry-run"
+        OPTS="$OPTS --dry-run"
     fi
     if [ -d $BACKUPTO ]; then
         echo "rsync $OPTS $BACKUPTO root@$1:$2"
