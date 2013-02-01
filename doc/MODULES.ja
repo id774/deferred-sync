@@ -2,7 +2,7 @@
 主要なモジュールの説明
 ======================
 
-* lib/get_resources.sh
+* get_resources
 ログファイルにリソース状況を出力する。
 
 [概要]
@@ -16,7 +16,7 @@ Solaris 及び Mac OS X は対象外である。
 ログに取得しない場合はロードする必要は無い。
 
 
-* lib/system_upgrade.sh
+* system_upgrade
 システムを最新化する。
 
 [概要]
@@ -27,7 +27,7 @@ Linux ディストリビューションでしか動作しない。
 Solaris 及び Mac OS X は対象外である。
 
 
-* lib/ubuntu_kernel_upgrade
+* ubuntu_kernel_upgrade
 Ubuntu のカーネルをアップグレードする。
 
 [概要]
@@ -59,7 +59,7 @@ UBUNTU_ARCHITECTURE="generic"
 テストされていない。
 
 
-* lib/dump_svn.sh
+* dump_svn
 SVN ダンプを取得する。
 
 [概要]
@@ -93,7 +93,7 @@ get_svndump 関数
 に SVN ダンプを取得し保存する。
 
 
-* lib/dump_mysql.sh
+* dump_mysql
 MySQL ダンプを取得する。
 
 [概要]
@@ -134,7 +134,7 @@ MYSQL_USER 及び MYSQL_PASS に定義するユーザー名は
 バックアップのためのユーザーアカウントを指定する。
 
 
-* lib/incremental_backup.sh
+* incremental_backup
 世代バックアップを取得する。
 
 [概要]
@@ -215,7 +215,7 @@ exec_rsync 関数
 実際に rsync を実行する。
 
 
-* lib/backup_to_remote.sh
+* backup_to_remote
 リモートホストへのファイル転送をおこなう
 
 [概要]
@@ -261,7 +261,7 @@ rsync する。
 終了する。 (ping が返すリターンコードがそのまま戻る)
 
 
-* lib/get_remote_dir.sh
+* get_remote_dir
 リモートのディレクトリをローカルに同期する
 
 [概要]

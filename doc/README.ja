@@ -4,7 +4,7 @@ deferred-sync
  deferred-sync - 遅延した同期をおこないファイルを保護する
 
 書式
- bin/runner.sh
+ bin/run
 
 説明
  deferred-sync はローカルで保護対象とするべきファイルを
@@ -13,9 +13,9 @@ deferred-sync
 
 保護対象とするディレクトリは複数指定することができる。
 また独立したモジュールと呼ばれるコードを追加することに
-より Subversion (SVN) や MySQL, PostgreSQL といったリポ
-ジトリやデータベースのダンプを取得し対象とすることも可能
-である。
+より Subversion (SVN) や MySQL, PostgreSQL と
+いったリポジトリやデータベースのダンプを取得し対象とする
+ことも可能である。
 
 単なるファイルの同期以外にもシステムの自動処理として
 あらゆる処理を実行することができる。モジュールと呼ばれる
@@ -37,12 +37,10 @@ rsync (及び ssh) に依存する。
 .
 |
 +-bin
-|   runner.sh
+|   run
 |     実行ファイル
-|     設定ファイルを読み込み loader.sh を動作させ
+|     設定ファイルを読み込み lib/load を動作させ
 |     その標準出力及びエラー出力をロギングする
-|   loader.sh
-|     モジュールを順次読み込む
 |
 +-config
 |   sync.conf
@@ -57,29 +55,32 @@ rsync (及び ssh) に依存する。
 |     いずれかにマッチしたファイルは処理の対象外となる
 |
 +-lib
-|   モジュールと呼ばれるシェルスクリプトが格納される
-|   既定で用意されたモジュールには以下のものがある
+|   load
+|     モジュールを順次読み込む
 |
-|   get_resources.sh
-|     リソースの取得をおこなう
-|   system_upgrade.sh
-|     システムを最新化する
-|   dump_svn.sh
-|     SVN ダンプを取得する
-|   dump_mysql.sh
-|     MySQL ダンプを取得する
-|   incremental_backup.sh
-|     世代バックアップをする
-|   backup_to_remote.sh
-|     リモートホストへ同期する
-|   get_remote_dir.sh
-|     リモートのディレクトリをローカルに同期する
+|   modules
+|     モジュールと呼ばれるスクリプトが格納される
+|     既定で用意されたモジュールには以下のものがある
 |
-+-installer
-|   install.sh
-|     引数で指定したディレクトリに deferred-sync を
-|     インストールする
-|     引数が無い場合 /opt/deferred-sync にインストールされる
+|     get_resources
+|       リソースの取得をおこなう
+|     system_upgrade
+|       システムを最新化する
+|     dump_svn
+|       SVN ダンプを取得する
+|     dump_mysql
+|       MySQL ダンプを取得する
+|     incremental_backup
+|       世代バックアップをする
+|     backup_to_remote
+|       リモートホストへ同期する
+|     get_remote_dir
+|       リモートのディレクトリをローカルに同期する
+|
++-install.sh
+|   引数で指定したディレクトリに deferred-sync を
+|   インストールする
+|   引数が無い場合 /opt/deferred-sync にインストールされる
 |
 +-cron
 |   deferred-sync
@@ -121,7 +122,7 @@ rsync (及び ssh) に依存する。
 運用例
 ======
 
- cron から deferred-sync/bin/runner.sh を定期的に
+ cron から deferred-sync/bin/run を定期的に
 実行するように設定する。これにより保護対象のファイル
 及びディレクトリが自動的に一箇所に集められる。
 
@@ -169,10 +170,8 @@ rsync (及び ssh) に依存する。
 インストール
 ============
 
- installer/install.sh を実行することで
+ install.sh を実行することで
 ソフトウェアをインストールすることができる。
-
- installer/install.sh
 
 第 1 引数にはインストール先のディレクトリを指定する。
 デフォルトは /opt/deferred-sync である。
@@ -184,13 +183,13 @@ rsync (及び ssh) に依存する。
 場合は sudo を利用する必要が無い。
 
 (ユーザーのホームディレクトリにインストールする例)
-installer/install.sh ~/local/deferred-sync nosudo
+install.sh ~/local/deferred-sync nosudo
 
 (/usr/local/deferred-sync にインストールする例)
-installer/install.sh /usr/local/deferred-sync
+install.sh /usr/local/deferred-sync
 
 (/opt/deferred-sync にインストールする例)
-installer/install.sh
+install.sh
 
 インストールが完了したら次項に示す設定ファイルを
 編集し、動作をカスタマイズする。
@@ -276,16 +275,16 @@ MODULES="dump_svn incremental_backup backup_to_remote"
 本番環境で動作させる前にテスト実行してエビデンスを
 取得することができる。
 
- bin/runner.sh の引数には設定ファイル名を指定すること
+ bin/run の引数には設定ファイル名を指定すること
 ができる。
  以下のように test/test.conf を指定することで、本来
 とは異なるテスト用の設定で処理を実行できる。
-bin/runner.sh test/test.conf
+bin/run test/test.conf
 
  また --test が引数に指定されると test/test.conf が
 指定されたものと見なされ読み込まれる。
  test/test.conf はテスト実行時の設定ファイルである。
-bin/runner.sh --test
+bin/run --test
 
  設定ファイルで以下の通り記述することで rsync が実際
 には実行されずテスト実行される。
@@ -303,17 +302,17 @@ DRY_RUN=true
 ==========
 
 なぜモジュールを使うのか
- lib の下に機能毎にコードのかたまりを分割しており
+ lib/modules の下に機能毎にコードのかたまりを分割しており
 これをモジュールと呼称する。各コードを独立させる
 ことで、インストールするシステムや要件ごとに異なる
 動作をさせたり、必要な機能追加を最小限のコードで
 実現したりすることができる。
 
 モジュールの実装方法
- loader.sh によって順次呼び出される。
+ lib/load によって順次呼び出される。
 
 LOAD_MODULES_ALL=true のとき
- lib の下のモジュールがすべて読み込まれる。
+ lib/modules の下のモジュールがすべて読み込まれる。
 読み込まれる順序はファイル名によるので、先頭に
 番号を付与することで前後関係を明示できる。
 

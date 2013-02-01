@@ -1,4 +1,4 @@
-# lib/get_remote_dir.sh
+#!/bin/sh
 
 get_remote() {
     OPTS="-avz --delete -e ssh"

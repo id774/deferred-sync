@@ -1,3 +1,5 @@
+#!/bin/sh
+
 echo "- module get_resources loaded"
 uname -a
 uptime

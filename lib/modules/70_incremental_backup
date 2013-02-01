@@ -1,4 +1,4 @@
-# lib/incremental_backup.sh
+#!/bin/sh
 
 purge_expire_dir() {
     while [ $# -gt 0 ]

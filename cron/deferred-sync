@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test -x /opt/deferred-sync/bin/runner.sh && \
-  /opt/deferred-sync/bin/runner.sh
+test -x /opt/deferred-sync/bin/run && \
+  /opt/deferred-sync/bin/run
 
 exit 0

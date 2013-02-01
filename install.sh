@@ -2,7 +2,7 @@
 
 setup() {
     dir_name() { echo ${1%/*}; }
-    SCRIPT_HOME=$(cd $(dir_name $0) && pwd)/..
+    SCRIPT_HOME=$(cd $(dir_name $0) && pwd)
     EXECDIR=${0%/*}
 
     case $OSTYPE in

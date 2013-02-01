@@ -1,4 +1,4 @@
-# lib/dump_mysql.sh
+#!/bin/sh
 
 get_mysqldump() {
     echo "mysqldump $1"
