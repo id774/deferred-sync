@@ -179,7 +179,7 @@ SVN ダンプや MySQL ダンプを退避して世代管理
 
 [仕様]
 run_rsync 関数
-設定ファイルで定義された変数 BACKUPDIRS 
+設定ファイルで定義された変数 BACKUPDIRS
 に定義されたディレクトリ名を解釈し
 exec_rsync 関数に渡す。
 
@@ -197,7 +197,7 @@ EXPIREDAYS に定義された日数以上経過した
 ディレクトリを破棄する。
 
 例えばスクリプトの実行日が 2011/10/30 で
-EXPIREDAYS が 5 の場合 _backup_20111025 
+EXPIREDAYS が 5 の場合 _backup_20111025
 より古いディレクトリは破棄される。
 
 purge_expire_dir 関数
