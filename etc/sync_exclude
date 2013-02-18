@@ -4,6 +4,8 @@
 .cpan/
 .gem/
 .bundler/
+.zsh/
+.zsh_/
 .Trash/
 .mozilla/
 .thunderbird/
