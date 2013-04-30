@@ -21,6 +21,7 @@
 .adobe/
 .openoffice.org2/
 .config/chromium
+www/munin
 tmp/
 mnt/
 arc/
