@@ -34,20 +34,23 @@ deploy_to_target() {
     echo "Installing from $SCRIPT_HOME to $TARGET/"
     test -d $TARGET && $SUDO rm -rf $TARGET/
     test -d $TARGET || $SUDO mkdir -p $TARGET/
-    deploy bin config etc lib
+    deploy bin config lib
 }
 
 scheduling() {
     $SUDO cp $OPTIONS $SCRIPT_HOME/cron/deferred-sync \
       /etc/cron.daily/deferred-sync
-    $SUDO mkdir -p /etc/opt/deferred-sync
-    $SUDO cp $OPTIONS $SCRIPT_HOME/config/sync.conf \
-      /etc/opt/deferred-sync/sync.conf
-    $SUDO chown $OWNER /etc/opt/deferred-sync/sync.conf
-    $SUDO chmod 640 /etc/opt/deferred-sync/sync.conf
-    $SUDO rm $TARGET/config/sync.conf
+    test -d /etc/opt/deferred-sync || \
+      $SUDO mkdir -p /etc/opt/deferred-sync
+    $SUDO cp $OPTIONS $SCRIPT_HOME/config/*.conf \
+      /etc/opt/deferred-sync/
+    $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf
+    $SUDO chmod 640 /etc/opt/deferred-sync/*.conf
+    $SUDO rm $TARGET/config/*.conf
     $SUDO ln -s /etc/opt/deferred-sync/sync.conf \
       $TARGET/config/sync.conf
+    $SUDO ln -s /etc/opt/deferred-sync/exclude.conf \
+      $TARGET/config/exclude.conf
 }
 
 logrotate() {
