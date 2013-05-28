@@ -6,9 +6,9 @@ get_remote() {
         OPTS="$OPTS --dry-run"
     fi
     if [ -d $GET_TARGET_DIR ]; then
-        echo "rsync $OPTS root@$GET_HOST:$GET_REMOTE_DIR $GET_TARGET_DIR/$1"
+        echo "rsync $OPTS root@$1:$2 $GET_TARGET_DIR/$1"
         ping -c 1 $1 > /dev/null 2>&1 && \
-          rsync $OPTS root@$GET_HOST:$GET_REMOTE_DIR $GET_TARGET_DIR/$1
+          rsync $OPTS root@$1:$2 $GET_TARGET_DIR/$1
         echo "Return code is $?"
     fi
 }
@@ -18,7 +18,10 @@ get_remote_dir() {
     date "+%Y/%m/%d %T"
     for GET_HOST in $GET_HOSTS
     do
-        get_remote $GET_HOST
+        for GET_REMOTE_DIR in $GET_REMOTE_DIRS
+        do
+            get_remote $GET_HOST $GET_REMOTE_DIR
+        done
     done
     unset REMOTE_HOST
 }
