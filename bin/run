@@ -20,6 +20,7 @@ send_mail_to_admin() {
 deferred_sync() {
     echo -n "*** $0: Job start at `/bin/hostname` on ">>$JOBLOG 2>&1
     date "+%Y/%m/%d %T">>$JOBLOG 2>&1
+    . $STARTSCRIPT>>$JOBLOG 2>&1
     . $SCRIPT_HOME/lib/load>>$JOBLOG 2>&1
     . $ENDSCRIPT>>$JOBLOG 2>&1
     echo -n "*** $0: End of Job at `/bin/hostname` on ">>$JOBLOG 2>&1
