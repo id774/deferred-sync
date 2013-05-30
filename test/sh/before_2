@@ -6,13 +6,13 @@ echo "- startscript loaded"
 # テスト実行前の準備 #
 ######################
 # 古いログの削除
-#test -f $SCRIPT_HOME/test/test_2.log && \
-#  rm $SCRIPT_HOME/test/test_2.log
-#
+#test -f $SCRIPT_HOME/test/test_$TEST_CASE.log && \
+#  rm $SCRIPT_HOME/test/test_$TEST_CASE.log
+
 # 当日分のバックアップの削除
 test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
   rm -vrf $SCRIPT_HOME/test/backup/_backup_$DATE
-#
+
 # テスト実行日より 1 ～ 5 日前のバックアップを
 # 生成する。
 TEST_EXPIRE_1=`date +%Y%m%d -d "1 days ago"`
