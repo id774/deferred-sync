@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "- startscript loaded"
+
+######################
+# テスト実行前の準備 #
+######################
+# 古いログの削除
+#test -f $SCRIPT_HOME/test/test_1.log && \
+#  rm -v $SCRIPT_HOME/test/test_1.log
+#
+# 当日分のバックアップの削除
+test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
+  rm -vrf $SCRIPT_HOME/test/backup/_backup_$DATE
+
