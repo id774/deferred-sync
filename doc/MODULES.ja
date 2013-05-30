@@ -278,12 +278,14 @@ backup_to_remote とは反対に、リモートで稼動している
 
 GET_HOSTS はリモートホスト名を指定する。
 スペースで区切って複数指定することができる。
+GET_REMOTE_DIR はリモートホスト状の取得したい
+ディレクトリ名を指定する。これも複数指定可能である。
 GET_TARGET_DIR の下にホスト名ごとのディレクトリが
-作成されその下にバックアップされる。
+作成されその下にリモートホストのディレクトリが取得される。
 
 (例)
 GET_HOSTS="remote_server web_server 192.168.1.55
-GET_REMOTE_DIR="/home/backup"
+GET_REMOTE_DIRS="/home/backup"
 GET_TARGET_DIR="/home/remote
 
 
