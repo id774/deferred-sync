@@ -1,0 +1,33 @@
+#!/bin/sh
+
+echo "- startscript loaded"
+
+######################
+# テスト実行前の準備 #
+######################
+# 古いログの削除
+#test -f $SCRIPT_HOME/test/test_2.log && \
+#  rm $SCRIPT_HOME/test/test_2.log
+#
+# 当日分のバックアップの削除
+test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
+  rm -vrf $SCRIPT_HOME/test/backup/_backup_$DATE
+#
+# テスト実行日より 1 ～ 5 日前のバックアップを
+# 生成する。
+TEST_EXPIRE_1=`date +%Y%m%d -d "1 days ago"`
+TEST_EXPIRE_2=`date +%Y%m%d -d "2 days ago"`
+TEST_EXPIRE_3=`date +%Y%m%d -d "3 days ago"`
+TEST_EXPIRE_4=`date +%Y%m%d -d "4 days ago"`
+TEST_EXPIRE_5=`date +%Y%m%d -d "5 days ago"`
+mkdir -p $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_1
+mkdir -p $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_2
+mkdir -p $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_3
+mkdir -p $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_4
+mkdir -p $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_5
+rsync -avz $SCRIPT_HOME/test/svndump $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_1/
+rsync -avz $SCRIPT_HOME/test/svndump $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_2/
+rsync -avz $SCRIPT_HOME/test/svndump $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_3/
+rsync -avz $SCRIPT_HOME/test/svndump $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_4/
+rsync -avz $SCRIPT_HOME/test/svndump $SCRIPT_HOME/test/backup/_backup_$TEST_EXPIRE_5/
+
