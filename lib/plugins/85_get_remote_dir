@@ -26,5 +26,5 @@ get_remote_dir() {
     unset REMOTE_HOST
 }
 
-echo "- module get_remote_dir loaded"
+echo "- plugin get_remote_dir loaded"
 get_remote_dir

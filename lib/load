@@ -1,31 +1,31 @@
 #!/bin/sh
 
-load_module() {
+load_plugin() {
     while [ $# -gt 0 ]
     do
-        . $SCRIPT_HOME/lib/modules/*$1
+        . $SCRIPT_HOME/lib/plugins/*$1
         shift
     done
 }
 
-load_modules_by_config() {
-    load_module $MODULES
+load_plugins_by_config() {
+    load_plugin $PLUGINS
 }
 
-load_modules_all() {
-    for MODULE in $SCRIPT_HOME/lib/modules/*
+load_plugins_all() {
+    for PLUGIN in $SCRIPT_HOME/lib/plugins/*
     do
-        . $MODULE
+        . $PLUGIN
     done
-    unset MODULE
+    unset PLUGIN
 }
 
-load_modules() {
-    if [ $LOAD_MODULES_ALL = "true" ]; then
-        load_modules_all
+load_plugins() {
+    if [ $LOAD_PLUGINS_ALL = "true" ]; then
+        load_plugins_all
     else
-        load_modules_by_config
+        load_plugins_by_config
     fi
 }
 
-load_modules
+load_plugins

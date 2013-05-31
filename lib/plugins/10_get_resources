@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "- module get_resources loaded"
+echo "- plugin get_resources loaded"
 uname -a
 uptime
 free -t

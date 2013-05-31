@@ -51,5 +51,5 @@ run_rsync() {
     exec_rsync
 }
 
-echo "- module run_rsync loaded"
+echo "- plugin run_rsync loaded"
 run_rsync

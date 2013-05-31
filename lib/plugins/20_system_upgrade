@@ -26,5 +26,5 @@ system_upgrade() {
     ping -c 1 debian.org > /dev/null 2>&1 && upgrade_from_network
 }
 
-echo "- module system_upgrade loaded"
+echo "- plugin system_upgrade loaded"
 system_upgrade
