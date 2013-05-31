@@ -7,8 +7,8 @@ echo "- endscript loaded"
 ######################
 
 # バックアップを削除
-test -d $SCRIPT_HOME/test/backup/svndump && \
-  rm -vrf $SCRIPT_HOME/test/backup/svndump
+test -d $SCRIPT_HOME/test/backup && \
+  rm -vrf $SCRIPT_HOME/test/backup
 test -f $SCRIPT_HOME/test/svndump/test.zip && \
   rm -vrf $SCRIPT_HOME/test/svndump/test.zip
 
