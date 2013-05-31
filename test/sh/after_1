@@ -13,4 +13,6 @@ test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
 # バックアップを削除
 test -d $SCRIPT_HOME/test/backup/svndump && \
   rm -vrf $SCRIPT_HOME/test/backup/svndump
+test -f $SCRIPT_HOME/test/svndump/test.zip && \
+  rm -vrf $SCRIPT_HOME/test/svndump/test.zip
 
