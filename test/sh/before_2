@@ -13,6 +13,10 @@ echo "- startscript loaded"
 test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
   rm -vrf $SCRIPT_HOME/test/backup/_backup_$DATE
 
+# リモートから転送されてきたディレクトリを削除
+test -d $SCRIPT_HOME/test/remote/backup && \
+  rm -vrf $SCRIPT_HOME/test/remote/backup
+
 # テスト実行日より 1 ～ 5 日前のバックアップを
 # 生成する。
 TEST_EXPIRE_1=`date +%Y%m%d -d "1 days ago"`

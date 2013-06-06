@@ -13,3 +13,7 @@ echo "- startscript loaded"
 test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
   rm -rf $SCRIPT_HOME/test/backup/_backup_$DATE
 
+# リモートから転送されてきたディレクトリを削除
+test -d $SCRIPT_HOME/test/remote/backup && \
+  rm -vrf $SCRIPT_HOME/test/remote/backup
+
