@@ -3,7 +3,7 @@
 get_mongodbdump() {
     test -f $MONGODBDUMP/$1.zip && \
       rm $MONGODBDUMP/$1.zip
-    $MONGODUMP_BIN --out $MONGODBDUMP_PATH
+    $MONGODUMP_BIN --out $MONGODBDUMP_PATH \
       && zip -r $MONGODBDUMP/$1.zip $MONGODBDUMP_PATH/ \
       && rm -rf $MONGODBDUMP/
     echo "Return code is $?"
