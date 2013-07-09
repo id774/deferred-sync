@@ -19,8 +19,8 @@ test -d $SCRIPT_HOME/test/mongodbdump.zip && \
   rm -vrf $SCRIPT_HOME/test/mongodbdump
 
 # MongoDB Dump を削除
-test -d $SCRIPT_HOME/test/mongodump && \
-  rm -vrf $SCRIPT_HOME/test/mongodump
+test -d $SCRIPT_HOME/test/mongodbdump.zip && \
+  rm -vf $SCRIPT_HOME/test/mongodbdump.zip
 
 # リモートから転送されてきたディレクトリを削除
 test -d $SCRIPT_HOME/test/remote/backup && \
