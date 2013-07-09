@@ -17,3 +17,7 @@ test -d $SCRIPT_HOME/test/backup/_backup_$DATE && \
 test -d $SCRIPT_HOME/test/remote/backup && \
   rm -vrf $SCRIPT_HOME/test/remote/backup
 
+# MongoDB Dump を削除
+test -d $SCRIPT_HOME/test/mongodump && \
+  rm -vrf $SCRIPT_HOME/test/mongodump
+

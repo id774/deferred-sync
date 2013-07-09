@@ -5,7 +5,7 @@ get_mongodbdump() {
       rm $MONGODBDUMP/$1.zip
     $MONGODUMP_BIN --out $MONGODBDUMP_PATH \
       && zip -r $MONGODBDUMP/$1.zip $MONGODBDUMP_PATH/ \
-      && rm -rf $MONGODBDUMP/
+      && rm -rf $MONGODBDUMP_PATH/
     echo "Return code is $?"
 }
 
