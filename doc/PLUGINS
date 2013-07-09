@@ -153,10 +153,16 @@ get_mongodbdump 関数
 設定ファイルで定義された MONGODBDUMP_PATH のディレクトリ
 に MongoDB のすべてのデータをデータベースごとにダンプする。
 ダンプしたディレクトリを zip でアーカイブする。
+mongodump の実行ファイル名は MONGODUMP_BIN で決定する。
 zip アーカイブ名は MONGODBDUMP で決定する。
+利用する変数はいずれもフルパスである。
+特に実行ファイル名と zip アーカイブ名はそれらの保管される
+パスではなくファイル名そのものを指定する点に注意する。
 
 (例)
-MONGODBDUMP="/home/mongodbdump"
+MONGODUMP_BIN=/usr/bin/mongodump
+MONGODBDUMP_PATH=/home/backup/mongodump
+MONGODBDUMP=/home/backup/mongodump.zip
 
 
 * incremental_backup
