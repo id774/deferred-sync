@@ -1,10 +1,10 @@
 #!/bin/sh
 
 get_mongodbdump() {
-    test -f $MONGODBDUMP/$1.zip && \
-      rm $MONGODBDUMP/$1.zip
+    test -f $MONGODBDUMP && \
+      rm $MONGODBDUMP
     $MONGODUMP_BIN --out $MONGODBDUMP_PATH \
-      && zip -r $MONGODBDUMP/$1 $MONGODBDUMP_PATH/ \
+      && zip -r $MONGODBDUMP $MONGODBDUMP_PATH/ \
       && rm -rf $MONGODBDUMP_PATH/
     echo "Return code is $?"
 }
