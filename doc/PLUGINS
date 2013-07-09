@@ -134,6 +134,31 @@ MYSQL_USER 及び MYSQL_PASS に定義するユーザー名は
 バックアップのためのユーザーアカウントを指定する。
 
 
+* dump_mongodb
+MongoDB ダンプを取得する。
+
+[概要]
+MongoDB からフルバックアップを取得し
+ダンプを zip でアーカイブする。
+
+[実行条件]
+backup_to_remote と併用する場合はその実行前に
+本プラグインが呼ばれるようにする。
+
+[仕様]
+dump_mongodb 関数
+MongoDB のダンプを開始する。
+
+get_mongodbdump 関数
+設定ファイルで定義された MONGODBDUMP_PATH のディレクトリ
+に MongoDB のすべてのデータをデータベースごとにダンプする。
+ダンプしたディレクトリを zip でアーカイブする。
+zip アーカイブ名は MONGODBDUMP で決定する。
+
+(例)
+MONGODBDUMP="/home/mongodbdump"
+
+
 * incremental_backup
 世代バックアップを取得する。
 

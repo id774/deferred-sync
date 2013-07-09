@@ -1,0 +1,19 @@
+#!/bin/sh
+
+get_mongodbdump() {
+    test -f $MONGODBDUMP/$1.zip && \
+      rm $MONGODBDUMP/$1.zip
+    $MONGODUMP_BIN --out $MONGODBDUMP_PATH
+      && zip -r $MONGODBDUMP/$1.zip $MONGODBDUMP_PATH/ \
+      && rm -rf $MONGODBDUMP/
+    echo "Return code is $?"
+}
+
+dump_mongodb() {
+    echo -n "* Executing mongodbdump on "
+    date "+%Y/%m/%d %T"
+    get_mongodbdump
+}
+
+echo "- plugin dump_mongodb loaded"
+dump_mongodb
