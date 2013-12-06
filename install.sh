@@ -62,10 +62,20 @@ logrotate() {
     $SUDO chmod 640 /var/log/deferred-sync/sync.log
 }
 
+create_backupdir() {
+    test -d /home/backup || $SUDO mkdir /home/backup
+    $SUDO chown $OWNER /home/backup
+    $SUDO chmod 750 /home/backup
+    test -d /home/remote || $SUDO mkdir /home/remote
+    $SUDO chown $OWNER /home/remote
+    $SUDO chmod 750 /home/remote
+}
+
 setup_cron() {
     echo "Setting up for cron job"
     scheduling
     logrotate
+    create_backupdir
 }
 
 set_permission() {
