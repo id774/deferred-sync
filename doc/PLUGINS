@@ -26,6 +26,12 @@ Solaris 及び Mac OS X は対象外である。
 Linux ディストリビューションでしか動作しない。
 Solaris 及び Mac OS X は対象外である。
 
+yum で古いカーネルを自動削除するが、このとき残す
+カーネルの世代数は以下の変数で指定する。
+
+(例)
+OLDKERNELS_COUNT=2
+
 
 * ubuntu_kernel_upgrade
 Ubuntu のカーネルをアップグレードする。
