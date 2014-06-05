@@ -2,8 +2,13 @@
 
 echo "- plugin get_resources loaded"
 uname -a
+which lsb_release > /dev/null && lsb_release -a
 uptime
 free -t
 df -P -T
 which smartctl > /dev/null && test -b /dev/sda && smartctl -a /dev/sda
 which smartctl > /dev/null && test -b /dev/sdb && smartctl -a /dev/sdb
+which smartctl > /dev/null && test -b /dev/sdc && smartctl -a /dev/sdc
+which smartctl > /dev/null && test -b /dev/sdd && smartctl -a /dev/sdd
+which smartctl > /dev/null && test -b /dev/sde && smartctl -a /dev/sde
+which smartctl > /dev/null && test -b /dev/sdf && smartctl -a /dev/sdf
