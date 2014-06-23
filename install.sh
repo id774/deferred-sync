@@ -1,4 +1,15 @@
 #!/bin/sh
+#
+########################################################################
+# Install deferred-sync
+#  $1 = target path
+#  $2 = nosudo
+#
+#  Maintainer: id774 <idnanashi@gmail.com>
+#
+#  v1.0 6/23,2014
+#       Stable.
+########################################################################
 
 setup() {
     dir_name() { echo ${1%/*}; }
@@ -20,6 +31,7 @@ setup() {
     test -n "$1" || TARGET=/opt/deferred-sync
     test -n "$2" || SUDO=sudo
     test -n "$2" && SUDO=
+    test "$2" = "sudo" && SUDO=sudo
 }
 
 deploy() {
@@ -71,11 +83,17 @@ create_backupdir() {
     $SUDO chmod 750 /home/remote
 }
 
+restore_config_from_backup() {
+    test -f /home/backup/etc/opt/deferred-sync/sync.conf && \
+      $SUDO cp $OPTIONS /home/backup/etc/opt/deferred-sync/sync.conf /etc/opt/deferred-sync/sync.conf
+}
+
 setup_cron() {
     echo "Setting up for cron job"
     scheduling
     logrotate
     create_backupdir
+    restore_config_from_backup
 }
 
 set_permission() {
