@@ -23,5 +23,5 @@ backup_to_remote() {
     unset REMOTE_HOST
 }
 
-echo "- plugin backup_to_remote loaded"
+echo "- [info] backup_to_remote has been loaded"
 backup_to_remote

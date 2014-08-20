@@ -26,5 +26,5 @@ system_upgrade() {
       ubuntu_kernel_upgrade
 }
 
-echo "- plugin ubuntu_kernel_upgrade loaded"
+echo "- [info] ubuntu_kernel_upgrade has been loaded"
 system_upgrade

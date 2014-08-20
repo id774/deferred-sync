@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "- plugin get_resources loaded"
+echo "- [info] get_resources has been loaded"
 uname -a
 which lsb_release > /dev/null && lsb_release -a
 uptime

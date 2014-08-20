@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "- endscript loaded"
+echo "- [info] endscript has been loaded"
 
 ######################
 # テスト実行後の処理 #

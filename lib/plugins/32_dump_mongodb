@@ -15,5 +15,5 @@ dump_mongodb() {
     get_mongodbdump
 }
 
-echo "- plugin dump_mongodb loaded"
+echo "- [info] dump_mongodb has been loaded"
 dump_mongodb

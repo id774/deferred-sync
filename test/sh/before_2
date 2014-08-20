@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "- startscript loaded"
+echo "- [info] startscript has been loaded"
 
 ######################
 # テスト実行前の準備 #

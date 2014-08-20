@@ -20,5 +20,5 @@ dump_svn() {
     unset SVN_REPO
 }
 
-echo "- plugin dump_svn loaded"
+echo "- [info] dump_svn has been loaded"
 dump_svn
