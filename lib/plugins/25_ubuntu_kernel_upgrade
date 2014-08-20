@@ -26,5 +26,6 @@ system_upgrade() {
       ubuntu_kernel_upgrade
 }
 
-echo "- [info] ubuntu_kernel_upgrade has been loaded"
+echo -n "- [info] ubuntu_kernel_upgrade has been loaded at "
+date "+%Y/%m/%d %T"
 system_upgrade

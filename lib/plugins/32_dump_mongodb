@@ -15,5 +15,6 @@ dump_mongodb() {
     get_mongodbdump
 }
 
-echo "- [info] dump_mongodb has been loaded"
+echo -n "- [info] dump_mongodb has been loaded at "
+date "+%Y/%m/%d %T"
 dump_mongodb

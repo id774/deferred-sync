@@ -1,6 +1,7 @@
 #!/bin/sh
 
-echo "- [info] startscript has been loaded"
+echo -n "- [info] startscript has been loaded at "
+date "+%Y/%m/%d %T"
 
 ######################
 # テスト実行前の準備 #

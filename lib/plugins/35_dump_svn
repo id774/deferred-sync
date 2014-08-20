@@ -20,5 +20,6 @@ dump_svn() {
     unset SVN_REPO
 }
 
-echo "- [info] dump_svn has been loaded"
+echo -n "- [info] dump_svn has been loaded at "
+date "+%Y/%m/%d %T"
 dump_svn

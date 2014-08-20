@@ -26,5 +26,6 @@ system_upgrade() {
     ping -c 1 debian.org > /dev/null 2>&1 && upgrade_from_network
 }
 
-echo "- [info] system_upgrade has been loaded"
+echo -n "- [info] system_upgrade has been loaded at "
+date "+%Y/%m/%d %T"
 system_upgrade

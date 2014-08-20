@@ -15,7 +15,7 @@ purge_expire_dir() {
 }
 
 purge_expires() {
-    echo -n "* Deleting old backup directories on "
+    echo -n "* Deleting old backup directories at "
     date "+%Y/%m/%d %T"
     purge_expire_dir `ls $BACKUPTO | grep "_backup_"`
 }
@@ -46,10 +46,11 @@ exec_rsync() {
 run_rsync() {
     purge_expires
     rsync_options
-    echo -n "* Executing backup with rsync on "
+    echo -n "* Executing backup with rsync at "
     date "+%Y/%m/%d %T"
     exec_rsync
 }
 
-echo "- [info] run_rsync has been loaded"
+echo -n "- [info] run_rsync has been loaded at "
+date "+%Y/%m/%d %T"
 run_rsync

@@ -1,3 +1,4 @@
 #!/bin/sh
 
-echo "- [info] endscript has been loaded"
+echo -n "- [info] endscript has been loaded at "
+date "+%Y/%m/%d %T"

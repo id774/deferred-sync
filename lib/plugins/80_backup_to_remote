@@ -14,7 +14,7 @@ mirror_to_remote() {
 }
 
 backup_to_remote() {
-    echo -n "* Executing backup to remote on "
+    echo -n "* Executing backup to remote at "
     date "+%Y/%m/%d %T"
     for REMOTE_HOST in $REMOTE_HOSTS
     do
@@ -23,5 +23,6 @@ backup_to_remote() {
     unset REMOTE_HOST
 }
 
-echo "- [info] backup_to_remote has been loaded"
+echo -n "- [info] backup_to_remote has been loaded at "
+date "+%Y/%m/%d %T"
 backup_to_remote

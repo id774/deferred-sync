@@ -21,5 +21,6 @@ dump_mysql() {
     unset MYSQL_DB
 }
 
-echo "- [info] dump_mysql has been loaded"
+echo -n "- [info] dump_mysql has been loaded at "
+date "+%Y/%m/%d %T"
 dump_mysql

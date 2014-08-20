@@ -14,7 +14,7 @@ get_remote() {
 }
 
 get_remote_dir() {
-    echo -n "* Executing get remote dir on "
+    echo -n "* Executing get remote dir at "
     date "+%Y/%m/%d %T"
     for GET_HOST in $GET_HOSTS
     do
@@ -26,5 +26,6 @@ get_remote_dir() {
     unset REMOTE_HOST
 }
 
-echo "- [info] get_remote_dir has been loaded"
+echo -n "- [info] get_remote_dir has been loaded at "
+date "+%Y/%m/%d %T"
 get_remote_dir
