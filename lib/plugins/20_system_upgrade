@@ -9,7 +9,7 @@ update_debian_or_ubuntu() {
 }
 
 update_redhat_or_centos() {
-    yum -y --exclude subversion update && \
+    yum -y update && \
       yum clean all
     echo "Return code is $?"
     package-cleanup -y --oldkernels --count $OLDKERNELS_COUNT
