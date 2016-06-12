@@ -86,6 +86,8 @@ create_backupdir() {
 restore_config_from_backup() {
     test -f /home/backup/etc/opt/deferred-sync/sync.conf && \
       $SUDO cp $OPTIONS /home/backup/etc/opt/deferred-sync/sync.conf /etc/opt/deferred-sync/sync.conf
+    test -f /home/backup/etc/opt/deferred-sync/exclude.conf && \
+      $SUDO cp $OPTIONS /home/backup/etc/opt/deferred-sync/exclude.conf /etc/opt/deferred-sync/exclude.conf
 }
 
 setup_cron() {
