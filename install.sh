@@ -7,6 +7,8 @@
 #
 #  Maintainer: id774 <idnanashi@gmail.com>
 #
+#  v1.1 6/13,2016
+#       Remove obsolete, restore exclude.conf from backup.
 #  v1.0 6/23,2014
 #       Stable.
 ########################################################################
@@ -47,6 +49,11 @@ deploy_to_target() {
     test -d $TARGET && $SUDO rm -rf $TARGET/
     test -d $TARGET || $SUDO mkdir -p $TARGET/
     deploy bin config lib
+    remove_obsolete $TARGET/lib/plugins/11_show_version
+}
+
+remove_obsolete() {
+    test -f $1 && $SUDO rm -vf $1
 }
 
 scheduling() {
