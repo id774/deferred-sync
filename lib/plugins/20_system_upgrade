@@ -1,6 +1,7 @@
 #!/bin/sh
 
 update_debian_or_ubuntu() {
+    test -f /etc/apt/sources.list && cat /etc/apt/sources.list
     apt-get update && \
       apt-get -y upgrade && \
       apt-get autoclean && \
@@ -9,6 +10,7 @@ update_debian_or_ubuntu() {
 }
 
 update_redhat_or_centos() {
+    test -f /etc/yum.conf && cat /etc/yum.conf
     yum -y update && \
       yum clean all
     echo "Return code is $?"
