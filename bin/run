@@ -1,7 +1,8 @@
 #!/bin/sh
 
 setup() {
-    LC_CTYPE=ja_JP.UTF-8
+    LANG=en_US
+    LC_CTYPE=en_US
     test -n "$1" || CONFIG=config/sync.conf
     test -n "$1" && CONFIG=$1
     test "$1" = "--test" && CONFIG=test/test.conf
