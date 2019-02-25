@@ -10,9 +10,13 @@ get_mongodbdump() {
 }
 
 dump_mongodb() {
+    LANG=ja_JP.UTF-8
+    LC_ALL=ja_JP.UTF-8
     echo -n "* Executing mongodbdump on "
     date "+%Y/%m/%d %T"
     get_mongodbdump
+    LANG=C
+    LC_ALL=C
 }
 
 echo -n "- [info] dump_mongodb has been loaded at "
