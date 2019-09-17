@@ -4,6 +4,7 @@ echo -n "- [info] get_resources has been loaded at "
 date "+%Y/%m/%d %T"
 uname -a
 which lsb_release > /dev/null && lsb_release -a
+test -f /etc/debian_version && cat /etc/debian_version
 uptime
 free -t
 df -P -T
