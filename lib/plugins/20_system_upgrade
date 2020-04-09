@@ -26,6 +26,7 @@ upgrade_from_network() {
 
 system_upgrade() {
     ping -c 1 debian.org > /dev/null 2>&1 && upgrade_from_network
+    echo "Return code is $?"
 }
 
 echo -n "- [info] system_upgrade has been loaded at "
