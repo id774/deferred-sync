@@ -15,7 +15,6 @@ ubuntu_kernel_upgrade() {
       apt-get -y install linux-image-$UBUNTU_ARCHITECTURE \
       linux-headers-$UBUNTU_ARCHITECTURE \
       linux-$UBUNTU_ARCHITECTURE
-    echo "Return code is $?"
 }
 
 system_upgrade() {
@@ -24,6 +23,7 @@ system_upgrade() {
       test -f /etc/debian_version && \
       test -f /etc/lsb-release && \
       ubuntu_kernel_upgrade
+    echo "Return code is $?"
 }
 
 echo -n "- [info] ubuntu_kernel_upgrade has been loaded at "
