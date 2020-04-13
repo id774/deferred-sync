@@ -18,10 +18,16 @@ update_redhat_or_centos() {
     echo "Return code is $?"
 }
 
+freshclam_manually(){
+    systemctl stop clamav-freshclam.service
+    freshclam
+    systemctl start clamav-freshclam.service
+}
+
 upgrade_from_network() {
     test -f /etc/debian_version && update_debian_or_ubuntu
     test -f /etc/redhat-release && update_redhat_or_centos
-    which freshclam > /dev/null 2>&1 && freshclam
+    which freshclam > /dev/null 2>&1 && freshclam_manually
 }
 
 system_upgrade() {
