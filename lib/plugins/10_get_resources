@@ -5,10 +5,10 @@ date "+%Y/%m/%d %T"
 uname -a
 which lsb_release > /dev/null && lsb_release -a
 test -f /etc/debian_version && cat /etc/debian_version
-which dmidecode > /dev/null && dmidecode --type system
 uptime
 free -t
 df -P -T
+which dmidecode > /dev/null && dmidecode --type system
 which smartctl > /dev/null && test -b /dev/sda && smartctl -a /dev/sda
 which smartctl > /dev/null && test -b /dev/sdb && smartctl -a /dev/sdb
 which smartctl > /dev/null && test -b /dev/sdc && smartctl -a /dev/sdc
