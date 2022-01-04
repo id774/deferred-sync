@@ -3,7 +3,7 @@
 echo -n "- [info] get_hardware_info has been loaded at "
 date "+%Y/%m/%d %T"
 which dmidecode > /dev/null && /usr/sbin/dmidecode --type system
-which acpi > /dev/null && acpi -bi
+which acpi > /dev/null && acpi -abi
 which smartctl > /dev/null && test -b /dev/sda && smartctl -a /dev/sda
 which smartctl > /dev/null && test -b /dev/sdb && smartctl -a /dev/sdb
 which smartctl > /dev/null && test -b /dev/sdc && smartctl -a /dev/sdc
