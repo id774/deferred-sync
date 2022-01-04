@@ -8,10 +8,3 @@ test -f /etc/debian_version && cat /etc/debian_version
 uptime
 free -t
 df -P -T
-test -x /usr/sbin/dmidecode && /usr/sbin/dmidecode --type system
-which smartctl > /dev/null && test -b /dev/sda && smartctl -a /dev/sda
-which smartctl > /dev/null && test -b /dev/sdb && smartctl -a /dev/sdb
-which smartctl > /dev/null && test -b /dev/sdc && smartctl -a /dev/sdc
-which smartctl > /dev/null && test -b /dev/sdd && smartctl -a /dev/sdd
-which smartctl > /dev/null && test -b /dev/sde && smartctl -a /dev/sde
-which smartctl > /dev/null && test -b /dev/sdf && smartctl -a /dev/sdf
