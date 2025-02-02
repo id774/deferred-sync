@@ -48,7 +48,7 @@ deploy_to_target() {
     echo "Installing from $SCRIPT_HOME to $TARGET/"
     test -d $TARGET && $SUDO rm -rf $TARGET/
     test -d $TARGET || $SUDO mkdir -p $TARGET/
-    deploy bin config lib
+    deploy exec config lib
     remove_obsolete $TARGET/lib/plugins/11_show_version
 }
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test -x /opt/deferred-sync/bin/deferred-sync && \
-  /opt/deferred-sync/bin/deferred-sync
+test -x /opt/deferred-sync/exec/deferred-sync && \
+  /opt/deferred-sync/exec/deferred-sync
 
 exit 0

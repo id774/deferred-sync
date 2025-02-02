@@ -4,7 +4,7 @@ deferred-sync
  deferred-sync - 遅延した同期をおこないファイルを保護する
 
 書式
- bin/run
+ exec/deferred-sync
 
 説明
  GNU/Linux を利用していて、ファイルに非可逆な変更を加えた
@@ -44,7 +44,7 @@ rsync (及び ssh) に依存する。
 主なディレクトリとファイルの構成は以下の通りである。
 .
 |
-+-bin
++-exec
 |   deferred-sync
 |     実行ファイル
 |     設定ファイルを読み込み lib/load を動作させ
@@ -111,7 +111,7 @@ rsync (及び ssh) に依存する。
 運用例
 ======
 
- cron から deferred-sync/bin/ を定期的に
+ cron から deferred-sync/exec/ を定期的に
 実行するように設定する。これにより保護対象のファイル
 及びディレクトリが自動的に一箇所に集められる。
 
@@ -271,14 +271,14 @@ backup_to_remote
 
  test.sh を実行すると付属するテストをすべて実行する。
 
- bin/deferred-sync の引数には設定ファイル名を指定することができる。
+ exec/deferred-sync の引数には設定ファイル名を指定することができる。
 たとえば以下のように test/test.conf を指定することで
 テスト用の設定で処理を実行できる。
 
-$ bin/deferred-sync test/test.conf
+$ exec/deferred-sync test/test.conf
 
  また --test が引数に指定されると test/test.conf が
 指定されたものと見なされる。
-$ bin/deferred-sync --test
+$ exec/deferred-sync --test
 
 
