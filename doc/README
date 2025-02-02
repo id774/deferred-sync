@@ -45,7 +45,7 @@ rsync (及び ssh) に依存する。
 .
 |
 +-bin
-|   run
+|   deferred-sync
 |     実行ファイル
 |     設定ファイルを読み込み lib/load を動作させ
 |     その標準出力及びエラー出力をロギングする
@@ -111,7 +111,7 @@ rsync (及び ssh) に依存する。
 運用例
 ======
 
- cron から deferred-sync/bin/run を定期的に
+ cron から deferred-sync/bin/ を定期的に
 実行するように設定する。これにより保護対象のファイル
 及びディレクトリが自動的に一箇所に集められる。
 
@@ -271,14 +271,14 @@ backup_to_remote
 
  test.sh を実行すると付属するテストをすべて実行する。
 
- bin/run の引数には設定ファイル名を指定することができる。
+ bin/deferred-sync の引数には設定ファイル名を指定することができる。
 たとえば以下のように test/test.conf を指定することで
 テスト用の設定で処理を実行できる。
 
-$ bin/run test/test.conf
+$ bin/deferred-sync test/test.conf
 
  また --test が引数に指定されると test/test.conf が
 指定されたものと見なされる。
-$ bin/run --test
+$ bin/deferred-sync --test
 
 
