@@ -1,0 +1,37 @@
+#!/bin/sh
+# 31_dump_postgresql - A script to dump individual PostgreSQL databases and compress them.
+#
+# Required environment variables:
+#   PGDUMP   : Directory where the dump files (SQL and compressed files) will be stored.
+#              Example: /var/lib/postgresql/pg_dump
+#   PG_DBS   : List of target PostgreSQL database names (space-separated).
+#              Example: "postgres template1 mydb1 mydb2"
+#   PG_USER  : PostgreSQL username.
+#              Example: postgres
+#   PG_PASS  : PostgreSQL password (will be used via the PGPASSWORD environment variable).
+#              Example: your_password_here
+
+get_pg_dump() {
+    echo "pg_dump $1"
+    # Remove existing compressed file if it exists
+    test -f $PGDUMP/$1.zip && rm $PGDUMP/$1.zip
+    # Set PGPASSWORD temporarily and perform the dump with cleaning options, then compress the output
+    PGPASSWORD=$PG_PASS pg_dump --clean --if-exists -U $PG_USER $1 > $PGDUMP/$1.sql \
+      && gzip -f $PGDUMP/$1.sql
+    echo "Return code is $?"
+}
+
+dump_postgresql() {
+    echo -n "* Executing pg_dump on "
+    date "+%Y/%m/%d %T"
+    for PG_DB in $PG_DBS
+    do
+        get_pg_dump $PG_DB
+    done
+    unset PG_DB
+}
+
+echo -n "- [info] dump_postgresql has been loaded at "
+date "+%Y/%m/%d %T"
+dump_postgresql
+
