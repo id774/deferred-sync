@@ -1,28 +1,52 @@
 #!/bin/sh
+#
+# 80_backup_to_remote - A script to sync local backups to remote servers using rsync.
+#
+# Required environment variables:
+#   BACKUPTO     : Local backup directory.
+#                  Example: /var/backups
+#   BACKUPUSER   : Username for remote SSH login.
+#                  Example: backupuser
+#   REMOTE_HOSTS : List of remote servers (space-separated).
+#                  Example: "server1.example.com server2.example.com"
+#   REMOTE_DIR   : Target directory on remote servers.
+#                  Example: /remote/backup
+#   DRY_RUN      : If set to "true", rsync runs in dry-run mode.
+#
+# Note:
+#   - This script assumes that SSH authentication is configured via SSH keys.
 
 mirror_to_remote() {
     OPTS="-avz --delete -e ssh"
-    if [ "$DRY_RUN" = "true" ]; then
-        OPTS="$OPTS --dry-run"
-    fi
-    if [ -d $BACKUPTO ]; then
-        echo "rsync $OPTS $BACKUPTO $BACKUPUSER@$1:$2"
-        ping -c 1 $1 > /dev/null 2>&1 && \
-          rsync $OPTS $BACKUPTO $BACKUPUSER@$1:$2
-        echo "Return code is $?"
+
+    [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
+
+    if [ -d "$BACKUPTO" ]; then
+        printf "rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
+
+        if ping -c 1 "$1" > /dev/null 2>&1; then
+            rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
+        else
+            printf "Skipping backup to %s: Host unreachable\n" "$1"
+        fi
+
+        RC=$?
+        echo "Return code is $RC"
+    else
+        printf "Backup directory %s does not exist. Skipping.\n" "$BACKUPTO"
     fi
 }
 
 backup_to_remote() {
-    echo -n "* Executing backup to remote at "
+    printf "* Executing backup to remote at "
     date "+%Y/%m/%d %T"
-    for REMOTE_HOST in $REMOTE_HOSTS
-    do
-        mirror_to_remote $REMOTE_HOST $REMOTE_DIR
+
+    for REMOTE_HOST in $REMOTE_HOSTS; do
+        mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR"
     done
-    unset REMOTE_HOST
 }
 
-echo -n "- [info] backup_to_remote has been loaded at "
+printf "- [info] backup_to_remote has been loaded at "
 date "+%Y/%m/%d %T"
+
 backup_to_remote
