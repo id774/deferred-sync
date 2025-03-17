@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ########################################################################
-# install_deferred_sync.sh: Install deferred-sync
+# install.sh: Install deferred-sync
 #
 #  Description:
 #  This script installs deferred-sync to the target path and sets up
@@ -15,25 +15,33 @@
 #
 #  Version History:
 #  v1.2 2025-03-17
-#       - Standardized documentation format
-#       - Added check_system, check_commands, and check_sudo functions
-#       - Renamed setup() to set_environment() for clarity
+#       Standardized documentation format
+#       Added check_commands, and check_sudo functions
+#       Renamed setup() to set_environment() for clarity
 #  v1.1 2016-06-13
-#       - Remove obsolete, restore exclude.conf from backup.
+#       Remove obsolete, restore exclude.conf from backup.
 #  v1.0 2014-06-23
-#       - Stable.
+#       Stable.
 #
 #  Usage:
-#  ./install_deferred_sync.sh [target_path] [nosudo]
+#  ./install.sh [target_path] [nosudo]
 #
 ########################################################################
 
-# Function to check if the system is Linux
-check_system() {
-    if [ "$(uname -s)" != "Linux" ]; then
-        echo "Error: This script is intended for Linux systems only." >&2
-        exit 1
-    fi
+# Display help message
+show_help() {
+    cat <<EOF
+Usage: $(basename "$0") [target_path] [nosudo]
+
+Options:
+  -h, --help    Show this help message and exit.
+
+Description:
+  This script installs deferred-sync to the target path and sets up
+  necessary configurations including cron jobs, log rotation, and
+  permissions.
+EOF
+    exit 0
 }
 
 # Function to check required commands
@@ -57,15 +65,14 @@ check_sudo() {
     fi
 }
 
-# Function to extract directory name from a given path
-dir_name() {
-    echo "${1%/*}"
-}
-
 # Function to set environment variables
 set_environment() {
-    SCRIPT_HOME=$(cd "$(dir_name "$0")" && pwd)
-    EXECDIR="${0%/*}"
+    export SCRIPT_HOME=$(dirname "$(realpath "$0" 2>/dev/null || readlink -f "$0")")
+
+    if [ ! -d "$SCRIPT_HOME/lib/plugins" ]; then
+        echo "Error: $SCRIPT_HOME/lib/plugins directory does not exist." >&2
+        exit 1
+    fi
 
     case $OSTYPE in
         *darwin*)
@@ -84,13 +91,19 @@ set_environment() {
         TARGET=/opt/deferred-sync
     fi
 
-    if [ -z "$2" ]; then
-        SUDO=sudo
-    elif [ "$2" = "sudo" ]; then
-        SUDO=sudo
+    if [ -n "$2" ]; then
+        SUDO=""
     else
-        SUDO=
+        SUDO="sudo"
     fi
+    echo "Using sudo: ${SUDO:-no}"
+
+    if [ "$SUDO" = "sudo" ]; then
+        check_sudo
+    else
+        OWNER="$(id -un):$(id -gn)"
+    fi
+    echo "Copy options: $OPTIONS, Owner: $OWNER"
 }
 
 deploy() {
@@ -164,9 +177,7 @@ set_permission() {
 }
 
 installer() {
-    check_system
-    check_commands
-    check_sudo
+    check_commands cp mkdir chmod chown ln id dirname
     set_environment "$@"
     deploy_to_target
     [ -n "$1" ] || setup_cron
@@ -175,6 +186,16 @@ installer() {
 
 # Main function to execute the script
 main() {
+    # Parse command-line arguments
+    for arg in "$@"; do
+        case "$arg" in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+        esac
+    done
+
     installer "$@"
 }
 
