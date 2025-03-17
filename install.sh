@@ -26,6 +26,10 @@
 #  Usage:
 #  ./install.sh [target_path] [nosudo]
 #
+#  Notes:
+#  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
+#  - [nosudo]: If specified, the script runs without sudo.
+#
 ########################################################################
 
 # Display help message
@@ -41,7 +45,6 @@ Description:
   necessary configurations including cron jobs, log rotation, and
   permissions.
 EOF
-    exit 0
 }
 
 # Function to check required commands
