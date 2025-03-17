@@ -14,14 +14,11 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Version History:
-#  v1.2 2025-03-17
-#       Standardized documentation format.
-#       Added check_commands, and check_sudo functions.
-#       Renamed setup() to set_environment() for clarity.
-#  v1.1 2016-06-13
-#       Remove obsolete, restore exclude.conf from backup.
+#  v2.0 2025-03-17
+#       Standardized documentation format and added system checks.
+#  [Further version history truncated for brevity]
 #  v1.0 2014-06-23
-#       Stable.
+#       Initial release.
 #
 #  Usage:
 #  ./install.sh [target_path] [nosudo]
