@@ -166,11 +166,13 @@ restore_config_from_backup() {
 }
 
 setup_cron() {
-    echo "Setting up for cron job"
-    scheduling
-    logrotate
-    create_backupdir
-    restore_config_from_backup
+    if [ "$(uname -s)" = "Linux" ]; then
+        echo "Setting up for cron job"
+        scheduling
+        logrotate
+        create_backupdir
+        restore_config_from_backup
+    fi
 }
 
 set_permission() {
@@ -178,7 +180,7 @@ set_permission() {
 }
 
 installer() {
-    check_commands cp mkdir chmod chown ln rm id dirname
+    check_commands cp mkdir chmod chown ln rm id dirname uname
     set_environment "$@"
     deploy_to_target
     [ -n "$1" ] || setup_cron
