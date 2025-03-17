@@ -1,9 +1,10 @@
 #!/bin/sh
 
 load_plugin() {
-    while [ $# -gt 0 ]
-    do
-        . $SCRIPT_HOME/lib/plugins/*$1
+    while [ "$#" -gt 0 ]; do
+        for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
+            [ -r "$PLUGIN" ] && . "$PLUGIN"
+        done
         shift
     done
 }
@@ -13,15 +14,13 @@ load_plugins_by_config() {
 }
 
 load_plugins_all() {
-    for PLUGIN in $SCRIPT_HOME/lib/plugins/*
-    do
-        . $PLUGIN
+    for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
+        [ -r "$PLUGIN" ] && . "$PLUGIN"
     done
-    unset PLUGIN
 }
 
 load_plugins() {
-    if [ $LOAD_PLUGINS_ALL = "true" ]; then
+    if [ "$LOAD_PLUGINS_ALL" = "true" ]; then
         load_plugins_all
     else
         load_plugins_by_config
