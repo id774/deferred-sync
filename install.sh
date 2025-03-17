@@ -136,8 +136,8 @@ scheduling() {
     $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf
     $SUDO chmod 640 /etc/opt/deferred-sync/*.conf
     $SUDO rm "$TARGET/config/"*.conf
-    ln -s /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"
-    ln -s /etc/opt/deferred-sync/exclude.conf "$TARGET/config/exclude.conf"
+    $SUDO ln -snf /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"
+    $SUDO ln -snf /etc/opt/deferred-sync/exclude.conf "$TARGET/config/exclude.conf"
 }
 
 logrotate() {
