@@ -1,25 +1,44 @@
 #!/bin/sh
+#
+# 30_dump_mysql - A script to dump MySQL databases and compress the dump.
+#
+# Required environment variables:
+#   MYSQLDUMP  : Directory where the dump files (SQL and compressed files) will be stored.
+#                Example: /var/lib/mysql/mysql_dump
+#   MYSQL_USER : MySQL username.
+#                Example: root
+#   MYSQL_PASS : MySQL password.
+#   MYSQL_DBS  : List of databases to back up (space-separated).
+#                Example: "db1 db2 db3"
+#
+# Note:
+#   - This script assumes that authentication is handled via the MySQL password environment variable.
 
 get_mysqldump() {
-    echo "mysqldump $1"
-    test -f $MYSQLDUMP/$1.zip && \
-      rm $MYSQLDUMP/$1.zip
-    mysqldump --add-drop-table --add-locks --password=$3 -u $2 \
-      $1 > $MYSQLDUMP/$1.sql \
-      && gzip -f $MYSQLDUMP/$1.sql
-    echo "Return code is $?"
+    printf "mysqldump %s\n" "$1"
+
+    # Remove existing compressed dump if it exists
+    [ -f "$MYSQLDUMP/$1.zip" ] && rm "$MYSQLDUMP/$1.zip"
+
+    # Perform the dump and compress the output
+    mysqldump --add-drop-table --add-locks --password="$3" -u "$2" \
+      "$1" > "$MYSQLDUMP/$1.sql" \
+      && gzip -f "$MYSQLDUMP/$1.sql"
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
 dump_mysql() {
-    echo -n "* Executing mysqldump on "
+    printf "* Executing mysqldump on "
     date "+%Y/%m/%d %T"
-    for MYSQL_DB in $MYSQL_DBS
-    do
-        get_mysqldump $MYSQL_DB $MYSQL_USER $MYSQL_PASS
+
+    for MYSQL_DB in $MYSQL_DBS; do
+        get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS"
     done
-    unset MYSQL_DB
 }
 
-echo -n "- [info] dump_mysql has been loaded at "
+printf "- [info] dump_mysql has been loaded at "
 date "+%Y/%m/%d %T"
+
 dump_mysql
