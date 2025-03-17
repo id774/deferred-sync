@@ -1,24 +1,41 @@
 #!/bin/sh
+#
+# 32_dump_mongodb - A script to dump MongoDB databases and compress the dump.
+#
+# Required environment variables:
+#   MONGODBDUMP       : Path to the final compressed dump file.
+#                       Example: /var/lib/mongodb/mongodb_dump.zip
+#   MONGODBDUMP_PATH  : Temporary directory for MongoDB dump.
+#                       Example: /var/lib/mongodb/mongodb_dump
+#   MONGODUMP_BIN     : Path to the `mongodump` binary.
+#                       Example: /usr/bin/mongodump
+#
+# Note:
+#   - This script assumes that MongoDB authentication is handled via configuration.
 
 get_mongodbdump() {
-    test -f $MONGODBDUMP && \
-      rm $MONGODBDUMP
-    $MONGODUMP_BIN --out $MONGODBDUMP_PATH \
-      && zip -r $MONGODBDUMP $MONGODBDUMP_PATH/ \
-      && rm -rf $MONGODBDUMP_PATH/
-    echo "Return code is $?"
+    # Remove existing compressed dump if it exists
+    [ -f "$MONGODBDUMP" ] && rm "$MONGODBDUMP"
+
+    # Perform the dump and compress the output
+    "$MONGODUMP_BIN" --out "$MONGODBDUMP_PATH" \
+      && zip -r "$MONGODBDUMP" "$MONGODBDUMP_PATH/" \
+      && rm -rf "$MONGODBDUMP_PATH/"
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
 dump_mongodb() {
-    LANG=ja_JP.UTF-8
-    LC_ALL=ja_JP.UTF-8
-    echo -n "* Executing mongodbdump on "
-    date "+%Y/%m/%d %T"
-    get_mongodbdump
     LANG=C
     LC_ALL=C
+    printf "* Executing mongodbdump on "
+    date "+%Y/%m/%d %T"
+
+    get_mongodbdump
 }
 
-echo -n "- [info] dump_mongodb has been loaded at "
+printf "- [info] dump_mongodb has been loaded at "
 date "+%Y/%m/%d %T"
+
 dump_mongodb
