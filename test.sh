@@ -1,7 +1,7 @@
 #!/bin/sh
 
 run() {
-    bin/run test/$1.conf
+    bin/exec test/$1.conf
     cat test/$1.log
     rm test/$1.log
 

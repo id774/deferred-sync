@@ -9,15 +9,15 @@
 #  permissions.
 #
 #  Author: id774 (More info: http://id774.net)
-#  Source Code: https://github.com/id774/scripts
+#  Source Code: https://github.com/id774/deferred-sync
 #  License: LGPLv3 (Details: https://www.gnu.org/licenses/lgpl-3.0.html)
 #  Contact: idnanashi@gmail.com
 #
 #  Version History:
 #  v1.2 2025-03-17
-#       Standardized documentation format
-#       Added check_commands, and check_sudo functions
-#       Renamed setup() to set_environment() for clarity
+#       Standardized documentation format.
+#       Added check_commands, and check_sudo functions.
+#       Renamed setup() to set_environment() for clarity.
 #  v1.1 2016-06-13
 #       Remove obsolete, restore exclude.conf from backup.
 #  v1.0 2014-06-23
