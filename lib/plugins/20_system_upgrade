@@ -1,21 +1,40 @@
 #!/bin/sh
+#
+# 20_system_upgrade - A script to upgrade the system packages based on the detected OS.
+#
+# Supported systems:
+#   - Debian/Ubuntu (via apt-get)
+#   - RedHat/CentOS (via yum)
+#
+# Required environment variables:
+#   OLDKERNELS_COUNT : Number of old kernels to keep (for RHEL/CentOS).
+#                      Example: 2
+#
+# Note:
+#   - This script assumes that the system is connected to the internet and package managers are configured correctly.
 
 update_debian_or_ubuntu() {
-    test -f /etc/apt/sources.list && cat /etc/apt/sources.list
+    [ -f /etc/apt/sources.list ] && cat /etc/apt/sources.list
+
     apt-get update && \
       apt-get -y upgrade && \
       apt-get autoclean && \
       apt-get -y autoremove
-    echo "Return code is $?"
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
 update_redhat_or_centos() {
-    test -f /etc/yum.conf && cat /etc/yum.conf
-    yum -y update && \
-      yum clean all
-    echo "Return code is $?"
-    package-cleanup -y --oldkernels --count $OLDKERNELS_COUNT
-    echo "Return code is $?"
+    [ -f /etc/yum.conf ] && cat /etc/yum.conf
+
+    yum -y update && yum clean all
+    RC=$?
+    echo "Return code is $RC"
+
+    package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
+    RC=$?
+    echo "Return code is $RC"
 }
 
 freshclam_manually(){
@@ -25,16 +44,26 @@ freshclam_manually(){
 }
 
 upgrade_from_network() {
-    test -f /etc/debian_version && update_debian_or_ubuntu
-    test -f /etc/redhat-release && update_redhat_or_centos
-    which freshclam > /dev/null 2>&1 && freshclam_manually
+    [ -f /etc/debian_version ] && update_debian_or_ubuntu
+    [ -f /etc/redhat-release ] && update_redhat_or_centos
+
+    if command -v freshclam > /dev/null 2>&1; then
+        freshclam_manually
+    fi
 }
 
 system_upgrade() {
-    ping -c 1 debian.org > /dev/null 2>&1 && upgrade_from_network
-    echo "Return code is $?"
+    if ping -c 1 debian.org > /dev/null 2>&1; then
+        upgrade_from_network
+    else
+        printf "Skipping upgrade: Network unavailable\n"
+    fi
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
-echo -n "- [info] system_upgrade has been loaded at "
+printf "- [info] system_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
+
 system_upgrade
