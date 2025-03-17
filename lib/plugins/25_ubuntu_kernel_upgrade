@@ -1,31 +1,55 @@
 #!/bin/sh
+#
+# 25_ubuntu_kernel_upgrade - A script to upgrade the Ubuntu kernel and remove old kernels.
+#
+# Required environment variables:
+#   UBUNTU_ARCHITECTURE : Target Ubuntu architecture for the kernel upgrade.
+#                         Example: generic
+#
+# Note:
+#   - This script assumes that the system is running Ubuntu and has internet access.
 
 purge_old_kernels() {
-    CURKERNEL=$(uname -r|sed 's/-*[a-z]//g'|sed 's/-386//g')
+    CURKERNEL=$(uname -r | sed 's/-*[a-z]//g' | sed 's/-386//g')
     LINUXPKG="linux-(image|headers|ubuntu-modules|restricted-modules)"
     METALINUXPKG="linux-(image|headers|restricted-modules)-(generic|i386|server|common|rt|xen)"
-    OLDKERNELS=$(dpkg -l|awk '{print $2}'|grep -E $LINUXPKG |grep -vE $METALINUXPKG|grep -v $CURKERNEL)
-    apt-get -y purge $OLDKERNELS
-    echo "Return code is $?"
+
+    OLDKERNELS=$(dpkg -l | awk '{print $2}' | grep -E "$LINUXPKG" | grep -vE "$METALINUXPKG" | grep -v "$CURKERNEL")
+
+    if [ -n "$OLDKERNELS" ]; then
+        apt-get -y purge $OLDKERNELS
+        RC=$?
+        echo "Return code is $RC"
+    else
+        echo "No old kernels to remove."
+    fi
 }
 
 ubuntu_kernel_upgrade() {
     purge_old_kernels
-    apt-get update >> $JOBLOG 2>&1 && \
-      apt-get -y install linux-image-$UBUNTU_ARCHITECTURE \
-      linux-headers-$UBUNTU_ARCHITECTURE \
-      linux-$UBUNTU_ARCHITECTURE
+
+    apt-get update >> "$JOBLOG" 2>&1 && \
+      apt-get -y install "linux-image-$UBUNTU_ARCHITECTURE" \
+                         "linux-headers-$UBUNTU_ARCHITECTURE" \
+                         "linux-$UBUNTU_ARCHITECTURE"
 }
 
 system_upgrade() {
-    ping -c 1 ubuntu.com > /dev/null 2>&1 && \
-      test -n "$UBUNTU_ARCHITECTURE" && \
-      test -f /etc/debian_version && \
-      test -f /etc/lsb-release && \
-      ubuntu_kernel_upgrade
-    echo "Return code is $?"
+    if ping -c 1 ubuntu.com > /dev/null 2>&1; then
+        if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
+            ubuntu_kernel_upgrade
+        else
+            printf "Skipping upgrade: System does not meet requirements\n"
+        fi
+    else
+        printf "Skipping upgrade: Network unavailable\n"
+    fi
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
-echo -n "- [info] ubuntu_kernel_upgrade has been loaded at "
+printf "- [info] ubuntu_kernel_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
+
 system_upgrade
