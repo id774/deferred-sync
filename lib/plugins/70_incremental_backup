@@ -1,23 +1,40 @@
 #!/bin/sh
+#
+# 70_incremental_backup - A script to perform incremental backups with rsync.
+#
+# Required environment variables:
+#   BACKUPTO    : Target backup directory.
+#                 Example: /var/backups
+#   BACKUPDIRS  : List of directories to back up (space-separated).
+#                 Example: "/home /etc /var/www"
+#   EXCLUDEFILE : File containing patterns of files/directories to exclude.
+#                 Example: /etc/backup_exclude.conf
+#   DRY_RUN     : If set to "true", rsync runs in dry-run mode.
+#   EXPIREDAYS  : Number of days before old backups are purged.
+#
+# Note:
+#   - This script assumes that `rsync` is installed and available.
 
 purge_expire_dir() {
-    while [ $# -gt 0 ]
-    do
-        BDATE=`echo $1 | sed "s/_backup_//"`
-        EXPIREDATE=`date +%Y%m%d -d "$EXPIREDAYS days ago"`
-        if [ $BDATE -le $EXPIREDATE ]
-        then
-            echo "deleting $BACKUPTO/$1"
-            rm -rf $BACKUPTO/$1
+    while [ "$#" -gt 0 ]; do
+        BDATE=$(echo "$1" | sed "s/_backup_//")
+        EXPIREDATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
+
+        if [ "$BDATE" -le "$EXPIREDATE" ]; then
+            printf "deleting %s/%s\n" "$BACKUPTO" "$1"
+            rm -rf "$BACKUPTO/$1"
         fi
         shift
     done
 }
 
 purge_expires() {
-    echo -n "* Deleting old backup directories at "
+    printf "* Deleting old backup directories at "
     date "+%Y/%m/%d %T"
-    purge_expire_dir `ls $BACKUPTO | grep "_backup_"`
+
+    for DIR in "$BACKUPTO"/*_backup_*; do
+        [ -e "$DIR" ] && purge_expire_dir "$(basename "$DIR")"
+    done
 }
 
 rsync_options() {
@@ -25,32 +42,30 @@ rsync_options() {
       --delete --backup \
       --backup-dir=$BACKUPTO/_backup_$DATE \
       -av"
-    if [ -f $EXCLUDEFILE ]; then
-        OPTS="$OPTS --exclude-from=$EXCLUDEFILE"
-    fi
-    if [ "$DRY_RUN" = "true" ]; then
-        OPTS="$OPTS --dry-run"
-    fi
+
+    [ -f "$EXCLUDEFILE" ] && OPTS="$OPTS --exclude-from=$EXCLUDEFILE"
+    [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 }
 
 exec_rsync() {
-    for BACKUPDIR in $BACKUPDIRS
-    do
-        echo "rsync $OPTS $BACKUPDIR $BACKUPTO"
-        rsync $OPTS $BACKUPDIR $BACKUPTO
-        echo "Return code is $?"
+    for BACKUPDIR in $BACKUPDIRS; do
+        printf "rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
+        rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+
+        RC=$?
+        echo "Return code is $RC"
     done
-    unset BACKUPDIR
 }
 
 run_rsync() {
     purge_expires
     rsync_options
-    echo -n "* Executing backup with rsync at "
+    printf "* Executing backup with rsync at "
     date "+%Y/%m/%d %T"
     exec_rsync
 }
 
-echo -n "- [info] run_rsync has been loaded at "
+printf "- [info] run_rsync has been loaded at "
 date "+%Y/%m/%d %T"
+
 run_rsync
