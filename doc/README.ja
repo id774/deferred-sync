@@ -69,14 +69,24 @@ rsync (及び ssh) に依存する。
 |     プラグインと呼ばれるスクリプトが格納される
 |     既定で用意されたプラグインには以下のものがある
 |
+|     show_version
+|       各プログラムのバージョン情報を取得する
 |     get_resources
-|       リソースの取得をおこなう
+|       リソース情報を取得する
+|     get_hardware_info
+|       ハードウェア情報を取得する
 |     system_upgrade
 |       システムを最新化する
+|     ubuntu_kernel_upgrade
+|       Ubuntu のカーネルを最新化する
+|     dump_postgresql
+|       PostgreSQL のデータベースダンプを取得する
+|     dump_mysql
+|       MySQL のデータベースダンプを取得する
+|     dump_mongodb
+|       MongoDB ダンプを取得する
 |     dump_svn
 |       SVN ダンプを取得する
-|     dump_mysql
-|       MySQL ダンプを取得する
 |     incremental_backup
 |       世代バックアップをする
 |     backup_to_remote
