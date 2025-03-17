@@ -12,19 +12,21 @@
 #   - This script assumes that authentication is handled via ~/.pgpass
 
 dump_postgresql() {
-    echo -n "* Executing pg_dumpall on "
+    printf "* Executing pg_dumpall on "
     date "+%Y/%m/%d %T"
 
     # Remove existing compressed dump if it exists
-    test -f "$PGDUMP/all.dump.gz" && rm "$PGDUMP/all.dump.gz"
+    [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
 
     # Perform the dump and compress the output
-    pg_dumpall -c -U $PG_USER > "$PGDUMP/all.dump" \
+    pg_dumpall -c -U "$PG_USER" > "$PGDUMP/all.dump" \
       && gzip -f "$PGDUMP/all.dump"
 
-    echo "Return code is $?"
+    RC=$?
+    echo "Return code is $RC"
 }
 
-echo -n "- [info] backup_postgresql has been loaded at "
+printf "- [info] backup_postgresql has been loaded at "
 date "+%Y/%m/%d %T"
+
 dump_postgresql
