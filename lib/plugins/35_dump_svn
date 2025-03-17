@@ -1,25 +1,43 @@
 #!/bin/sh
+#
+# 35_dump_svn - A script to dump SVN repositories and compress the dump.
+#
+# Required environment variables:
+#   SVNDUMP   : Directory where the dump files (SQL and compressed files) will be stored.
+#               Example: /var/lib/svn/svn_dump
+#   SVN_PATH  : Base path where SVN repositories are stored.
+#               Example: /var/lib/svn/repos
+#   SVN_REPOS : List of SVN repositories to back up (space-separated).
+#               Example: "repo1 repo2 repo3"
+#
+# Note:
+#   - This script assumes that the `svnadmin dump` command is available and has the necessary permissions.
 
 get_svndump() {
-    echo "svndump $1"
-    test -f $SVNDUMP/$1.zip && \
-      rm $SVNDUMP/$1.zip
-    svnadmin dump $2 > $SVNDUMP/$1.dump \
-      && zip $SVNDUMP/$1.zip $SVNDUMP/$1.dump \
-      && rm $SVNDUMP/$1.dump
-    echo "Return code is $?"
+    printf "svndump %s\n" "$1"
+
+    # Remove existing compressed dump if it exists
+    [ -f "$SVNDUMP/$1.zip" ] && rm "$SVNDUMP/$1.zip"
+
+    # Perform the dump and compress the output
+    svnadmin dump "$2" > "$SVNDUMP/$1.dump" \
+      && zip "$SVNDUMP/$1.zip" "$SVNDUMP/$1.dump" \
+      && rm "$SVNDUMP/$1.dump"
+
+    RC=$?
+    echo "Return code is $RC"
 }
 
 dump_svn() {
-    echo -n "* Executing svndump on "
+    printf "* Executing svndump on "
     date "+%Y/%m/%d %T"
-    for SVN_REPO in $SVN_REPOS
-    do
-        get_svndump $SVN_REPO $SVN_PATH/$SVN_REPO
+
+    for SVN_REPO in $SVN_REPOS; do
+        get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO"
     done
-    unset SVN_REPO
 }
 
-echo -n "- [info] dump_svn has been loaded at "
+printf "- [info] dump_svn has been loaded at "
 date "+%Y/%m/%d %T"
+
 dump_svn
