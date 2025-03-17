@@ -104,12 +104,6 @@ rsync (及び ssh) に依存する。
 |     オプション無しでインストーラーを実行した場合
 |     ここにある cron スクリプトが配置される
 |
-+-test
-|   このディレクトリにはテストのためのファイルが置かれる
-|
-+-test.sh
-|   テストをすべて実行する
-|
 +-doc
     README
       本ドキュメント
@@ -269,26 +263,5 @@ dump_svn
 incremental_backup
 backup_to_remote
 "
-
-
-================
-テストの実施方法
-================
-
- deferred-sync にはユニットテスト機構があり
-本番環境で動作させる前にテスト実行して正常な実行を
-確認することができる。
-
- test.sh を実行すると付属するテストをすべて実行する。
-
- exec/deferred-sync の引数には設定ファイル名を指定することができる。
-たとえば以下のように test/test.conf を指定することで
-テスト用の設定で処理を実行できる。
-
-$ exec/deferred-sync test/test.conf
-
- また --test が引数に指定されると test/test.conf が
-指定されたものと見なされる。
-$ exec/deferred-sync --test
 
 
