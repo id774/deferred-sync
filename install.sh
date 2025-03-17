@@ -177,7 +177,7 @@ set_permission() {
 }
 
 installer() {
-    check_commands cp mkdir chmod chown ln id dirname
+    check_commands cp mkdir chmod chown ln rm id dirname
     set_environment "$@"
     deploy_to_target
     [ -n "$1" ] || setup_cron
