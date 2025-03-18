@@ -1,10 +1,25 @@
 #!/bin/sh
+#
+# deferred-sync - The main execution script for deferred-sync.
+#
+# This script is executed via cron or manually to perform
+# incremental backups, system synchronization, and remote transfers.
+#
+# Features:
+#   - Loads configuration from `config/sync.conf`
+#   - Executes pre-sync and post-sync scripts if defined
+#   - Logs all operations to `JOBLOG`
+#   - Sends a notification email upon completion (if configured)
+#
+# Note:
+#   - Ensure that `sync.conf` and required scripts are properly configured.
 
 setup() {
     LANG=C
     LC_ALL=C
     CONFIG=${1:-config/sync.conf}
 
+    # Determine script home directory
     SCRIPT_HOME=$(cd "$(dirname "$0")" && pwd)/..
     . "${SCRIPT_HOME}/${CONFIG}"
 
@@ -13,27 +28,36 @@ setup() {
 }
 
 send_mail_to_admin() {
+    # Send job log to administrator
     cat -v "$JOBLOG" | nkf -w | \
       mail -s "[cron][$(hostname)] Deferred Sync Log" \
       "$ADMIN_MAIL_ADDRESS"
 }
 
 deferred_sync() {
+    # Log job start time
     {
-        echo -n "*** $0: Job started on $(hostname) at "
+        printf "*** %s: Job started on %s at " "$0" "$(hostname)"
         date "+%Y/%m/%d %T"
     } >>"$JOBLOG" 2>&1
 
+    # Execute pre-sync script if defined
     [ -n "$STARTSCRIPT" ] && . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
+
+    # Load and execute plugins
     . "$SCRIPT_HOME/lib/load" >>"$JOBLOG" 2>&1
+
+    # Execute post-sync script if defined
     [ -n "$ENDSCRIPT" ] && . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
 
+    # Log job completion time
     {
-        echo -n "*** $0: Job ended on $(hostname) at "
+        printf "*** %s: Job ended on %s at " "$0" "$(hostname)"
         date "+%Y/%m/%d %T"
         echo
     } >>"$JOBLOG" 2>&1
 
+    # Send job log via email if configured
     case "$ADMIN_MAIL_ADDRESS" in
       *@*) send_mail_to_admin ;;
     esac
@@ -44,4 +68,5 @@ main() {
     deferred_sync
 }
 
+# Start execution
 main "$@"
