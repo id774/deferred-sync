@@ -37,7 +37,7 @@ send_mail_to_admin() {
 deferred_sync() {
     # Log job start time
     {
-        printf "*** %s: Job started on %s at " "$0" "$(hostname)"
+        printf "*** %s: Job ended on %s at " -- "$0" "$(hostname)"
         date "+%Y/%m/%d %T"
     } >>"$JOBLOG" 2>&1
 
