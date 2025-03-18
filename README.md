@@ -94,7 +94,7 @@ The main configuration file is `config/sync.conf`. It defines all parameters req
 │   ├── deferred-sync    # Script placed in `/etc/cron.daily/`
 │
 ├── doc/
-│   ├── PLUGINS          # List of available plugins
+│   ├── VERSIONS         # Version history of the repository
 ```
 
 ## Usage Example
