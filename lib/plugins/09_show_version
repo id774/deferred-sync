@@ -16,20 +16,9 @@
 printf -- "- [info] show_version has been loaded at "
 date "+%Y/%m/%d %T"
 
-# Define software paths and commands
-SOFTWARE_LIST="
-/opt/ruby/current/bin/ruby -v
-/opt/python/current/bin/python -V
-/opt/java/jdk/current/bin/java -version
-/opt/go/current/bin/go version
-/opt/mongo/current/bin/mongo --version
-/opt/protobuf/current/bin/protoc --version
-"
-
-# Check executability and print versions
-for CMD in $SOFTWARE_LIST; do
-    BIN_PATH=$(echo "$CMD" | awk '{print $1}')
-    if [ -x "$BIN_PATH" ]; then
-        eval "$CMD"
-    fi
-done
+[ -x /opt/ruby/current/bin/ruby ] && /opt/ruby/current/bin/ruby -v
+[ -x /opt/python/current/bin/python ] && /opt/python/current/bin/python -V
+[ -x /opt/java/jdk/current/bin/java ] && /opt/java/jdk/current/bin/java -version
+[ -x /opt/go/current/bin/go ] && /opt/go/current/bin/go version
+[ -x /opt/mongo/current/bin/mongo ] && /opt/mongo/current/bin/mongo --version
+[ -x /opt/protobuf/current/bin/protoc ] && /opt/protobuf/current/bin/protoc --version
