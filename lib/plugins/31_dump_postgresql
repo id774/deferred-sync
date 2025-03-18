@@ -28,7 +28,7 @@ dump_postgresql() {
     echo "Return code is $RC"
 }
 
-printf -- "- [info] backup_postgresql has been loaded at "
+printf -- "- [info] dump_postgresql has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_postgresql

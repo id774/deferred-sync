@@ -67,7 +67,7 @@ run_rsync() {
     exec_rsync
 }
 
-printf -- "- [info] run_rsync has been loaded at "
+printf -- "- [info] incremental_backup has been loaded at "
 date "+%Y/%m/%d %T"
 
 run_rsync
