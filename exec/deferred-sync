@@ -19,7 +19,6 @@ setup() {
     LC_ALL=C
     CONFIG=${1:-config/sync.conf}
 
-    # Determine script home directory
     SCRIPT_HOME=$(cd "$(dirname "$0")" && pwd)/..
     . "${SCRIPT_HOME}/${CONFIG}"
 
@@ -28,7 +27,6 @@ setup() {
 }
 
 send_mail_to_admin() {
-    # Send job log to administrator
     cat -v "$JOBLOG" | nkf -w | \
       mail -s "[cron][$(hostname)] Deferred Sync Log" \
       "$ADMIN_MAIL_ADDRESS"
@@ -37,7 +35,7 @@ send_mail_to_admin() {
 deferred_sync() {
     # Log job start time
     {
-        printf "*** %s: Job ended on %s at " -- "$0" "$(hostname)"
+        printf -- "*** %s: Job started on %s at " "$0" "$(hostname)"
         date "+%Y/%m/%d %T"
     } >>"$JOBLOG" 2>&1
 
@@ -52,7 +50,7 @@ deferred_sync() {
 
     # Log job completion time
     {
-        printf "*** %s: Job ended on %s at " "$0" "$(hostname)"
+        printf -- "*** %s: Job ended on %s at " "$0" "$(hostname)"
         date "+%Y/%m/%d %T"
         echo
     } >>"$JOBLOG" 2>&1
@@ -63,10 +61,11 @@ deferred_sync() {
     esac
 }
 
+# Main function to execute the script
 main() {
     setup "$@"
     deferred_sync
 }
 
-# Start execution
+# Execute main function
 main "$@"
