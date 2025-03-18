@@ -12,7 +12,7 @@
 #   - This script assumes that authentication is handled via ~/.pgpass
 
 dump_postgresql() {
-    printf "* Executing pg_dumpall on "
+    printf -- "* Executing pg_dumpall on "
     date "+%Y/%m/%d %T"
 
     # Remove existing compressed dump if it exists
@@ -28,7 +28,7 @@ dump_postgresql() {
     echo "Return code is $RC"
 }
 
-printf "- [info] backup_postgresql has been loaded at "
+printf -- "- [info] backup_postgresql has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_postgresql

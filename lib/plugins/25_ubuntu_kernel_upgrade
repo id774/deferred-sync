@@ -39,17 +39,17 @@ system_upgrade() {
         if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
             ubuntu_kernel_upgrade
         else
-            printf "Skipping upgrade: System does not meet requirements\n"
+            printf -- "Skipping upgrade: System does not meet requirements\n"
         fi
     else
-        printf "Skipping upgrade: Network unavailable\n"
+        printf -- "Skipping upgrade: Network unavailable\n"
     fi
 
     RC=$?
     echo "Return code is $RC"
 }
 
-printf "- [info] ubuntu_kernel_upgrade has been loaded at "
+printf -- "- [info] ubuntu_kernel_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
 
 system_upgrade

@@ -15,7 +15,7 @@
 #   - This script assumes that authentication is handled via the MySQL password environment variable.
 
 get_mysqldump() {
-    printf "mysqldump %s\n" "$1"
+    printf -- "mysqldump %s\n" "$1"
 
     # Remove existing compressed dump if it exists
     [ -f "$MYSQLDUMP/$1.zip" ] && rm "$MYSQLDUMP/$1.zip"
@@ -30,7 +30,7 @@ get_mysqldump() {
 }
 
 dump_mysql() {
-    printf "* Executing mysqldump on "
+    printf -- "* Executing mysqldump on "
     date "+%Y/%m/%d %T"
 
     for MYSQL_DB in $MYSQL_DBS; do
@@ -38,7 +38,7 @@ dump_mysql() {
     done
 }
 
-printf "- [info] dump_mysql has been loaded at "
+printf -- "- [info] dump_mysql has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_mysql

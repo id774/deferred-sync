@@ -14,7 +14,7 @@
 #   - This script assumes that the `svnadmin dump` command is available and has the necessary permissions.
 
 get_svndump() {
-    printf "svndump %s\n" "$1"
+    printf -- "svndump %s\n" "$1"
 
     # Remove existing compressed dump if it exists
     [ -f "$SVNDUMP/$1.zip" ] && rm "$SVNDUMP/$1.zip"
@@ -29,7 +29,7 @@ get_svndump() {
 }
 
 dump_svn() {
-    printf "* Executing svndump on "
+    printf -- "* Executing svndump on "
     date "+%Y/%m/%d %T"
 
     for SVN_REPO in $SVN_REPOS; do
@@ -37,7 +37,7 @@ dump_svn() {
     done
 }
 
-printf "- [info] dump_svn has been loaded at "
+printf -- "- [info] dump_svn has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_svn

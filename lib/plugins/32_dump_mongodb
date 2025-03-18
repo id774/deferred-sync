@@ -29,13 +29,13 @@ get_mongodbdump() {
 dump_mongodb() {
     LANG=C
     LC_ALL=C
-    printf "* Executing mongodbdump on "
+    printf -- "* Executing mongodbdump on "
     date "+%Y/%m/%d %T"
 
     get_mongodbdump
 }
 
-printf "- [info] dump_mongodb has been loaded at "
+printf -- "- [info] dump_mongodb has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_mongodb

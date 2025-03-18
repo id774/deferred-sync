@@ -11,7 +11,7 @@
 #   - This script assumes it is running on a POSIX-compliant system.
 #   - `dmidecode`, `acpi`, and `smartctl` must be installed to retrieve respective information.
 
-printf "- [info] get_hardware_info has been loaded at "
+printf -- "- [info] get_hardware_info has been loaded at "
 date "+%Y/%m/%d %T"
 
 # Retrieve system information

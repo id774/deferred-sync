@@ -21,7 +21,7 @@ purge_expire_dir() {
         EXPIREDATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
 
         if [ "$BDATE" -le "$EXPIREDATE" ]; then
-            printf "deleting %s/%s\n" "$BACKUPTO" "$1"
+            printf -- "deleting %s/%s\n" "$BACKUPTO" "$1"
             rm -rf "$BACKUPTO/$1"
         fi
         shift
@@ -29,7 +29,7 @@ purge_expire_dir() {
 }
 
 purge_expires() {
-    printf "* Deleting old backup directories at "
+    printf -- "* Deleting old backup directories at "
     date "+%Y/%m/%d %T"
 
     for DIR in "$BACKUPTO"/*_backup_*; do
@@ -51,7 +51,7 @@ rsync_options() {
 
 exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
-        printf "rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
+        printf -- "rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
 
         RC=$?
@@ -62,12 +62,12 @@ exec_rsync() {
 run_rsync() {
     purge_expires
     rsync_options
-    printf "* Executing backup with rsync at "
+    printf -- "* Executing backup with rsync at "
     date "+%Y/%m/%d %T"
     exec_rsync
 }
 
-printf "- [info] run_rsync has been loaded at "
+printf -- "- [info] run_rsync has been loaded at "
 date "+%Y/%m/%d %T"
 
 run_rsync

@@ -22,23 +22,23 @@ mirror_to_remote() {
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 
     if [ -d "$BACKUPTO" ]; then
-        printf "rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
+        printf -- "rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
 
         if ping -c 1 "$1" > /dev/null 2>&1; then
             rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
         else
-            printf "Skipping backup to %s: Host unreachable\n" "$1"
+            printf -- "Skipping backup to %s: Host unreachable\n" "$1"
         fi
 
         RC=$?
         echo "Return code is $RC"
     else
-        printf "Backup directory %s does not exist. Skipping.\n" "$BACKUPTO"
+        printf -- "Backup directory %s does not exist. Skipping.\n" "$BACKUPTO"
     fi
 }
 
 backup_to_remote() {
-    printf "* Executing backup to remote at "
+    printf -- "* Executing backup to remote at "
     date "+%Y/%m/%d %T"
 
     for REMOTE_HOST in $REMOTE_HOSTS; do
@@ -46,7 +46,7 @@ backup_to_remote() {
     done
 }
 
-printf "- [info] backup_to_remote has been loaded at "
+printf -- "- [info] backup_to_remote has been loaded at "
 date "+%Y/%m/%d %T"
 
 backup_to_remote
