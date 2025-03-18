@@ -1,11 +1,35 @@
 #!/bin/sh
+#
+# 09_show_version - A script to display installed versions of key software.
+#
+# Outputs:
+#   - Ruby version
+#   - Python version
+#   - Java version
+#   - Go version
+#   - MongoDB version
+#   - Protocol Buffers version
+#
+# Note:
+#   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`.
 
-echo -n "- [info] show_version has been loaded at "
+printf "- [info] show_version has been loaded at "
 date "+%Y/%m/%d %T"
 
-test -x /opt/ruby/current/bin/ruby && /opt/ruby/current/bin/ruby -v
-test -x /opt/python/current/bin/python && /opt/python/current/bin/python -V
-test -x /opt/java/jdk/current/bin/java && /opt/java/jdk/current/bin/java -version
-test -x /opt/go/current/bin/go && /opt/go/current/bin/go version
-test -x /opt/mongo/current/bin/mongo && /opt/mongo/current/bin/mongo --version
-test -x /opt/protobuf/current/bin/protoc && /opt/protobuf/current/bin/protoc --version
+# Define software paths and commands
+SOFTWARE_LIST="
+/opt/ruby/current/bin/ruby -v
+/opt/python/current/bin/python -V
+/opt/java/jdk/current/bin/java -version
+/opt/go/current/bin/go version
+/opt/mongo/current/bin/mongo --version
+/opt/protobuf/current/bin/protoc --version
+"
+
+# Check executability and print versions
+for CMD in $SOFTWARE_LIST; do
+    BIN_PATH=$(echo "$CMD" | awk '{print $1}')
+    if [ -x "$BIN_PATH" ]; then
+        eval "$CMD"
+    fi
+done
