@@ -43,14 +43,16 @@ rsync_options() {
       --backup-dir=$BACKUPTO/_backup_$DATE \
       -av"
 
-    [ -f "$EXCLUDEFILE" ] && OPTS="$OPTS --exclude-from=<(grep -v '^[# ]*$' "$EXCLUDEFILE")"
+    if [ -f "$EXCLUDEFILE" ]; then
+        OPTS="$OPTS --exclude-from=/dev/stdin"
+    fi
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 }
 
 exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
         printf "rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
-        rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+        grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
 
         RC=$?
         echo "Return code is $RC"
