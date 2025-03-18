@@ -1,0 +1,18 @@
+VERSION History
+===============
+
+v25.03 (Release Date: TBD)
+--------------------------
+- Major refactoring and modernization of all scripts.
+- Migrated documentation to English (README.md replaces README.ja).
+- Reorganized configuration (config/sync.conf) for better clarity.
+- Improved rsync exclusion handling in 70_incremental_backup.
+- Applied POSIX compliance and improved script modularity.
+- Removed unnecessary executable permissions from scripts.
+- Enhanced plugin system and restructured directory layout.
+
+v0.1 (2011-10-20)
+-----------------
+- Initial release of deferred-sync.
+- Basic backup and sync functionality with rsync.
+- Included initial plugin support.
