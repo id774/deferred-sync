@@ -1,0 +1,7 @@
+# Scheduled execution of deferred-sync
+# Runs every weekday (Monday to Friday) at 23:30
+# Logs will be sent to the root user via cron MAILTO
+
+MAILTO=root
+
+30 23 * * 1-5 root test -x /opt/deferred-sync/exec/deferred-sync && /opt/deferred-sync/exec/deferred-sync
