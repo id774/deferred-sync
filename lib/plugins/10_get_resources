@@ -1,10 +1,31 @@
 #!/bin/sh
+#
+# 10_get_resources - A script to retrieve system resource information.
+#
+# Outputs:
+#   - Kernel version (`uname -a`)
+#   - Distribution information (`lsb_release -a` or `/etc/debian_version`)
+#   - System uptime (`uptime`)
+#   - Memory usage (`free -t`)
+#   - Disk usage (`df -P -T`)
+#
+# Note:
+#   - This script assumes it is running on a POSIX-compliant system.
 
-echo -n "- [info] get_resources has been loaded at "
+printf "- [info] get_resources has been loaded at "
 date "+%Y/%m/%d %T"
+
+# Print kernel and system details
 uname -a
-which lsb_release > /dev/null && lsb_release -a
-test -f /etc/debian_version && cat /etc/debian_version
+
+# Check if `lsb_release` exists before executing
+if command -v lsb_release > /dev/null 2>&1; then
+    lsb_release -a
+elif [ -f /etc/debian_version ]; then
+    cat /etc/debian_version
+fi
+
+# Print system uptime and resource usage
 uptime
 free -t
 df -P -T
