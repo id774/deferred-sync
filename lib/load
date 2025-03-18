@@ -1,5 +1,17 @@
 #!/bin/sh
+#
+# load - A script to dynamically load plugins for deferred-sync.
+#
+# This script loads the required plugins based on configuration settings.
+# It allows for:
+#   - Loading specific plugins defined in `PLUGINS`
+#   - Loading all available plugins if `LOAD_PLUGINS_ALL=true`
+#
+# Note:
+#   - Plugins are sourced from `$SCRIPT_HOME/lib/plugins/`
+#   - Plugins must be readable (`-r`) to be loaded.
 
+# Load a specific plugin by name
 load_plugin() {
     while [ "$#" -gt 0 ]; do
         for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
@@ -9,16 +21,19 @@ load_plugin() {
     done
 }
 
+# Load plugins defined in the `PLUGINS` variable
 load_plugins_by_config() {
     load_plugin $PLUGINS
 }
 
+# Load all available plugins
 load_plugins_all() {
     for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
         [ -r "$PLUGIN" ] && . "$PLUGIN"
     done
 }
 
+# Determine which plugins to load based on configuration
 load_plugins() {
     if [ "$LOAD_PLUGINS_ALL" = "true" ]; then
         load_plugins_all
@@ -27,4 +42,5 @@ load_plugins() {
     fi
 }
 
+# Execute plugin loading
 load_plugins
