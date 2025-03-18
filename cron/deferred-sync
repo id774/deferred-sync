@@ -1,6 +1,16 @@
 #!/bin/sh
+#
+# deferred-sync - A cron script to execute deferred-sync daily.
+#
+# This script is placed in `/etc/cron.daily/` on Linux systems
+# to automatically run `deferred-sync` every day.
+#
+# Note:
+#   - The main `deferred-sync` executable must be located at `/opt/deferred-sync/exec/deferred-sync`
+#   - Ensure that the script has executable permissions (`chmod +x`).
 
-test -x /opt/deferred-sync/exec/deferred-sync && \
-  /opt/deferred-sync/exec/deferred-sync
+EXEC_PATH="/opt/deferred-sync/exec/deferred-sync"
 
-exit 0
+if [ -x "$EXEC_PATH" ]; then
+    "$EXEC_PATH"
+fi
