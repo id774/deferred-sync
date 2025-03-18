@@ -40,11 +40,13 @@ To install deferred-sync, execute the provided `install.sh` script:
 ./install.sh /opt/deferred-sync
 ```
 
-By default, it installs under `/opt/deferred-sync`. If you wish to install in your home directory, run:
+By default, it installs under `/opt/deferred-sync` and places the execution script in `/etc/cron.daily/` to run automatically. If you wish to install in your home directory, run:
 
 ```sh
 ./install.sh ~/local/deferred-sync nosudo
 ```
+
+If you want to specify an exact execution time, instead of relying on `cron.daily`, you can manually configure `cron.d` using the sample file provided in `cron/cron.d/deferred-sync`.
 
 After installation, edit the configuration file to customize its behavior.
 
@@ -92,6 +94,7 @@ The main configuration file is `config/sync.conf`. It defines all parameters req
 │
 ├── cron/
 │   ├── deferred-sync    # Script placed in `/etc/cron.daily/`
+│   ├── cron.d/          # Sample file for custom scheduling in `/etc/cron.d/`
 │
 ├── doc/
 │   ├── VERSIONS         # Version history of the repository
@@ -133,5 +136,5 @@ See the files `doc/COPYING` or `doc/COPYING.LESSER` for details.
 
 Copyright (c) id774 All Rights Reserved.
 Web: [http://id774.net](http://id774.net)
-Contact: [idnanashi@gmail.com](mailto:idnanashi@gmail.com)
+E-Mail: [idnanashi@gmail.com](mailto:idnanashi@gmail.com)
 
