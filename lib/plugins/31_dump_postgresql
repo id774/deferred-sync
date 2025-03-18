@@ -18,9 +18,11 @@ dump_postgresql() {
     # Remove existing compressed dump if it exists
     [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
 
-    # Perform the dump and compress the output
-    pg_dumpall -c -U "$PG_USER" > "$PGDUMP/all.dump" \
-      && gzip -f "$PGDUMP/all.dump"
+    # Change directory to PGDUMP to ensure correct permissions
+    cd "$PGDUMP" || exit 1
+
+    # Perform the dump and compress the output using sudo
+    sudo -u "$PG_USER" sh -c "pg_dumpall -c > 'all.dump' && gzip -f 'all.dump'"
 
     RC=$?
     echo "Return code is $RC"
