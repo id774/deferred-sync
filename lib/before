@@ -1,4 +1,14 @@
 #!/bin/sh
+#
+# before - A script executed before the main deferred-sync process.
+#
+# This script is intended for pre-execution tasks, such as:
+#   - Preparing temporary directories
+#   - Checking system status before backup
+#   - Logging the start of the sync process
+#
+# Note:
+#   - Users can freely modify this script to include additional pre-execution logic.
 
-echo -n "- [info] startscript has been loaded at "
+printf "- [info] startscript has been loaded at "
 date "+%Y/%m/%d %T"
