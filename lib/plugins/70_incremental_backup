@@ -43,7 +43,7 @@ rsync_options() {
       --backup-dir=$BACKUPTO/_backup_$DATE \
       -av"
 
-    [ -f "$EXCLUDEFILE" ] && OPTS="$OPTS --exclude-from=$EXCLUDEFILE"
+    [ -f "$EXCLUDEFILE" ] && OPTS="$OPTS --exclude-from=<(grep -v '^#' "$EXCLUDEFILE")"
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 }
 
