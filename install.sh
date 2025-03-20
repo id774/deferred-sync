@@ -75,8 +75,8 @@ set_environment() {
         exit 1
     fi
 
-    case $OSTYPE in
-        *darwin*)
+    case "$(uname)" in
+        Darwin)
             OPTIONS=-pPRv
             OWNER=root:wheel
             ;;
