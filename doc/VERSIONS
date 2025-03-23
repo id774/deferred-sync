@@ -1,8 +1,8 @@
 VERSION History
 ===============
 
-v25.03 (Release Date: TBD)
---------------------------
+v25.03 (2025-03-23)
+-------------------
 - Major refactoring and modernization of all scripts.
 - Migrated documentation to English (README.md replaces README.ja).
 - Reorganized configuration (config/sync.conf) for better clarity.
