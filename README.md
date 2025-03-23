@@ -126,15 +126,18 @@ Set up `cron` to execute deferred-sync periodically. This ensures that all prote
 +----------------------+
 ```
 
+## Contribution
+
+We welcome contributions! Here's how you can help:
+1. Fork the repository.
+2. Add or improve a feature, or fix an issue.
+3. Submit a pull request with clear documentation and changes.
+
+Please ensure your code is well-structured and documented.
+
 ## License
 
-deferred-sync is licensed under a dual license:
+This repository is dual licensed under the [GPL version 3](https://www.gnu.org/licenses/gpl-3.0.html) or the [LGPL version 3](https://www.gnu.org/licenses/lgpl-3.0.html), at your option.
+For full details, please refer to the [LICENSE](doc/LICENSE) file.  See also [COPYING](doc/COPYING) and [COPYING.LESSER](doc/COPYING.LESSER) for the complete license texts.
 
-You can redistribute it and/or modify it under either the terms of the **GPL version 3** or the **LGPL version 3**.
-
-See the files `doc/COPYING` or `doc/COPYING.LESSER` for details.
-
-Copyright (c) id774 All Rights Reserved.
-Web: [http://id774.net](http://id774.net)
-E-Mail: [idnanashi@gmail.com](mailto:idnanashi@gmail.com)
-
+Thank you for using and contributing to this repository!
