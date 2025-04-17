@@ -13,7 +13,7 @@
 # Note:
 #   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`.
 
-printf -- "- [info] show_version has been loaded at "
+printf -- "[INFO] - show_version has been loaded at "
 date "+%Y/%m/%d %T"
 
 [ -x /opt/ruby/current/bin/ruby ] && /opt/ruby/current/bin/ruby -v

@@ -23,19 +23,19 @@ get_mongodbdump() {
       && rm -rf "$MONGODBDUMP_PATH/"
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
 dump_mongodb() {
     LANG=C
     LC_ALL=C
-    printf -- "* Executing mongodbdump on "
+    printf -- "[INFO] * Executing mongodbdump on "
     date "+%Y/%m/%d %T"
 
     get_mongodbdump
 }
 
-printf -- "- [info] dump_mongodb has been loaded at "
+printf -- "[INFO] - dump_mongodb has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_mongodb

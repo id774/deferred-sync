@@ -12,7 +12,7 @@
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
 
-printf -- "- [info] get_resources has been loaded at "
+printf -- "[INFO] - get_resources has been loaded at "
 date "+%Y/%m/%d %T"
 
 # Print kernel and system details

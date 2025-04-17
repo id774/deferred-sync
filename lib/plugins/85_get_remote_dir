@@ -22,23 +22,23 @@ get_remote() {
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 
     if [ -d "$GET_TARGET_DIR" ]; then
-        printf -- "rsync %s %s@%s:%s %s/%s\n" "$OPTS" "$REMOTE_USER" "$1" "$2" "$GET_TARGET_DIR" "$1"
+        printf -- "[INFO] rsync %s %s@%s:%s %s/%s\n" "$OPTS" "$REMOTE_USER" "$1" "$2" "$GET_TARGET_DIR" "$1"
 
         if ping -c 1 "$1" > /dev/null 2>&1; then
             rsync $OPTS "$REMOTE_USER@$1:$2" "$GET_TARGET_DIR/$1"
         else
-            printf -- "Skipping retrieval from %s: Host unreachable\n" "$1"
+            printf -- "[WARN] Skipping retrieval from %s: Host unreachable\n" "$1" >&2
         fi
 
         RC=$?
-        echo "Return code is $RC"
+        echo "[INFO] Return code is $RC"
     else
-        printf -- "Target directory %s does not exist. Skipping.\n" "$GET_TARGET_DIR"
+        printf -- "[INFO] Target directory %s does not exist. Skipping.\n" "$GET_TARGET_DIR"
     fi
 }
 
 get_remote_dir() {
-    printf -- "* Executing get remote dir at "
+    printf -- "[INFO] * Executing get remote dir at "
     date "+%Y/%m/%d %T"
 
     for GET_HOST in $GET_HOSTS; do
@@ -48,7 +48,7 @@ get_remote_dir() {
     done
 }
 
-printf -- "- [info] get_remote_dir has been loaded at "
+printf -- "[INFO] - get_remote_dir has been loaded at "
 date "+%Y/%m/%d %T"
 
 get_remote_dir

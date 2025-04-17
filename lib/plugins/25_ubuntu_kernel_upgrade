@@ -19,9 +19,9 @@ purge_old_kernels() {
     if [ -n "$OLDKERNELS" ]; then
         apt-get -y purge $OLDKERNELS
         RC=$?
-        echo "Return code is $RC"
+        echo "[INFO] Return code is $RC"
     else
-        echo "No old kernels to remove."
+        echo "[INFO] No old kernels to remove."
     fi
 }
 
@@ -39,17 +39,17 @@ system_upgrade() {
         if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
             ubuntu_kernel_upgrade
         else
-            printf -- "Skipping upgrade: System does not meet requirements\n"
+            printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
         fi
     else
-        printf -- "Skipping upgrade: Network unavailable\n"
+        printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
     fi
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
-printf -- "- [info] ubuntu_kernel_upgrade has been loaded at "
+printf -- "[INFO] - ubuntu_kernel_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
 
 system_upgrade

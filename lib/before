@@ -10,5 +10,5 @@
 # Note:
 #   - Users can freely modify this script to include additional pre-execution logic.
 
-printf -- "- [info] startscript has been loaded at "
+printf -- "[INFO] - startscript has been loaded at "
 date "+%Y/%m/%d %T"

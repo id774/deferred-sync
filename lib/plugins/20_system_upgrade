@@ -22,7 +22,7 @@ update_debian_or_ubuntu() {
       apt-get -y autoremove
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
 update_redhat_or_centos() {
@@ -30,11 +30,11 @@ update_redhat_or_centos() {
 
     yum -y update && yum clean all
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 
     package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
 freshclam_manually(){
@@ -56,14 +56,14 @@ system_upgrade() {
     if ping -c 1 debian.org > /dev/null 2>&1; then
         upgrade_from_network
     else
-        printf -- "Skipping upgrade: Network unavailable\n"
+        printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
     fi
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
-printf -- "- [info] system_upgrade has been loaded at "
+printf -- "[INFO] - system_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
 
 system_upgrade

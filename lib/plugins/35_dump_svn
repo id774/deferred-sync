@@ -25,11 +25,11 @@ get_svndump() {
       && rm "$SVNDUMP/$1.dump"
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
 dump_svn() {
-    printf -- "* Executing svndump on "
+    printf -- "[INFO] * Executing svndump on "
     date "+%Y/%m/%d %T"
 
     for SVN_REPO in $SVN_REPOS; do
@@ -37,7 +37,7 @@ dump_svn() {
     done
 }
 
-printf -- "- [info] dump_svn has been loaded at "
+printf -- "[INFO] - dump_svn has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_svn

@@ -21,14 +21,17 @@ dump_postgresql() {
     # Change directory to PGDUMP to ensure correct permissions
     cd "$PGDUMP" || exit 1
 
+    printf -- "[INFO] * Executing pg_dumpall on "
+    date "+%Y/%m/%d %T"
+
     # Perform the dump and compress the output using sudo
     sudo -u "$PG_USER" sh -c "pg_dumpall -c > 'all.dump' && gzip -f 'all.dump'"
 
     RC=$?
-    echo "Return code is $RC"
+    echo "[INFO] Return code is $RC"
 }
 
-printf -- "- [info] dump_postgresql has been loaded at "
+printf -- "[INFO] - dump_postgresql has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_postgresql

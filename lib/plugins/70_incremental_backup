@@ -29,7 +29,7 @@ purge_expire_dir() {
 }
 
 purge_expires() {
-    printf -- "* Deleting old backup directories at "
+    printf -- "[INFO] * Deleting old backup directories at "
     date "+%Y/%m/%d %T"
 
     for DIR in "$BACKUPTO"/*_backup_*; do
@@ -51,23 +51,23 @@ rsync_options() {
 
 exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
-        printf -- "rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
+        printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
 
         RC=$?
-        echo "Return code is $RC"
+        echo "[INFO] Return code is $RC"
     done
 }
 
 run_rsync() {
     purge_expires
     rsync_options
-    printf -- "* Executing backup with rsync at "
+    printf -- "[INFO] * Executing backup with rsync at "
     date "+%Y/%m/%d %T"
     exec_rsync
 }
 
-printf -- "- [info] incremental_backup has been loaded at "
+printf -- "[INFO] - incremental_backup has been loaded at "
 date "+%Y/%m/%d %T"
 
 run_rsync

@@ -10,5 +10,5 @@
 # Note:
 #   - Users can freely modify this script to include additional post-execution logic.
 
-printf -- "- [info] endscript has been loaded at "
+printf -- "[INFO] - endscript has been loaded at "
 date "+%Y/%m/%d %T"
