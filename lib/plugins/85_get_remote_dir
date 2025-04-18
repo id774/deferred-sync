@@ -38,7 +38,7 @@ get_remote() {
 }
 
 get_remote_dir() {
-    printf -- "[INFO] * Executing get remote dir at "
+    printf -- "[INFO] Executing: get remote dir at "
     date "+%Y/%m/%d %T"
 
     for GET_HOST in $GET_HOSTS; do
@@ -48,7 +48,7 @@ get_remote_dir() {
     done
 }
 
-printf -- "[INFO] - get_remote_dir has been loaded at "
+printf -- "[INFO] Loading: get_remote_dir has been loaded at "
 date "+%Y/%m/%d %T"
 
 get_remote_dir

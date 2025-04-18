@@ -29,7 +29,7 @@ get_svndump() {
 }
 
 dump_svn() {
-    printf -- "[INFO] * Executing svndump on "
+    printf -- "[INFO] Executing: svndump on "
     date "+%Y/%m/%d %T"
 
     for SVN_REPO in $SVN_REPOS; do
@@ -37,7 +37,7 @@ dump_svn() {
     done
 }
 
-printf -- "[INFO] - dump_svn has been loaded at "
+printf -- "[INFO] Loading: dump_svn has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_svn

@@ -28,7 +28,7 @@ mirror_to_remote() {
             echo "[INFO] rsync $OPTS $BACKUPTO $BACKUPUSER@$1:$2"
             rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
         else
-            printf -- "[INFO] Skipping backup to %s: Host unreachable\n" "$1"
+            printf -- "[WARN] Skipping backup to %s: Host unreachable\n" "$1" >&2
         fi
 
         RC=$?
@@ -39,7 +39,7 @@ mirror_to_remote() {
 }
 
 backup_to_remote() {
-    printf -- "[INFO] * Executing backup to remote at "
+    printf -- "[INFO] Executing: backup to remote at "
     date "+%Y/%m/%d %T"
 
     for REMOTE_HOST in $REMOTE_HOSTS; do
@@ -47,7 +47,7 @@ backup_to_remote() {
     done
 }
 
-printf -- "[INFO] - backup_to_remote has been loaded at "
+printf -- "[INFO] Loading: backup_to_remote has been loaded at "
 date "+%Y/%m/%d %T"
 
 backup_to_remote

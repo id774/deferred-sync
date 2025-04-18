@@ -20,7 +20,7 @@ get_mysqldump() {
     # Remove existing compressed dump if it exists
     [ -f "$MYSQLDUMP/$1.zip" ] && rm "$MYSQLDUMP/$1.zip"
 
-    printf -- "[INFO] * Executing mysqldump on "
+    printf -- "[INFO] Executing: mysqldump on "
     date "+%Y/%m/%d %T"
 
     # Perform the dump and compress the output
@@ -41,7 +41,7 @@ dump_mysql() {
     done
 }
 
-printf -- "[INFO] - dump_mysql has been loaded at "
+printf -- "[INFO] Loading: dump_mysql has been loaded at "
 date "+%Y/%m/%d %T"
 
 dump_mysql

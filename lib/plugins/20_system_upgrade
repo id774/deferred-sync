@@ -63,7 +63,7 @@ system_upgrade() {
     echo "[INFO] Return code is $RC"
 }
 
-printf -- "[INFO] - system_upgrade has been loaded at "
+printf -- "[INFO] Loading: system_upgrade has been loaded at "
 date "+%Y/%m/%d %T"
 
 system_upgrade
