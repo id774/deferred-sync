@@ -33,9 +33,6 @@ get_mysqldump() {
 }
 
 dump_mysql() {
-    printf -- "* Executing mysqldump on "
-    date "+%Y/%m/%d %T"
-
     for MYSQL_DB in $MYSQL_DBS; do
         get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS"
     done

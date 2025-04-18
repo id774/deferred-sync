@@ -50,6 +50,9 @@ rsync_options() {
 }
 
 exec_rsync() {
+    printf -- "[INFO] Executing: backup with rsync at "
+    date "+%Y/%m/%d %T"
+
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
@@ -62,8 +65,6 @@ exec_rsync() {
 run_rsync() {
     purge_expires
     rsync_options
-    printf -- "[INFO] Executing: backup with rsync at "
-    date "+%Y/%m/%d %T"
     exec_rsync
 }
 

@@ -19,6 +19,9 @@ get_svndump() {
     # Remove existing compressed dump if it exists
     [ -f "$SVNDUMP/$1.zip" ] && rm "$SVNDUMP/$1.zip"
 
+    printf -- "[INFO] Executing: svndump on "
+    date "+%Y/%m/%d %T"
+
     # Perform the dump and compress the output
     svnadmin dump "$2" > "$SVNDUMP/$1.dump" \
       && zip "$SVNDUMP/$1.zip" "$SVNDUMP/$1.dump" \
@@ -29,9 +32,6 @@ get_svndump() {
 }
 
 dump_svn() {
-    printf -- "[INFO] Executing: svndump on "
-    date "+%Y/%m/%d %T"
-
     for SVN_REPO in $SVN_REPOS; do
         get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO"
     done

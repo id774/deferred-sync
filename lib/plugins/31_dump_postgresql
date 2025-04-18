@@ -12,9 +12,6 @@
 #   - This script assumes that authentication is handled via ~/.pgpass
 
 dump_postgresql() {
-    printf -- "* Executing pg_dumpall on "
-    date "+%Y/%m/%d %T"
-
     # Remove existing compressed dump if it exists
     [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
 

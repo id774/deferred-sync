@@ -21,6 +21,9 @@ mirror_to_remote() {
 
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
 
+    printf -- "[INFO] Executing: backup to remote at "
+    date "+%Y/%m/%d %T"
+
     if [ -d "$BACKUPTO" ]; then
         printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
 
@@ -39,9 +42,6 @@ mirror_to_remote() {
 }
 
 backup_to_remote() {
-    printf -- "[INFO] Executing: backup to remote at "
-    date "+%Y/%m/%d %T"
-
     for REMOTE_HOST in $REMOTE_HOSTS; do
         mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR"
     done

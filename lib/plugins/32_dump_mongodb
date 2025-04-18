@@ -17,6 +17,9 @@ get_mongodbdump() {
     # Remove existing compressed dump if it exists
     [ -f "$MONGODBDUMP" ] && rm "$MONGODBDUMP"
 
+    printf -- "[INFO] Executing: mongodbdump on "
+    date "+%Y/%m/%d %T"
+
     # Perform the dump and compress the output
     "$MONGODUMP_BIN" --out "$MONGODBDUMP_PATH" \
       && zip -r "$MONGODBDUMP" "$MONGODBDUMP_PATH/" \
@@ -29,8 +32,6 @@ get_mongodbdump() {
 dump_mongodb() {
     LANG=C
     LC_ALL=C
-    printf -- "[INFO] Executing: mongodbdump on "
-    date "+%Y/%m/%d %T"
 
     get_mongodbdump
 }

@@ -16,6 +16,9 @@
 update_debian_or_ubuntu() {
     [ -f /etc/apt/sources.list ] && cat /etc/apt/sources.list
 
+    printf -- "[INFO] Executing: apt upgrade on "
+    date "+%Y/%m/%d %T"
+
     apt-get update && \
       apt-get -y upgrade && \
       apt-get autoclean && \
@@ -27,6 +30,9 @@ update_debian_or_ubuntu() {
 
 update_redhat_or_centos() {
     [ -f /etc/yum.conf ] && cat /etc/yum.conf
+
+    printf -- "[INFO] Executing: yum update on "
+    date "+%Y/%m/%d %T"
 
     yum -y update && yum clean all
     RC=$?
