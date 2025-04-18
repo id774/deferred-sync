@@ -1,6 +1,11 @@
 VERSION History
 ===============
 
+v25.04 (Release Date: TBD)
+--------------------------
+- Unified log output format across all plugins for consistency and clarity.
+- Updated header comment in exclude.conf to reflect its current config path.
+
 v25.03 (2025-03-23)
 -------------------
 - Major refactoring and modernization of all scripts.
