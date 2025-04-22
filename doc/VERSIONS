@@ -6,6 +6,7 @@ v25.04 (Release Date: TBD)
 - Unified log output format across all plugins for consistency and clarity.
 - Updated header comment in exclude.conf to reflect its current config path.
 - Added [INFO] logs and fixed RC assignments in resource, hardware, and backup plugins.
+- Improved log granularity with [INFO] and [ERROR] tags in install.sh.
 
 v25.03 (2025-03-23)
 -------------------
