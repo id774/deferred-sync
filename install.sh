@@ -14,6 +14,8 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Version History:
+#  v2.2 2025-04-22
+#       Improve log granularity with [INFO] and [ERROR] tags per execution step.
 #  v2.1 2025-03-22
 #       Unify usage information by extracting help text from header comments.
 #  v2.0 2025-03-17
@@ -69,10 +71,11 @@ check_sudo() {
 
 # Function to set environment variables
 set_environment() {
+    echo "[INFO] Setting up environment..."
     export SCRIPT_HOME=$(dirname "$(realpath "$0" 2>/dev/null || readlink -f "$0")")
 
     if [ ! -d "$SCRIPT_HOME/lib/plugins" ]; then
-        echo "Error: $SCRIPT_HOME/lib/plugins directory does not exist." >&2
+        echo "[ERROR] $SCRIPT_HOME/lib/plugins directory does not exist." >&2
         exit 1
     fi
 
@@ -98,17 +101,19 @@ set_environment() {
     else
         SUDO="sudo"
     fi
-    echo "Using sudo: ${SUDO:-no}"
+    echo "[INFO] Using sudo: ${SUDO:-no}"
 
     if [ "$SUDO" = "sudo" ]; then
         check_sudo
     else
         OWNER="$(id -un):$(id -gn)"
     fi
-    echo "Copy options: $OPTIONS, Owner: $OWNER"
+    echo "[INFO] Copy options: $OPTIONS"
+    echo "[INFO] Owner: $OWNER"
 }
 
 deploy() {
+    echo "[INFO] Deploying components: $*"
     while [ $# -gt 0 ]; do
         $SUDO cp $OPTIONS "$SCRIPT_HOME/$1" "$TARGET/"
         shift
@@ -116,7 +121,7 @@ deploy() {
 }
 
 deploy_to_target() {
-    echo "Installing from $SCRIPT_HOME to $TARGET/"
+    echo "[INFO] Deploying to $TARGET"
     [ -d "$TARGET" ] && $SUDO rm -rf "$TARGET/"
     [ -d "$TARGET" ] || $SUDO mkdir -p "$TARGET/"
     deploy exec config lib
@@ -124,6 +129,7 @@ deploy_to_target() {
 }
 
 remove_obsolete_files() {
+    echo "[INFO] Removing obsolete plugin files..."
     remove_obsolete "$TARGET/lib/plugins/11_show_version"
 }
 
@@ -132,6 +138,7 @@ remove_obsolete() {
 }
 
 scheduling() {
+    echo "[INFO] Setting up cron and configuration links..."
     $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync
     [ -d /etc/opt/deferred-sync ] || $SUDO mkdir -p /etc/opt/deferred-sync
     $SUDO cp $OPTIONS "$SCRIPT_HOME/config/"*.conf /etc/opt/deferred-sync/
@@ -143,6 +150,7 @@ scheduling() {
 }
 
 logrotate() {
+    echo "[INFO] Setting up log rotation..."
     $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync
     $SUDO mkdir -p /var/log/deferred-sync
     $SUDO touch /var/log/deferred-sync/sync.log
@@ -151,6 +159,7 @@ logrotate() {
 }
 
 create_backupdir() {
+    echo "[INFO] Creating backup directories..."
     for dir in /home/backup /home/remote; do
         [ -d "$dir" ] || $SUDO mkdir "$dir"
         $SUDO chown $OWNER "$dir"
@@ -159,6 +168,7 @@ create_backupdir() {
 }
 
 restore_config_from_backup() {
+    echo "[INFO] Restoring config files from backup if available..."
     for file in sync.conf exclude.conf; do
         if [ -f "/home/backup/etc/opt/deferred-sync/$file" ]; then
             $SUDO cp $OPTIONS "/home/backup/etc/opt/deferred-sync/$file" "/etc/opt/deferred-sync/$file"
@@ -168,7 +178,7 @@ restore_config_from_backup() {
 
 setup_cron() {
     if [ "$(uname -s)" = "Linux" ]; then
-        echo "Setting up for cron job"
+        echo "[INFO] Setting up scheduled jobs..."
         scheduling
         logrotate
         create_backupdir
@@ -177,6 +187,7 @@ setup_cron() {
 }
 
 set_permission() {
+    echo "[INFO] Setting file ownership and permissions..."
     $SUDO chown -R "$OWNER" "$TARGET"
 }
 
@@ -186,6 +197,7 @@ installer() {
     deploy_to_target
     [ -n "$1" ] || setup_cron
     [ -n "$2" ] || set_permission
+    echo "[INFO] deferred-sync installation completed successfully."
 }
 
 # Main function to execute the script
