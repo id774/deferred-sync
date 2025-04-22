@@ -19,7 +19,7 @@ get_svndump() {
     # Remove existing compressed dump if it exists
     [ -f "$SVNDUMP/$1.zip" ] && rm "$SVNDUMP/$1.zip"
 
-    printf -- "[INFO] Executing: svndump on "
+    printf -- "[INFO] Executing: svndump at "
     date "+%Y/%m/%d %T"
 
     # Perform the dump and compress the output

@@ -17,7 +17,7 @@ get_mongodbdump() {
     # Remove existing compressed dump if it exists
     [ -f "$MONGODBDUMP" ] && rm "$MONGODBDUMP"
 
-    printf -- "[INFO] Executing: mongodbdump on "
+    printf -- "[INFO] Executing: mongodbdump at "
     date "+%Y/%m/%d %T"
 
     # Perform the dump and compress the output

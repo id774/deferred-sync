@@ -16,7 +16,7 @@
 update_debian_or_ubuntu() {
     [ -f /etc/apt/sources.list ] && cat /etc/apt/sources.list
 
-    printf -- "[INFO] Executing: apt upgrade on "
+    printf -- "[INFO] Executing: apt upgrade at "
     date "+%Y/%m/%d %T"
 
     apt-get update && \
@@ -31,7 +31,7 @@ update_debian_or_ubuntu() {
 update_redhat_or_centos() {
     [ -f /etc/yum.conf ] && cat /etc/yum.conf
 
-    printf -- "[INFO] Executing: yum update on "
+    printf -- "[INFO] Executing: yum update at "
     date "+%Y/%m/%d %T"
 
     yum -y update && yum clean all
@@ -46,7 +46,7 @@ update_redhat_or_centos() {
 freshclam_manually(){
     systemctl stop clamav-freshclam.service
 
-    printf -- "[INFO] Executing: fleshclam on "
+    printf -- "[INFO] Executing: fleshclam at "
     date "+%Y/%m/%d %T"
     freshclam
 
