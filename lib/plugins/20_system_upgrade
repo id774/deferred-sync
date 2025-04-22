@@ -45,7 +45,11 @@ update_redhat_or_centos() {
 
 freshclam_manually(){
     systemctl stop clamav-freshclam.service
+
+    printf -- "[INFO] Executing: fleshclam on "
+    date "+%Y/%m/%d %T"
     freshclam
+
     systemctl start clamav-freshclam.service
 }
 

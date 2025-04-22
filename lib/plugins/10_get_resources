@@ -20,12 +20,17 @@ uname -a
 
 # Check if `lsb_release` exists before executing
 if command -v lsb_release > /dev/null 2>&1; then
+    echo "[INFO] lsb_release -a"
     lsb_release -a
 elif [ -f /etc/debian_version ]; then
+    echo "[INFO] cat /etc/debian_version"
     cat /etc/debian_version
 fi
 
 # Print system uptime and resource usage
+echo "[INFO] uptime"
 uptime
+echo "[INFO] free -t"
 free -t
+echo "[INFO] df -P -T"
 df -P -T

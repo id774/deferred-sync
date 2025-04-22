@@ -29,11 +29,12 @@ get_remote() {
 
         if ping -c 1 "$1" > /dev/null 2>&1; then
             rsync $OPTS "$REMOTE_USER@$1:$2" "$GET_TARGET_DIR/$1"
+            RC=$?
         else
             printf -- "[WARN] Skipping retrieval from %s: Host unreachable\n" "$1" >&2
+            RC=1
         fi
 
-        RC=$?
         echo "[INFO] Return code is $RC"
     else
         printf -- "[INFO] Target directory %s does not exist. Skipping.\n" "$GET_TARGET_DIR"

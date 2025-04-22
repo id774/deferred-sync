@@ -17,6 +17,9 @@ purge_old_kernels() {
     OLDKERNELS=$(dpkg -l | awk '{print $2}' | grep -E "$LINUXPKG" | grep -vE "$METALINUXPKG" | grep -v "$CURKERNEL")
 
     if [ -n "$OLDKERNELS" ]; then
+        printf -- "[INFO] Executing: apt-get purge on "
+        date "+%Y/%m/%d %T"
+
         apt-get -y purge $OLDKERNELS
         RC=$?
         echo "[INFO] Return code is $RC"
@@ -27,6 +30,9 @@ purge_old_kernels() {
 
 ubuntu_kernel_upgrade() {
     purge_old_kernels
+
+    printf -- "[INFO] Executing: apt upgrade on "
+    date "+%Y/%m/%d %T"
 
     apt-get update >> "$JOBLOG" 2>&1 && \
       apt-get -y install "linux-image-$UBUNTU_ARCHITECTURE" \
