@@ -7,6 +7,7 @@ v25.04 (Release Date: TBD)
 - Updated header comment in exclude.conf to reflect its current config path.
 - Added [INFO] logs and fixed RC assignments in resource, hardware, and backup plugins.
 - Improved log granularity with [INFO] and [ERROR] tags in install.sh.
+- Skip copying to /etc/cron.daily if /etc/cron.d/deferred-sync exists.
 
 v25.03 (2025-03-23)
 -------------------

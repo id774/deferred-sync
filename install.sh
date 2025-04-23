@@ -14,6 +14,8 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Version History:
+#  v2.3 2025-04-23
+#       Skip copying to /etc/cron.daily if /etc/cron.d/deferred-sync exists.
 #  v2.2 2025-04-22
 #       Improve log granularity with [INFO] and [ERROR] tags per execution step.
 #  v2.1 2025-03-22
@@ -139,7 +141,13 @@ remove_obsolete() {
 
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
-    $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync
+    if [ -f /etc/cron.d/deferred-sync ]; then
+        echo "[INFO] Skipping /etc/cron.daily installation since /etc/cron.d/deferred-sync exists."
+    else
+        echo "[INFO] Installing deferred-sync to /etc/cron.daily"
+        $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync
+    fi
+
     [ -d /etc/opt/deferred-sync ] || $SUDO mkdir -p /etc/opt/deferred-sync
     $SUDO cp $OPTIONS "$SCRIPT_HOME/config/"*.conf /etc/opt/deferred-sync/
     $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf
