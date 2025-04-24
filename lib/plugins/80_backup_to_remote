@@ -25,10 +25,9 @@ mirror_to_remote() {
     date "+%Y/%m/%d %T"
 
     if [ -d "$BACKUPTO" ]; then
-        printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
 
         if ping -c 1 "$1" > /dev/null 2>&1; then
-            echo "[INFO] rsync $OPTS $BACKUPTO $BACKUPUSER@$1:$2"
+            printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
             rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
             RC=$?
         else
