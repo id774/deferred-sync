@@ -16,19 +16,19 @@ date "+%Y/%m/%d %T"
 
 # Retrieve system information
 if command -v dmidecode > /dev/null 2>&1; then
-    echo "[INFO] dmidecode --type system"
+    echo "[INFO] Retrieving system information using dmidecode"
     dmidecode --type system
 fi
 
 # Retrieve battery and power information
 if command -v acpi > /dev/null 2>&1; then
-    echo "[INFO] acpi -abi"
+    echo "[INFO] Retrieving battery and power status using acpi"
     acpi -abi
 fi
 
 # Retrieve SMART data for detected disks
 if command -v smartctl > /dev/null 2>&1; then
-    echo "[INFO] smartctl -a DEVICE"
+    echo "[INFO] Checking SMART status for available disks"
     for DEVICE in /dev/sd[a-f]; do
         [ -b "$DEVICE" ] && smartctl -a "$DEVICE"
     done
