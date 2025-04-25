@@ -49,6 +49,8 @@ freshclam_manually(){
     printf -- "[INFO] Executing: fleshclam at "
     date "+%Y/%m/%d %T"
     freshclam
+    RC=$?
+    echo "[INFO] Return code is $RC"
 
     systemctl start clamav-freshclam.service
 }
@@ -68,9 +70,6 @@ system_upgrade() {
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
     fi
-
-    RC=$?
-    echo "[INFO] Return code is $RC"
 }
 
 printf -- "[INFO] Loading: system_upgrade has been loaded at "
