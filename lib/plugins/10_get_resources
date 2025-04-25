@@ -16,21 +16,22 @@ printf -- "[INFO] Loading: get_resources has been loaded at "
 date "+%Y/%m/%d %T"
 
 # Print kernel and system details
+echo "[INFO] Retrieving kernel and system information"
 uname -a
 
-# Check if `lsb_release` exists before executing
+# Print distribution-specific release information
 if command -v lsb_release > /dev/null 2>&1; then
-    echo "[INFO] lsb_release -a"
+    echo "[INFO] Retrieving distribution information using lsb_release"
     lsb_release -a
 elif [ -f /etc/debian_version ]; then
-    echo "[INFO] cat /etc/debian_version"
+    echo "[INFO] Retrieving distribution version from /etc/debian_version"
     cat /etc/debian_version
 fi
 
 # Print system uptime and resource usage
-echo "[INFO] uptime"
+echo "[INFO] Retrieving system uptime"
 uptime
-echo "[INFO] free -t"
+echo "[INFO] Retrieving memory usage"
 free -t
-echo "[INFO] df -P -T"
+echo "[INFO] Retrieving disk usage"
 df -P -T
