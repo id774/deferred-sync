@@ -79,51 +79,33 @@ set_environment() {
     export SCRIPT_HOME=$(dirname "$(realpath "$0" 2>/dev/null || readlink -f "$0")")
 
     if [ ! -d "$SCRIPT_HOME/lib/plugins" ]; then
-        echo "[ERROR] $SCRIPT_HOME/lib/plugins directory does not exist." >&2
+        echo "[ERROR] Missing directory: $SCRIPT_HOME/lib/plugins" >&2
         exit 1
     fi
 
     case "$(uname)" in
-        Darwin)
-            OPTIONS=-pPRv
-            OWNER=root:wheel
-            ;;
-        *)
-            OPTIONS=-Rvd
-            OWNER=root:adm
-            ;;
+        Darwin) OPTIONS=-pPRv; OWNER=root:wheel ;;
+        *) OPTIONS=-Rvd; OWNER=root:adm ;;
     esac
 
-    if [ -n "$1" ]; then
-        TARGET=$1
-    else
-        TARGET=/opt/deferred-sync
-    fi
+    TARGET=${1:-/opt/deferred-sync}
+    [ -n "$2" ] && SUDO="" || SUDO="sudo"
 
-    if [ -n "$2" ]; then
-        SUDO=""
-    else
-        SUDO="sudo"
-    fi
     echo "[INFO] Using sudo: ${SUDO:-no}"
 
-    if [ "$SUDO" = "sudo" ]; then
-        check_sudo
-    else
-        OWNER="$(id -un):$(id -gn)"
-    fi
+    [ "$SUDO" = "sudo" ] && check_sudo || OWNER="$(id -un):$(id -gn)"
+
     echo "[INFO] Copy options: $OPTIONS"
     echo "[INFO] Owner: $OWNER"
 }
 
 deploy() {
     echo "[INFO] Deploying components: $*"
-    while [ $# -gt 0 ]; do
-        if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/$1" "$TARGET/"; then
-            echo "[ERROR] Failed to deploy $1 to $TARGET" >&2
+    for item in "$@"; do
+        if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/$item" "$TARGET/"; then
+            echo "[ERROR] Failed to copy $item to $TARGET" >&2
             exit 1
         fi
-        shift
     done
 }
 
@@ -161,101 +143,64 @@ remove_obsolete() {
 
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
-    if [ -f /etc/cron.d/deferred-sync ]; then
-        echo "[INFO] Skipping /etc/cron.daily installation since /etc/cron.d/deferred-sync exists."
-    else
-        echo "[INFO] Installing deferred-sync to /etc/cron.daily"
+
+    if [ ! -f /etc/cron.d/deferred-sync ]; then
+        echo "[INFO] Installing to /etc/cron.daily"
         if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync; then
-            echo "[ERROR] Failed to copy cron.daily script." >&2
+            echo "[ERROR] Failed to install to /etc/cron.daily" >&2
             exit 1
         fi
     fi
 
-    if [ ! -d /etc/opt/deferred-sync ]; then
-        if ! $SUDO mkdir -p /etc/opt/deferred-sync; then
-            echo "[ERROR] Failed to create /etc/opt/deferred-sync" >&2
-            exit 1
-        fi
+    if ! $SUDO mkdir -p /etc/opt/deferred-sync; then
+        echo "[ERROR] Failed to create /etc/opt/deferred-sync" >&2
+        exit 1
     fi
 
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/config/"*.conf /etc/opt/deferred-sync/; then
-        echo "[ERROR] Failed to copy configuration files." >&2
+        echo "[ERROR] Failed to copy config files" >&2
         exit 1
     fi
 
-    if ! $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf; then
-        echo "[ERROR] Failed to change ownership of configuration files." >&2
-        exit 1
-    fi
+    $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf
+    $SUDO chmod 640 /etc/opt/deferred-sync/*.conf
 
-    if ! $SUDO chmod 640 /etc/opt/deferred-sync/*.conf; then
-        echo "[ERROR] Failed to set permissions on configuration files." >&2
-        exit 1
-    fi
-
-    if ! $SUDO rm "$TARGET/config/"*.conf; then
-        echo "[ERROR] Failed to remove old configuration symlinks." >&2
+    if ! $SUDO rm -f "$TARGET/config/"*.conf; then
+        echo "[ERROR] Failed to remove old config links" >&2
         exit 1
     fi
 
     if ! $SUDO ln -snf /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"; then
-        echo "[ERROR] Failed to link sync.conf." >&2
+        echo "[ERROR] Failed to create symlink for sync.conf" >&2
         exit 1
     fi
 
     if ! $SUDO ln -snf /etc/opt/deferred-sync/exclude.conf "$TARGET/config/exclude.conf"; then
-        echo "[ERROR] Failed to link exclude.conf." >&2
+        echo "[ERROR] Failed to create symlink for exclude.conf" >&2
         exit 1
     fi
 }
 
 logrotate() {
     echo "[INFO] Setting up log rotation..."
+
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync; then
-        echo "[ERROR] Failed to copy logrotate configuration." >&2
+        echo "[ERROR] Failed to copy logrotate config" >&2
         exit 1
     fi
 
-    if ! $SUDO mkdir -p /var/log/deferred-sync; then
-        echo "[ERROR] Failed to create log directory." >&2
-        exit 1
-    fi
-
-    if ! $SUDO touch /var/log/deferred-sync/sync.log; then
-        echo "[ERROR] Failed to create sync.log file." >&2
-        exit 1
-    fi
-
-    if ! $SUDO chown $OWNER /var/log/deferred-sync/sync.log; then
-        echo "[ERROR] Failed to change ownership of sync.log." >&2
-        exit 1
-    fi
-
-    if ! $SUDO chmod 640 /var/log/deferred-sync/sync.log; then
-        echo "[ERROR] Failed to set permissions on sync.log." >&2
-        exit 1
-    fi
+    $SUDO mkdir -p /var/log/deferred-sync
+    $SUDO touch /var/log/deferred-sync/sync.log
+    $SUDO chown $OWNER /var/log/deferred-sync/sync.log
+    $SUDO chmod 640 /var/log/deferred-sync/sync.log
 }
 
 create_backupdir() {
     echo "[INFO] Creating backup directories..."
     for dir in /home/backup /home/remote; do
-        if [ ! -d "$dir" ]; then
-            if ! $SUDO mkdir "$dir"; then
-                echo "[ERROR] Failed to create directory: $dir" >&2
-                exit 1
-            fi
-        fi
-
-        if ! $SUDO chown $OWNER "$dir"; then
-            echo "[ERROR] Failed to change ownership of $dir" >&2
-            exit 1
-        fi
-
-        if ! $SUDO chmod 750 "$dir"; then
-            echo "[ERROR] Failed to set permissions on $dir" >&2
-            exit 1
-        fi
+        [ -d "$dir" ] || $SUDO mkdir "$dir"
+        $SUDO chown $OWNER "$dir"
+        $SUDO chmod 750 "$dir"
     done
 }
 
@@ -263,10 +208,7 @@ restore_config_from_backup() {
     echo "[INFO] Restoring config files from backup if available..."
     for file in sync.conf exclude.conf; do
         if [ -f "/home/backup/etc/opt/deferred-sync/$file" ]; then
-            if ! $SUDO cp $OPTIONS "/home/backup/etc/opt/deferred-sync/$file" "/etc/opt/deferred-sync/$file"; then
-                echo "[ERROR] Failed to restore $file from backup." >&2
-                exit 1
-            fi
+            $SUDO cp $OPTIONS "/home/backup/etc/opt/deferred-sync/$file" "/etc/opt/deferred-sync/$file"
         fi
     done
 }
