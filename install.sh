@@ -16,6 +16,7 @@
 #  Version History:
 #  v2.4 2025-04-27
 #       Add strict error checking for all critical filesystem operations to prevent silent failures.
+#       Remove backup restoration logic. Skip copying sync.conf and exclude.conf if they already exist.
 #  v2.3 2025-04-23
 #       Skip copying to /etc/cron.daily if /etc/cron.d/deferred-sync exists.
 #  v2.2 2025-04-22
@@ -124,21 +125,6 @@ deploy_to_target() {
     fi
 
     deploy exec config lib
-    remove_obsolete_files
-}
-
-remove_obsolete_files() {
-    echo "[INFO] Removing obsolete plugin files..."
-    remove_obsolete "$TARGET/lib/plugins/11_show_version"
-}
-
-remove_obsolete() {
-    if [ -f "$1" ]; then
-        if ! $SUDO rm -vf "$1"; then
-            echo "[ERROR] Failed to remove obsolete file: $1" >&2
-            exit 1
-        fi
-    fi
 }
 
 scheduling() {
@@ -159,18 +145,20 @@ scheduling() {
         exit 1
     fi
 
-    if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/config/"*.conf /etc/opt/deferred-sync/; then
-        echo "[ERROR] Failed to copy config files" >&2
-        exit 1
-    fi
-
-    $SUDO chown $OWNER /etc/opt/deferred-sync/*.conf
-    $SUDO chmod 640 /etc/opt/deferred-sync/*.conf
-
-    if ! $SUDO rm -f "$TARGET/config/"*.conf; then
-        echo "[ERROR] Failed to remove old config links" >&2
-        exit 1
-    fi
+    echo "[INFO] Deploying configuration files..."
+    for conf in sync.conf exclude.conf; do
+        if [ -f "/etc/opt/deferred-sync/$conf" ]; then
+            echo "[INFO] /etc/opt/deferred-sync/$conf already exists. Skipping copy."
+        else
+            echo "[INFO] Copying $conf to /etc/opt/deferred-sync/"
+            if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/config/$conf" "/etc/opt/deferred-sync/$conf"; then
+                echo "[ERROR] Failed to copy $conf to /etc/opt/deferred-sync" >&2
+                exit 1
+            fi
+        fi
+    done
+    $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
+    $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
 
     if ! $SUDO ln -snf /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"; then
         echo "[ERROR] Failed to create symlink for sync.conf" >&2
@@ -206,22 +194,12 @@ create_backupdir() {
     done
 }
 
-restore_config_from_backup() {
-    echo "[INFO] Restoring config files from backup if available..."
-    for file in sync.conf exclude.conf; do
-        if [ -f "/home/backup/etc/opt/deferred-sync/$file" ]; then
-            $SUDO cp $OPTIONS "/home/backup/etc/opt/deferred-sync/$file" "/etc/opt/deferred-sync/$file"
-        fi
-    done
-}
-
 setup_cron() {
     if [ "$(uname -s)" = "Linux" ]; then
         echo "[INFO] Setting up scheduled jobs..."
         scheduling
         logrotate
         create_backupdir
-        restore_config_from_backup
     fi
 }
 
