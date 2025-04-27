@@ -144,7 +144,9 @@ remove_obsolete() {
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
 
-    if [ ! -f /etc/cron.d/deferred-sync ]; then
+    if [ -f /etc/cron.d/deferred-sync ]; then
+        echo "[INFO] Skipping /etc/cron.daily installation since /etc/cron.d/deferred-sync exists."
+    else
         echo "[INFO] Installing to /etc/cron.daily"
         if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync; then
             echo "[ERROR] Failed to install to /etc/cron.daily" >&2
