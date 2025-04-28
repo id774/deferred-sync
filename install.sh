@@ -57,10 +57,10 @@ check_commands() {
     for cmd in "$@"; do
         cmd_path=$(command -v "$cmd" 2>/dev/null)
         if [ -z "$cmd_path" ]; then
-            echo "Error: Command '$cmd' is not installed. Please install $cmd and try again." >&2
+            echo "[ERROR] Command '$cmd' is not installed. Please install $cmd and try again." >&2
             exit 127
         elif [ ! -x "$cmd_path" ]; then
-            echo "Error: Command '$cmd' is not executable. Please check the permissions." >&2
+            echo "[ERROR] Command '$cmd' is not executable. Please check the permissions." >&2
             exit 126
         fi
     done
@@ -69,7 +69,7 @@ check_commands() {
 # Check if the user has sudo privileges (password may be required)
 check_sudo() {
     if ! sudo -v 2>/dev/null; then
-        echo "Error: This script requires sudo privileges. Please run as a user with sudo access." >&2
+        echo "[ERROR] This script requires sudo privileges. Please run as a user with sudo access." >&2
         exit 1
     fi
 }
@@ -104,7 +104,7 @@ deploy() {
     echo "[INFO] Deploying components: $*"
     for item in "$@"; do
         if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/$item" "$TARGET/"; then
-            echo "[ERROR] Failed to copy $item to $TARGET" >&2
+            echo "[ERROR] Failed to copy $item to $TARGET." >&2
             exit 1
         fi
     done
@@ -114,7 +114,7 @@ deploy_to_target() {
     echo "[INFO] Deploying to $TARGET"
     if [ -d "$TARGET" ]; then
         if ! $SUDO rm -rf "$TARGET/"; then
-            echo "[ERROR] Failed to remove existing $TARGET" >&2
+            echo "[ERROR] Failed to remove existing $TARGET." >&2
             exit 1
         fi
     fi
@@ -135,13 +135,13 @@ scheduling() {
     else
         echo "[INFO] Installing to /etc/cron.daily"
         if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/deferred-sync" /etc/cron.daily/deferred-sync; then
-            echo "[ERROR] Failed to install to /etc/cron.daily" >&2
+            echo "[ERROR] Failed to install to /etc/cron.daily." >&2
             exit 1
         fi
     fi
 
     if ! $SUDO mkdir -p /etc/opt/deferred-sync; then
-        echo "[ERROR] Failed to create /etc/opt/deferred-sync" >&2
+        echo "[ERROR] Failed to create /etc/opt/deferred-sync." >&2
         exit 1
     fi
 
@@ -161,12 +161,12 @@ scheduling() {
     $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
 
     if ! $SUDO ln -snf /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"; then
-        echo "[ERROR] Failed to create symlink for sync.conf" >&2
+        echo "[ERROR] Failed to create symlink for sync.conf." >&2
         exit 1
     fi
 
     if ! $SUDO ln -snf /etc/opt/deferred-sync/exclude.conf "$TARGET/config/exclude.conf"; then
-        echo "[ERROR] Failed to create symlink for exclude.conf" >&2
+        echo "[ERROR] Failed to create symlink for exclude.conf." >&2
         exit 1
     fi
 }
@@ -175,7 +175,7 @@ logrotate() {
     echo "[INFO] Setting up log rotation..."
 
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync; then
-        echo "[ERROR] Failed to copy logrotate config" >&2
+        echo "[ERROR] Failed to copy logrotate config." >&2
         exit 1
     fi
 
@@ -206,7 +206,7 @@ setup_cron() {
 set_permission() {
     echo "[INFO] Setting file ownership and permissions..."
     if ! $SUDO chown -R "$OWNER" "$TARGET"; then
-        echo "[ERROR] Failed to recursively change ownership of $TARGET" >&2
+        echo "[ERROR] Failed to recursively change ownership of $TARGET." >&2
         exit 1
     fi
 }
