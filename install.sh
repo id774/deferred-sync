@@ -111,7 +111,7 @@ deploy() {
 }
 
 deploy_to_target() {
-    echo "[INFO] Deploying to $TARGET"
+    echo "[INFO] Deploying to $TARGET."
     if [ -d "$TARGET" ]; then
         if ! $SUDO rm -rf "$TARGET/"; then
             echo "[ERROR] Failed to remove existing $TARGET." >&2
