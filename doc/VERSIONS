@@ -1,8 +1,8 @@
 VERSION History
 ===============
 
-v25.04 (Release Date: TBD)
---------------------------
+v25.04 (2025-04-29)
+-------------------
 - Unified log output format across all plugins for consistency and clarity.
 - Updated header comment in exclude.conf to reflect its current config path.
 - Added [INFO] logs and fixed RC assignments in resource, hardware, and backup plugins.
