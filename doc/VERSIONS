@@ -1,6 +1,10 @@
 VERSION History
 ===============
 
+v25.05 (Release Date: TBD)
+--------------------------
+- Refactored all scripts to use main and start_message functions for structural consistency.
+
 v25.04 (2025-04-29)
 -------------------
 - Unified log output format across all plugins for consistency and clarity.

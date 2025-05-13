@@ -13,6 +13,11 @@
 # Note:
 #   - This script assumes that the `svnadmin dump` command is available and has the necessary permissions.
 
+start_message() {
+    printf -- "[INFO] Loading: dump_svn has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 get_svndump() {
     printf -- "svndump %s\n" "$1"
 
@@ -37,7 +42,9 @@ dump_svn() {
     done
 }
 
-printf -- "[INFO] Loading: dump_svn has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    dump_svn
+}
 
-dump_svn
+main "$@"

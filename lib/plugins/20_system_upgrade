@@ -13,6 +13,11 @@
 # Note:
 #   - This script assumes that the system is connected to the internet and package managers are configured correctly.
 
+start_message() {
+    printf -- "[INFO] Loading: system_upgrade has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 update_debian_or_ubuntu() {
     [ -f /etc/apt/sources.list ] && cat /etc/apt/sources.list
 
@@ -72,7 +77,9 @@ system_upgrade() {
     fi
 }
 
-printf -- "[INFO] Loading: system_upgrade has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    system_upgrade
+}
 
-system_upgrade
+main "$@"

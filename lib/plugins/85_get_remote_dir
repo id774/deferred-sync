@@ -16,6 +16,11 @@
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
 
+start_message() {
+    printf -- "[INFO] Loading: get_remote_dir has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 get_remote() {
     OPTS="-avz --delete -e ssh"
 
@@ -49,7 +54,9 @@ get_remote_dir() {
     done
 }
 
-printf -- "[INFO] Loading: get_remote_dir has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    get_remote_dir
+}
 
-get_remote_dir
+main "$@"

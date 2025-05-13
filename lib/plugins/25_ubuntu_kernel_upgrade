@@ -9,6 +9,11 @@
 # Note:
 #   - This script assumes that the system is running Ubuntu and has internet access.
 
+start_message() {
+    printf -- "[INFO] Loading: ubuntu_kernel_upgrade has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 purge_old_kernels() {
     CURKERNEL=$(uname -r | sed 's/-*[a-z]//g' | sed 's/-386//g')
     LINUXPKG="linux-(image|headers|ubuntu-modules|restricted-modules)"
@@ -55,7 +60,9 @@ system_upgrade() {
     echo "[INFO] Return code is $RC"
 }
 
-printf -- "[INFO] Loading: ubuntu_kernel_upgrade has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    system_upgrade
+}
 
-system_upgrade
+main "$@"

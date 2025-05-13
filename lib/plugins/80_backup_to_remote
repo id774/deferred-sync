@@ -16,6 +16,11 @@
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
 
+start_message() {
+    printf -- "[INFO] Loading: backup_to_remote has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 mirror_to_remote() {
     OPTS="-avz --delete -e ssh"
 
@@ -47,7 +52,9 @@ backup_to_remote() {
     done
 }
 
-printf -- "[INFO] Loading: backup_to_remote has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    backup_to_remote
+}
 
-backup_to_remote
+main "$@"

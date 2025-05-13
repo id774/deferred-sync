@@ -12,26 +12,37 @@
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
 
-printf -- "[INFO] Loading: get_resources has been loaded at "
-date "+%Y/%m/%d %T"
+start_message() {
+    printf -- "[INFO] Loading: get_resources has been loaded at "
+    date "+%Y/%m/%d %T"
+}
 
-# Print kernel and system details
-echo "[INFO] Retrieving kernel and system information"
-uname -a
+get_resources() {
+    # Print kernel and system details
+    echo "[INFO] Retrieving kernel and system information"
+    uname -a
 
-# Print distribution-specific release information
-if command -v lsb_release > /dev/null 2>&1; then
-    echo "[INFO] Retrieving distribution information using lsb_release"
-    lsb_release -a
-elif [ -f /etc/debian_version ]; then
-    echo "[INFO] Retrieving distribution version from /etc/debian_version"
-    cat /etc/debian_version
-fi
+    # Print distribution-specific release information
+    if command -v lsb_release > /dev/null 2>&1; then
+        echo "[INFO] Retrieving distribution information using lsb_release"
+        lsb_release -a
+    elif [ -f /etc/debian_version ]; then
+        echo "[INFO] Retrieving distribution version from /etc/debian_version"
+        cat /etc/debian_version
+    fi
 
-# Print system uptime and resource usage
-echo "[INFO] Retrieving system uptime"
-uptime
-echo "[INFO] Retrieving memory usage"
-free -t
-echo "[INFO] Retrieving disk usage"
-df -P -T
+    # Print system uptime and resource usage
+    echo "[INFO] Retrieving system uptime"
+    uptime
+    echo "[INFO] Retrieving memory usage"
+    free -t
+    echo "[INFO] Retrieving disk usage"
+    df -P -T
+}
+
+main() {
+    start_message
+    get_resources
+}
+
+main "$@"

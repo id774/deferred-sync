@@ -11,25 +11,36 @@
 #   - This script assumes it is running on a POSIX-compliant system.
 #   - `dmidecode`, `acpi`, and `smartctl` must be installed to retrieve respective information.
 
-printf -- "[INFO] Loading: get_hardware_info has been loaded at "
-date "+%Y/%m/%d %T"
+start_message() {
+    printf -- "[INFO] Loading: get_hardware_info has been loaded at "
+    date "+%Y/%m/%d %T"
+}
 
-# Retrieve system information
-if command -v dmidecode > /dev/null 2>&1; then
-    echo "[INFO] Retrieving system information using dmidecode"
-    dmidecode --type system
-fi
+get_hardware_info() {
+    # Retrieve system information
+    if command -v dmidecode > /dev/null 2>&1; then
+        echo "[INFO] Retrieving system information using dmidecode"
+        dmidecode --type system
+    fi
 
-# Retrieve battery and power information
-if command -v acpi > /dev/null 2>&1; then
-    echo "[INFO] Retrieving battery and power status using acpi"
-    acpi -abi
-fi
+    # Retrieve battery and power information
+    if command -v acpi > /dev/null 2>&1; then
+        echo "[INFO] Retrieving battery and power status using acpi"
+        acpi -abi
+    fi
 
-# Retrieve SMART data for detected disks
-if command -v smartctl > /dev/null 2>&1; then
-    echo "[INFO] Checking SMART status for available disks"
-    for DEVICE in /dev/sd[a-f]; do
-        [ -b "$DEVICE" ] && smartctl -a "$DEVICE"
-    done
-fi
+    # Retrieve SMART data for detected disks
+    if command -v smartctl > /dev/null 2>&1; then
+        echo "[INFO] Checking SMART status for available disks"
+        for DEVICE in /dev/sd[a-f]; do
+            [ -b "$DEVICE" ] && smartctl -a "$DEVICE"
+        done
+    fi
+}
+
+main() {
+    start_message
+    get_hardware_info
+}
+
+main "$@"

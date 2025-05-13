@@ -13,6 +13,11 @@
 # Note:
 #   - This script assumes that MongoDB authentication is handled via configuration.
 
+start_message() {
+    printf -- "[INFO] Loading: dump_mongodb has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 get_mongodbdump() {
     # Remove existing compressed dump if it exists
     [ -f "$MONGODBDUMP" ] && rm "$MONGODBDUMP"
@@ -36,7 +41,9 @@ dump_mongodb() {
     get_mongodbdump
 }
 
-printf -- "[INFO] Loading: dump_mongodb has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    dump_mongodb
+}
 
-dump_mongodb
+main "$@"

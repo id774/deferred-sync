@@ -13,35 +13,46 @@
 # Note:
 #   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`.
 
-printf -- "[INFO] Loading: show_version has been loaded at "
-date "+%Y/%m/%d %T"
-
-[ -x /opt/ruby/current/bin/ruby ] && {
-    echo "[INFO] Retrieving Ruby version"
-    /opt/ruby/current/bin/ruby -v
+start_message() {
+    printf -- "[INFO] Loading: show_version has been loaded at "
+    date "+%Y/%m/%d %T"
 }
 
-[ -x /opt/python/current/bin/python ] && {
-    echo "[INFO] Retrieving Python version"
-    /opt/python/current/bin/python -V
+show_version() {
+    [ -x /opt/ruby/current/bin/ruby ] && {
+        echo "[INFO] Retrieving Ruby version"
+        /opt/ruby/current/bin/ruby -v
+    }
+
+    [ -x /opt/python/current/bin/python ] && {
+        echo "[INFO] Retrieving Python version"
+        /opt/python/current/bin/python -V
+    }
+
+    [ -x /opt/java/jdk/current/bin/java ] && {
+        echo "[INFO] Retrieving Java version"
+        /opt/java/jdk/current/bin/java -version
+    }
+
+    [ -x /opt/go/current/bin/go ] && {
+        echo "[INFO] Retrieving Go version"
+        /opt/go/current/bin/go version
+    }
+
+    [ -x /opt/mongo/current/bin/mongo ] && {
+        echo "[INFO] Retrieving MongoDB version"
+        /opt/mongo/current/bin/mongo --version
+    }
+
+    [ -x /opt/protobuf/current/bin/protoc ] && {
+        echo "[INFO] Retrieving Protocol Buffers version"
+        /opt/protobuf/current/bin/protoc --version
+    }
 }
 
-[ -x /opt/java/jdk/current/bin/java ] && {
-    echo "[INFO] Retrieving Java version"
-    /opt/java/jdk/current/bin/java -version
+main() {
+    start_message
+    show_version
 }
 
-[ -x /opt/go/current/bin/go ] && {
-    echo "[INFO] Retrieving Go version"
-    /opt/go/current/bin/go version
-}
-
-[ -x /opt/mongo/current/bin/mongo ] && {
-    echo "[INFO] Retrieving MongoDB version"
-    /opt/mongo/current/bin/mongo --version
-}
-
-[ -x /opt/protobuf/current/bin/protoc ] && {
-    echo "[INFO] Retrieving Protocol Buffers version"
-    /opt/protobuf/current/bin/protoc --version
-}
+main "$@"

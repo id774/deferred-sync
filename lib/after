@@ -10,5 +10,13 @@
 # Note:
 #   - Users can freely modify this script to include additional post-execution logic.
 
-printf -- "[INFO] Loading: endscript has been loaded at "
-date "+%Y/%m/%d %T"
+start_message() {
+    printf -- "[INFO] Loading: endscript has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
+main() {
+    start_message
+}
+
+main "$@"

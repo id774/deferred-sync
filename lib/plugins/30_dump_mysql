@@ -14,6 +14,11 @@
 # Note:
 #   - This script assumes that authentication is handled via the MySQL password environment variable.
 
+start_message() {
+    printf -- "[INFO] Loading: dump_mysql has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 get_mysqldump() {
     printf -- "mysqldump %s\n" "$1"
 
@@ -38,7 +43,9 @@ dump_mysql() {
     done
 }
 
-printf -- "[INFO] Loading: dump_mysql has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    dump_mysql
+}
 
-dump_mysql
+main "$@"

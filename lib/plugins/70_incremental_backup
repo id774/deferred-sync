@@ -15,6 +15,11 @@
 # Note:
 #   - This script assumes that `rsync` is installed and available.
 
+start_message() {
+    printf -- "[INFO] Loading: incremental_backup has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
 purge_expire_dir() {
     while [ "$#" -gt 0 ]; do
         BDATE=$(echo "$1" | sed "s/_backup_//")
@@ -68,7 +73,9 @@ run_rsync() {
     exec_rsync
 }
 
-printf -- "[INFO] Loading: incremental_backup has been loaded at "
-date "+%Y/%m/%d %T"
+main() {
+    start_message
+    run_rsync
+}
 
-run_rsync
+main "$@"
