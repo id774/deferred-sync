@@ -21,6 +21,12 @@ setup() {
 
     # Determine script home directory
     SCRIPT_HOME=$(cd "$(dirname "$0")" && pwd)/..
+
+    # Check if config file is readable
+    if [ ! -r "${SCRIPT_HOME}/${CONFIG}" ]; then
+        echo "[ERROR] Config file not found or unreadable: ${SCRIPT_HOME}/${CONFIG}" >&2
+        exit 2
+    fi
     . "${SCRIPT_HOME}/${CONFIG}"
 
     EXECDIR=$(dirname "$0")
@@ -35,9 +41,11 @@ setup() {
 
 send_mail_to_admin() {
     # Send job log to administrator
-    cat -v "$JOBLOG" | nkf -w | \
-      mail -s "[cron][$(hostname)] Deferred Sync Log" \
-      "$ADMIN_MAIL_ADDRESS"
+    if ! cat -v "$JOBLOG" | nkf -w | \
+        mail -s "[cron][$(hostname)] Deferred Sync Log" \
+        "$ADMIN_MAIL_ADDRESS"; then
+        echo "[ERROR] Failed to send mail to $ADMIN_MAIL_ADDRESS" >&2
+    fi
 }
 
 deferred_sync() {
@@ -64,9 +72,7 @@ deferred_sync() {
     } >>"$JOBLOG" 2>&1
 
     # Send job log via email if configured
-    case "$ADMIN_MAIL_ADDRESS" in
-      *@*) send_mail_to_admin ;;
-    esac
+    [ -n "$ADMIN_MAIL_ADDRESS" ] && send_mail_to_admin
 }
 
 # Main function to execute the script
