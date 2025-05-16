@@ -6,6 +6,7 @@ v25.05 (Release Date: TBD)
 - Refactored all scripts to use main and start_message functions for structural consistency.
 - Add writability check for JOBLOG in setup to ensure early failure on log permission issues.
 - Add config file readability check and mail delivery failure handling in deferred-sync.
+- Add return 0 to all main functions and exit $? at end of main scripts for consistent exit status handling.
 
 v25.04 (2025-04-29)
 -------------------

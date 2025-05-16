@@ -79,7 +79,10 @@ deferred_sync() {
 main() {
     setup "$@"
     deferred_sync
+
+    return 0
 }
 
 # Execute main function
 main "$@"
+exit $?
