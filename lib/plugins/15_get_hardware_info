@@ -5,11 +5,11 @@
 # Outputs:
 #   - System information (`dmidecode --type system`)
 #   - Battery and power details (`acpi -abi`)
-#   - SMART status for available disks (`smartctl -a /dev/sdX`)
+#   - SMART status for available disks with serial numbers
 #
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
-#   - `dmidecode`, `acpi`, and `smartctl` must be installed to retrieve respective information.
+#   - `dmidecode`, `acpi`, `smartctl`, and `udevadm` must be installed to retrieve respective information.
 
 start_message() {
     printf -- "[INFO] Loading: get_hardware_info has been loaded at "
@@ -33,7 +33,15 @@ get_hardware_info() {
     if command -v smartctl > /dev/null 2>&1; then
         echo "[INFO] Checking SMART status for available disks"
         for DEVICE in /dev/sd[a-f]; do
-            [ -b "$DEVICE" ] && smartctl -a "$DEVICE"
+            if [ -b "$DEVICE" ]; then
+                SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
+                echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
+                echo "[INFO] Attempting smartctl -a -d sat $DEVICE"
+                if ! smartctl -a -d sat "$DEVICE"; then
+                    echo "[INFO] -d sat failed for $DEVICE, falling back to default"
+                    smartctl -a "$DEVICE"
+                fi
+            fi
         done
     fi
 }
