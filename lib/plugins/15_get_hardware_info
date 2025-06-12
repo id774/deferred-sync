@@ -21,12 +21,16 @@ get_hardware_info() {
     if command -v dmidecode > /dev/null 2>&1; then
         echo "[INFO] Retrieving system information using dmidecode"
         dmidecode --type system
+    else
+        echo "[WARN] dmidecode command not found" >&2
     fi
 
     # Retrieve battery and power information
     if command -v acpi > /dev/null 2>&1; then
         echo "[INFO] Retrieving battery and power status using acpi"
         acpi -abi
+    else
+        echo "[WARN] acpi command not found" >&2
     fi
 
     # Retrieve SMART data for detected disks
@@ -43,6 +47,8 @@ get_hardware_info() {
                 fi
             fi
         done
+    else
+        echo "[WARN] smartctl command not found" >&2
     fi
 }
 
