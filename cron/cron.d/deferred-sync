@@ -2,7 +2,7 @@
 # Runs every weekday (Monday to Satday) at 03:01
 # Logs will be sent to the root user via cron MAILTO
 
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-MAILTO="root"
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=root
 
 01 03 * * 1-6 root test -x /opt/deferred-sync/exec/deferred-sync && /opt/deferred-sync/exec/deferred-sync
