@@ -4,7 +4,7 @@ VERSION History
 v25.06 (Release Date: TBD)
 --------------------------
 - Add fallback to smartctl -d sat in get_hardware_info for USB disk compatibility with improved comments.
-- Fix undefined PATH in deferred-sync cron to restore expected command behavior
+- Fix undefined PATH in deferred-sync cron to restore expected command behavior.
 
 v25.05 (2025-05-30)
 -------------------
