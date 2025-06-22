@@ -228,7 +228,9 @@ main() {
     esac
 
     installer "$@"
+    return 0
 }
 
 # Execute main function
 main "$@"
+exit $?
