@@ -14,6 +14,8 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Version History:
+#  v2.5 2025-06-23
+#       Unified usage output to display full script header and support common help/version options.
 #  v2.4 2025-04-27
 #       Add strict error checking for all critical filesystem operations to prevent silent failures.
 #       Remove backup restoration logic. Skip copying sync.conf and exclude.conf if they already exist.
@@ -41,13 +43,12 @@
 #
 ########################################################################
 
-# Display script usage information
+# Display full script header information extracted from the top comment block
 usage() {
     awk '
-        BEGIN { in_usage = 0 }
-        /^#  Usage:/ { in_usage = 1; print substr($0, 4); next }
-        /^#{10}/ { if (in_usage) exit }
-        in_usage && /^#/ { print substr($0, 4) }
+        BEGIN { in_header = 0 }
+        /^#{10,}$/ { if (!in_header) { in_header = 1; next } else exit }
+        in_header && /^# ?/ { print substr($0, 3) }
     ' "$0"
     exit 0
 }
@@ -223,7 +224,7 @@ installer() {
 # Main function to execute the script
 main() {
     case "$1" in
-        -h|--help) usage ;;
+        -h|--help|-v|--version) usage ;;
     esac
 
     installer "$@"
