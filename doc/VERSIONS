@@ -1,10 +1,12 @@
 VERSION History
 ===============
 
-v25.06 (Release Date: TBD)
---------------------------
+v25.06 (2025-06-26)
+-------------------
 - Add fallback to smartctl -d sat in get_hardware_info for USB disk compatibility with improved comments.
 - Fix undefined PATH in deferred-sync cron to restore expected command behavior.
+- Improve installer script reliability by explicitly returning exit codes in main functions.
+- Update installer scripts to display full header block as help message.
 
 v25.05 (2025-05-30)
 -------------------
