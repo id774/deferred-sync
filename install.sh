@@ -13,6 +13,16 @@
 #  License: The GPL version 3, or LGPL version 3 (Dual License).
 #  Contact: idnanashi@gmail.com
 #
+#  Usage:
+#      ./install.sh [target_path] [nosudo]
+#
+#  Options:
+#      -h, --help    Show this help message and exit.
+#
+#  Notes:
+#  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
+#  - [nosudo]: If specified, the script runs without sudo.
+#
 #  Version History:
 #  v2.5 2025-06-23
 #       Unified usage output to display full script header and support common help/version options.
@@ -30,16 +40,6 @@
 #  [Further version history truncated for brevity]
 #  v1.0 2014-06-23
 #       Initial release.
-#
-#  Usage:
-#      ./install.sh [target_path] [nosudo]
-#
-#  Options:
-#      -h, --help    Show this help message and exit.
-#
-#  Notes:
-#  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
-#  - [nosudo]: If specified, the script runs without sudo.
 #
 ########################################################################
 

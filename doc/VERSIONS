@@ -1,6 +1,10 @@
 VERSION History
 ===============
 
+v25.07 (Release Date: TBD)
+--------------------------
+- Move usage instructions above version history and improve section structure in installer script.
+
 v25.06 (2025-06-26)
 -------------------
 - Add fallback to smartctl -d sat in get_hardware_info for USB disk compatibility with improved comments.
