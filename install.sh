@@ -53,7 +53,7 @@ usage() {
     exit 0
 }
 
-# Function to check required commands
+# Check required commands
 check_commands() {
     for cmd in "$@"; do
         cmd_path=$(command -v "$cmd" 2>/dev/null)
@@ -75,7 +75,7 @@ check_sudo() {
     fi
 }
 
-# Function to set environment variables
+# Set environment variables
 set_environment() {
     echo "[INFO] Setting up environment..."
     export SCRIPT_HOME=$(dirname "$(realpath "$0" 2>/dev/null || readlink -f "$0")")
@@ -221,7 +221,7 @@ installer() {
     echo "[INFO] deferred-sync installation completed successfully."
 }
 
-# Main function to execute the script
+# Main entry point of the script
 main() {
     case "$1" in
         -h|--help|-v|--version) usage ;;
