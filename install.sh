@@ -7,7 +7,7 @@
 #  This script installs deferred-sync to the target path and sets up
 #  necessary configurations including cron jobs, log rotation, and
 #  permissions. It also conditionally links external configuration
-#  files if found under /etc/cron.config and /etc/cron.exec.
+#  files if requested via --link.
 #
 #  Author: id774 (More info: http://id774.net)
 #  Source Code: https://github.com/id774/deferred-sync
@@ -15,17 +15,21 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Usage:
-#      ./install.sh [target_path] [nosudo]
+#      ./install.sh [target_path] [nosudo] [--link]
 #
 #  Options:
-#      -h, --help    Show this help message and exit.
+#      -h, --help       Show this help message and exit.
+#      --uninstall      Remove deferred-sync and all related files except logs.
+#      --link           Create symlinks under /etc/cron.config and /etc/cron.exec.
 #
 #  Notes:
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
 #  - [nosudo]: If specified, the script runs without sudo.
 #
 #  Version History:
-#  v2.6 2025-07-30
+#  v2.6 2025-07-31
+#       Add uninstall support via --uninstall to remove all components.
+#       Add --link option to control whether cron.config/cron.exec links are created.
 #       Add support for conditional symlinks:
 #       - Link /etc/cron.config/{sync.conf,exclude.conf} to /etc/opt/deferred-sync/
 #       - Link /etc/cron.exec/deferred-sync to /opt/deferred-sync/exec/
@@ -100,9 +104,7 @@ set_environment() {
     [ -n "$2" ] && SUDO="" || SUDO="sudo"
 
     echo "[INFO] Using sudo: ${SUDO:-no}"
-
     [ "$SUDO" = "sudo" ] && check_sudo || OWNER="$(id -un):$(id -gn)"
-
     echo "[INFO] Copy options: $OPTIONS"
     echo "[INFO] Owner: $OWNER"
 }
@@ -125,18 +127,15 @@ deploy_to_target() {
             exit 1
         fi
     fi
-
     if ! $SUDO mkdir -p "$TARGET/"; then
         echo "[ERROR] Failed to create target directory: $TARGET" >&2
         exit 1
     fi
-
     deploy exec config lib
 }
 
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
-
     if [ -f /etc/cron.d/deferred-sync ]; then
         echo "[INFO] Skipping /etc/cron.daily installation since /etc/cron.d/deferred-sync exists."
     else
@@ -168,7 +167,6 @@ scheduling() {
     $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
 
     create_config_symlinks
-    link_configs_to_etc
 }
 
 create_config_symlinks() {
@@ -176,7 +174,7 @@ create_config_symlinks() {
         src="/etc/opt/deferred-sync/$conf"
         link="$TARGET/config/$conf"
         if [ -f "$src" ]; then
-            if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+            if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
                 $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
             fi
         fi
@@ -189,7 +187,7 @@ link_configs_to_etc() {
             src="/etc/opt/deferred-sync/$conf"
             link="/etc/cron.config/$conf"
             if [ -f "$src" ]; then
-                if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+                if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
                     $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
                 fi
             fi
@@ -200,7 +198,7 @@ link_configs_to_etc() {
         src="/opt/deferred-sync/exec/deferred-sync"
         link="/etc/cron.exec/deferred-sync"
         if [ -f "$src" ]; then
-            if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+            if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
                 $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
             fi
         fi
@@ -209,7 +207,6 @@ link_configs_to_etc() {
 
 logrotate() {
     echo "[INFO] Setting up log rotation..."
-
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync; then
         echo "[ERROR] Failed to copy logrotate config." >&2
         exit 1
@@ -247,23 +244,74 @@ set_permission() {
     fi
 }
 
+uninstall() {
+    echo "[INFO] Uninstalling deferred-sync..."
+
+    [ "$(id -u)" -ne 0 ] && SUDO="sudo"
+
+    $SUDO rm -rf /opt/deferred-sync || {
+        echo "[ERROR] Failed to remove /opt/deferred-sync" >&2
+        exit 1
+    }
+
+    $SUDO rm -rf /etc/opt/deferred-sync || {
+        echo "[ERROR] Failed to remove /etc/opt/deferred-sync" >&2
+        exit 1
+    }
+
+    $SUDO rm -f /etc/cron.daily/deferred-sync
+    $SUDO rm -f /etc/logrotate.d/deferred-sync
+
+    for link in /etc/cron.config/sync.conf /etc/cron.config/exclude.conf; do
+        [ -L "$link" ] && $SUDO rm -f "$link"
+    done
+
+    [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -f /etc/cron.exec/deferred-sync
+
+    echo "[INFO] deferred-sync uninstalled successfully."
+}
+
 installer() {
     check_commands cp mkdir chmod chown ln rm id dirname uname readlink
-    set_environment "$@"
+    set_environment "$1" "$2"
     deploy_to_target
     [ -n "$1" ] || setup_cron
     [ -n "$2" ] || set_permission
+    [ "$3" = "1" ] && link_configs_to_etc
     echo "[INFO] deferred-sync installation completed successfully."
 }
 
 # Main entry point of the script
 main() {
-    case "$1" in
-        -h|--help|-v|--version) usage ;;
-    esac
+    TARGET_PATH=""
+    NOSUDO=""
+    LINK_FLAG=0
 
-    installer "$@"
-    return 0
+    for arg in "$@"; do
+        case "$arg" in
+            -h|--help|-v|--version)
+                usage
+                ;;
+            --uninstall)
+                uninstall
+                exit $?
+                ;;
+            --link)
+                LINK_FLAG=1
+                ;;
+            --no-sudo)
+                NOSUDO="nosudo"
+                ;;
+            /*)
+                TARGET_PATH="$arg"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+    done
+
+    installer "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
 }
 
 # Execute main function

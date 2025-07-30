@@ -3,7 +3,9 @@ VERSION History
 
 v25.08 (Release Date: TBD)
 --------------------------
-- Refactor config link creation to be idempotent and log only on change.
+- Add --uninstall option to remove all installed components except logs.
+- Add --link option to optionally create symlinks under /etc/cron.config and /etc/cron.exec.
+- Refactor symlink creation to be idempotent and silent when unchanged.
 
 v25.07 (2025-07-22)
 -------------------
