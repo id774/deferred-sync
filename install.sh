@@ -6,7 +6,8 @@
 #  Description:
 #  This script installs deferred-sync to the target path and sets up
 #  necessary configurations including cron jobs, log rotation, and
-#  permissions.
+#  permissions. It also conditionally links external configuration
+#  files if found under /etc/cron.config and /etc/cron.exec.
 #
 #  Author: id774 (More info: http://id774.net)
 #  Source Code: https://github.com/id774/deferred-sync
@@ -24,6 +25,11 @@
 #  - [nosudo]: If specified, the script runs without sudo.
 #
 #  Version History:
+#  v2.6 2025-07-30
+#       Add support for conditional symlinks:
+#       - Link /etc/cron.config/{sync.conf,exclude.conf} to /etc/opt/deferred-sync/
+#       - Link /etc/cron.exec/deferred-sync to /opt/deferred-sync/exec/
+#       Unify all config link creation to be idempotent and silent unless modified.
 #  v2.5 2025-06-23
 #       Unified usage output to display full script header and support common help/version options.
 #  v2.4 2025-04-27
@@ -53,7 +59,7 @@ usage() {
     exit 0
 }
 
-# Check required commands
+# Check if required commands are available and executable
 check_commands() {
     for cmd in "$@"; do
         cmd_path=$(command -v "$cmd" 2>/dev/null)
@@ -161,14 +167,43 @@ scheduling() {
     $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
     $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
 
-    if ! $SUDO ln -snf /etc/opt/deferred-sync/sync.conf "$TARGET/config/sync.conf"; then
-        echo "[ERROR] Failed to create symlink for sync.conf." >&2
-        exit 1
+    create_config_symlinks
+    link_configs_to_etc
+}
+
+create_config_symlinks() {
+    for conf in sync.conf exclude.conf; do
+        src="/etc/opt/deferred-sync/$conf"
+        link="$TARGET/config/$conf"
+        if [ -f "$src" ]; then
+            if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+                $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
+            fi
+        fi
+    done
+}
+
+link_configs_to_etc() {
+    if [ -d /etc/cron.config ]; then
+        for conf in sync.conf exclude.conf; do
+            src="/etc/opt/deferred-sync/$conf"
+            link="/etc/cron.config/$conf"
+            if [ -f "$src" ]; then
+                if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+                    $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
+                fi
+            fi
+        done
     fi
 
-    if ! $SUDO ln -snf /etc/opt/deferred-sync/exclude.conf "$TARGET/config/exclude.conf"; then
-        echo "[ERROR] Failed to create symlink for exclude.conf." >&2
-        exit 1
+    if [ -d /etc/cron.exec ]; then
+        src="/opt/deferred-sync/exec/deferred-sync"
+        link="/etc/cron.exec/deferred-sync"
+        if [ -f "$src" ]; then
+            if [ ! -L "$link" ] || [ "$(readlink -f "$link")" != "$src" ]; then
+                $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
+            fi
+        fi
     fi
 }
 
@@ -213,7 +248,7 @@ set_permission() {
 }
 
 installer() {
-    check_commands cp mkdir chmod chown ln rm id dirname uname
+    check_commands cp mkdir chmod chown ln rm id dirname uname readlink
     set_environment "$@"
     deploy_to_target
     [ -n "$1" ] || setup_cron
