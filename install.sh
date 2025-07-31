@@ -269,9 +269,10 @@ uninstall() {
     [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -f /etc/cron.exec/deferred-sync
 
     echo "[INFO] deferred-sync uninstalled successfully."
+    exit 0
 }
 
-installer() {
+install() {
     check_commands cp mkdir chmod chown ln rm id dirname uname readlink
     set_environment "$1" "$2"
     deploy_to_target
@@ -281,8 +282,7 @@ installer() {
     echo "[INFO] deferred-sync installation completed successfully."
 }
 
-# Main entry point of the script
-main() {
+parse_args() {
     TARGET_PATH=""
     NOSUDO=""
     LINK_FLAG=0
@@ -294,7 +294,6 @@ main() {
                 ;;
             --uninstall)
                 uninstall
-                exit $?
                 ;;
             --link)
                 LINK_FLAG=1
@@ -310,8 +309,14 @@ main() {
                 ;;
         esac
     done
+}
 
-    installer "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
+# Main entry point of the script
+main() {
+    parse_args "$@"
+    install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
+
+    return 0
 }
 
 # Execute main function
