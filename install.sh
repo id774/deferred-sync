@@ -249,24 +249,24 @@ uninstall() {
 
     [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
-    $SUDO rm -rf /opt/deferred-sync || {
+    $SUDO rm -rvf /opt/deferred-sync || {
         echo "[ERROR] Failed to remove /opt/deferred-sync" >&2
         exit 1
     }
 
-    $SUDO rm -rf /etc/opt/deferred-sync || {
+    $SUDO rm -rvf /etc/opt/deferred-sync || {
         echo "[ERROR] Failed to remove /etc/opt/deferred-sync" >&2
         exit 1
     }
 
-    $SUDO rm -f /etc/cron.daily/deferred-sync
-    $SUDO rm -f /etc/logrotate.d/deferred-sync
+    $SUDO rm -vf /etc/cron.daily/deferred-sync
+    $SUDO rm -vf /etc/logrotate.d/deferred-sync
 
     for link in /etc/cron.config/sync.conf /etc/cron.config/exclude.conf; do
-        [ -L "$link" ] && $SUDO rm -f "$link"
+        [ -L "$link" ] && $SUDO rm -vf "$link"
     done
 
-    [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -f /etc/cron.exec/deferred-sync
+    [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -vf /etc/cron.exec/deferred-sync
 
     echo "[INFO] deferred-sync uninstalled successfully."
     exit 0
@@ -282,10 +282,16 @@ install() {
     echo "[INFO] deferred-sync installation completed successfully."
 }
 
-parse_args() {
+# Main entry point of the script
+main() {
     TARGET_PATH=""
     NOSUDO=""
     LINK_FLAG=0
+
+    if [ "$#" -eq 0 ]; then
+        install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
+        return 0
+    fi
 
     for arg in "$@"; do
         case "$arg" in
@@ -309,13 +315,8 @@ parse_args() {
                 ;;
         esac
     done
-}
 
-# Main entry point of the script
-main() {
-    parse_args "$@"
     install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
-
     return 0
 }
 
