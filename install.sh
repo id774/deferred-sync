@@ -109,6 +109,7 @@ set_environment() {
     echo "[INFO] Owner: $OWNER"
 }
 
+# Copy specified components (e.g., exec, config, lib) to the installation target directory
 deploy() {
     echo "[INFO] Deploying components: $*"
     for item in "$@"; do
@@ -119,6 +120,7 @@ deploy() {
     done
 }
 
+# Remove existing target directory and recreate it before deploying core components
 deploy_to_target() {
     echo "[INFO] Deploying to $TARGET."
     if [ -d "$TARGET" ]; then
@@ -134,6 +136,7 @@ deploy_to_target() {
     deploy exec config lib
 }
 
+# Install cron job and copy configuration files to /etc/opt/deferred-sync with proper permissions
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
     if [ -f /etc/cron.d/deferred-sync ]; then
@@ -169,6 +172,7 @@ scheduling() {
     create_config_symlinks
 }
 
+# Create symlinks from /etc/opt/deferred-sync/*.conf to $TARGET/config if not already linked
 create_config_symlinks() {
     for conf in sync.conf exclude.conf; do
         src="/etc/opt/deferred-sync/$conf"
@@ -181,6 +185,7 @@ create_config_symlinks() {
     done
 }
 
+# Create system-wide config and execution symlinks under /etc/cron.config and /etc/cron.exec
 link_configs_to_etc() {
     if [ -d /etc/cron.config ]; then
         for conf in sync.conf exclude.conf; do
@@ -205,6 +210,7 @@ link_configs_to_etc() {
     fi
 }
 
+# Configure log rotation and create log directory and initial log file with proper ownership
 logrotate() {
     echo "[INFO] Setting up log rotation..."
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync; then
@@ -218,6 +224,7 @@ logrotate() {
     $SUDO chmod 640 /var/log/deferred-sync/sync.log
 }
 
+# Create default backup target directories (/home/backup, /home/remote) with secure permissions
 create_backupdir() {
     echo "[INFO] Creating backup directories..."
     for dir in /home/backup /home/remote; do
@@ -227,6 +234,7 @@ create_backupdir() {
     done
 }
 
+# Run cron, logrotate, and backup directory setup only if the system is Linux
 setup_cron() {
     if [ "$(uname -s)" = "Linux" ]; then
         echo "[INFO] Setting up scheduled jobs..."
@@ -236,6 +244,7 @@ setup_cron() {
     fi
 }
 
+# Apply recursive ownership changes to the installation target directory
 set_permission() {
     echo "[INFO] Setting file ownership and permissions..."
     if ! $SUDO chown -R "$OWNER" "$TARGET"; then
@@ -244,6 +253,7 @@ set_permission() {
     fi
 }
 
+# Uninstall all deferred-sync components except logs
 uninstall() {
     echo "[INFO] Uninstalling deferred-sync..."
 
@@ -272,6 +282,7 @@ uninstall() {
     exit 0
 }
 
+# Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
 install() {
     check_commands cp mkdir chmod chown ln rm id dirname uname readlink
     set_environment "$1" "$2"
