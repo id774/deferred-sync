@@ -40,7 +40,15 @@ To install deferred-sync, execute the provided `install.sh` script:
 ./install.sh /opt/deferred-sync
 ```
 
-By default, it installs under `/opt/deferred-sync` and places the execution script in `/etc/cron.daily/` to run automatically. If you wish to install in your home directory, run:
+By default, it installs under `/opt/deferred-sync` and places the execution script in `/etc/cron.daily/` to run automatically.
+
+You can optionally add the `--link` flag to create symlinks in `/etc/cron.config/` and `/etc/cron.exec/`:
+
+```sh
+./install.sh /opt/deferred-sync nosudo --link
+```
+
+If you wish to install in your home directory, run:
 
 ```sh
 ./install.sh ~/local/deferred-sync nosudo
@@ -49,6 +57,16 @@ By default, it installs under `/opt/deferred-sync` and places the execution scri
 If you want to specify an exact execution time, instead of relying on `cron.daily`, you can manually configure `cron.d` using the sample file provided in `cron/cron.d/deferred-sync`.
 
 After installation, edit the configuration file to customize its behavior.
+
+### Uninstallation
+
+To uninstall a system-wide installation (default `/opt/deferred-sync`), run:
+
+```sh
+sudo ./install.sh --uninstall
+```
+
+This will remove all files installed by deferred-sync **except** the log directory (`/var/log/deferred-sync`).
 
 ## Configuration
 
