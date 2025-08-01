@@ -305,12 +305,14 @@ main() {
             /*)
                 TARGET_PATH="$arg"
                 ;;
-            ""|*)
-                install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
+            *)
+                echo "[ERROR] Unknown option: $arg" >&2
+                usage
                 ;;
         esac
     done
 
+    install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
     return 0
 }
 
