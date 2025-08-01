@@ -81,6 +81,16 @@ The main configuration file is `config/sync.conf`. It defines all parameters req
 - `LOAD_PLUGINS_ALL` - If `true`, all plugins will be loaded automatically.
 - `PLUGINS` - List of plugins to load selectively.
 
+### Optional System-Wide Configuration Symlinks
+
+If you pass the `--link` option during installation, deferred-sync will automatically create symlinks:
+
+- `/etc/cron.config/sync.conf` → `/etc/opt/deferred-sync/sync.conf`
+- `/etc/cron.config/exclude.conf` → `/etc/opt/deferred-sync/exclude.conf`
+- `/etc/cron.exec/deferred-sync` → `/opt/deferred-sync/exec/deferred-sync`
+
+This is useful when integrating with a centralized cron execution and configuration framework.
+
 ## Directory Structure
 
 ```
