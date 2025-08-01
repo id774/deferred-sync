@@ -19,8 +19,8 @@
 #
 #  Options:
 #      -h, --help       Show this help message and exit.
-#      --uninstall      Remove deferred-sync and all related files except logs.
-#      --link           Create symlinks under /etc/cron.config and /etc/cron.exec.
+#      -u, --uninstall  Remove deferred-sync and all related files except logs.
+#      -l, --link       Create symlinks under /etc/cron.config and /etc/cron.exec.
 #
 #  Notes:
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
@@ -292,10 +292,10 @@ parse_args() {
             -h|--help|-v|--version)
                 usage
                 ;;
-            --uninstall)
+            -u|--uninstall)
                 uninstall
                 ;;
-            --link)
+            -l|--link)
                 LINK_FLAG=1
                 ;;
             --no-sudo)
