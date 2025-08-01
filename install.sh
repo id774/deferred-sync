@@ -27,7 +27,7 @@
 #  - [nosudo]: If specified, the script runs without sudo.
 #
 #  Version History:
-#  v2.6 2025-07-31
+#  v3.0 2025-08-01
 #       Add uninstall support via --uninstall to remove all components.
 #       Add --link option to control whether cron.config/cron.exec links are created.
 #       Add support for conditional symlinks:
