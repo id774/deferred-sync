@@ -288,11 +288,6 @@ main() {
     NOSUDO=""
     LINK_FLAG=0
 
-    if [ "$#" -eq 0 ]; then
-        install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
-        return 0
-    fi
-
     for arg in "$@"; do
         case "$arg" in
             -h|--help|-v|--version)
@@ -310,13 +305,12 @@ main() {
             /*)
                 TARGET_PATH="$arg"
                 ;;
-            *)
-                usage
+            ""|*)
+                install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
                 ;;
         esac
     done
 
-    install "$TARGET_PATH" "$NOSUDO" "$LINK_FLAG"
     return 0
 }
 
