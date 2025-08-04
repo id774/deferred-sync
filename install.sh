@@ -270,13 +270,13 @@ uninstall() {
 
     TARGET="/opt/deferred-sync"
 
-    [ "$(id -u)" -ne 0 ] && SUDO="sudo"
-
     if [ "$TARGET" != "/opt/deferred-sync" ]; then
-        echo "[WARN] Only /opt/deferred-sync is supported for automatic uninstallation." >&2
         echo "[WARN] Skipping deletion of non-default TARGET: $TARGET" >&2
+        echo "[WARN] Only $DEFAULT_TARGET will be deleted during --uninstall." >&2
         exit 1
     fi
+
+    [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
     $SUDO rm -rvf "$TARGET" || {
         echo "[ERROR] Failed to remove $TARGET" >&2
