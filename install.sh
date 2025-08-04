@@ -253,14 +253,33 @@ set_permission() {
     fi
 }
 
+# Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
+install() {
+    check_commands cp mkdir chmod chown ln rm id dirname uname readlink
+    set_environment "$1" "$2"
+    deploy_to_target
+    [ -n "$1" ] || setup_cron
+    [ -n "$2" ] || set_permission
+    [ "$3" = "1" ] && link_configs_to_etc
+    echo "[INFO] deferred-sync installation completed successfully."
+}
+
 # Uninstall all deferred-sync components except logs
 uninstall() {
     echo "[INFO] Uninstalling deferred-sync..."
 
+    TARGET="/opt/deferred-sync"
+
     [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 
-    $SUDO rm -rvf /opt/deferred-sync || {
-        echo "[ERROR] Failed to remove /opt/deferred-sync" >&2
+    if [ "$TARGET" != "/opt/deferred-sync" ]; then
+        echo "[WARN] Only /opt/deferred-sync is supported for automatic uninstallation." >&2
+        echo "[WARN] Skipping deletion of non-default TARGET: $TARGET" >&2
+        exit 1
+    fi
+
+    $SUDO rm -rvf "$TARGET" || {
+        echo "[ERROR] Failed to remove $TARGET" >&2
         exit 1
     }
 
@@ -280,17 +299,6 @@ uninstall() {
 
     echo "[INFO] deferred-sync uninstalled successfully."
     exit 0
-}
-
-# Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
-install() {
-    check_commands cp mkdir chmod chown ln rm id dirname uname readlink
-    set_environment "$1" "$2"
-    deploy_to_target
-    [ -n "$1" ] || setup_cron
-    [ -n "$2" ] || set_permission
-    [ "$3" = "1" ] && link_configs_to_etc
-    echo "[INFO] deferred-sync installation completed successfully."
 }
 
 # Main entry point of the script
