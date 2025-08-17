@@ -172,16 +172,51 @@ scheduling() {
     create_config_symlinks
 }
 
-# Create symlinks from /etc/opt/deferred-sync/*.conf to $TARGET/config if not already linked
+# Create safe symlink; $1: source, $2: linkpath
+safe_symlink() {
+    src="$1"; link="$2"
+
+    # Require source
+    if [ ! -e "$src" ]; then
+        echo "[INFO] Source not found, skip: $src"
+        return 0
+    fi
+
+    # Fast path if readlink exists and already correct
+    if command -v readlink >/dev/null 2>&1 && [ -L "$link" ]; then
+        tgt="$(readlink "$link" 2>/dev/null || echo)"
+        if [ "$tgt" = "$src" ]; then
+            echo "[INFO] Unchanged: $link -> $src"
+            return 0
+        fi
+    fi
+
+    # Remove existing file or symlink; never remove directories
+    if [ -L "$link" ] || [ -f "$link" ]; then
+        ${SUDO:-} rm -f "$link" || { echo "[ERROR] Failed to remove $link" >&2; return 1; }
+    elif [ -d "$link" ]; then
+        echo "[WARN] $link is a directory; aborting to avoid destructive removal" >&2
+        return 1
+    fi
+
+    # Create symlink
+    if ${SUDO:-} ln -s "$src" "$link"; then
+        echo "[INFO] Linked $link -> $src"
+    else
+        echo "[WARN] Failed to create symlink $link -> $src" >&2
+        return 1
+    fi
+}
+
+# Create config symlinks from /etc/opt/deferred-sync/*.conf to $TARGET/config
 create_config_symlinks() {
+    dir="$TARGET/config"
+    ${SUDO:-} mkdir -p "$dir" || { echo "[ERROR] Failed to create $dir" >&2; exit 1; }
+
     for conf in sync.conf exclude.conf; do
         src="/etc/opt/deferred-sync/$conf"
-        link="$TARGET/config/$conf"
-        if [ -f "$src" ]; then
-            if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
-                $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
-            fi
-        fi
+        link="$dir/$conf"
+        safe_symlink "$src" "$link" || exit 1
     done
 }
 
@@ -191,22 +226,14 @@ link_configs_to_etc() {
         for conf in sync.conf exclude.conf; do
             src="/etc/opt/deferred-sync/$conf"
             link="/etc/cron.config/$conf"
-            if [ -f "$src" ]; then
-                if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
-                    $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
-                fi
-            fi
+            safe_symlink "$src" "$link" || exit 1
         done
     fi
 
     if [ -d /etc/cron.exec ]; then
         src="/opt/deferred-sync/exec/deferred-sync"
         link="/etc/cron.exec/deferred-sync"
-        if [ -f "$src" ]; then
-            if [ "$(readlink -e "$link" 2>/dev/null)" != "$src" ]; then
-                $SUDO ln -snf "$src" "$link" && echo "[INFO] Linked $link -> $src"
-            fi
-        fi
+        safe_symlink "$src" "$link" || exit 1
     fi
 }
 
