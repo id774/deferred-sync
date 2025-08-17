@@ -27,7 +27,7 @@
 #  - [nosudo]: If specified, the script runs without sudo.
 #
 #  Version History:
-#  v3.0 2025-08-01
+#  v3.0 2025-08-17
 #       Add uninstall support via --uninstall to remove all components.
 #       Add --link option to control whether cron.config/cron.exec links are created.
 #       Add support for conditional symlinks:
@@ -88,7 +88,14 @@ check_sudo() {
 # Set environment variables
 set_environment() {
     echo "[INFO] Setting up environment..."
-    export SCRIPT_HOME=$(dirname "$(realpath "$0" 2>/dev/null || readlink -f "$0")")
+    if command -v realpath >/dev/null 2>&1; then
+        SCRIPT_HOME="$(dirname "$(realpath "$0")")"
+    else
+        # Fallback: no realpath; avoid non-portable 'readlink -f'
+        # This resolves the directory path of the script reliably enough for our layout.
+        SCRIPT_HOME="$(cd "$(dirname "$0")" && pwd -P)"
+    fi
+    export SCRIPT_HOME
 
     if [ ! -d "$SCRIPT_HOME/lib/plugins" ]; then
         echo "[ERROR] Missing directory: $SCRIPT_HOME/lib/plugins" >&2
@@ -165,9 +172,9 @@ scheduling() {
                 exit 1
             fi
         fi
+        $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
+        $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
     done
-    $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
-    $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
 
     create_config_symlinks
 }
@@ -282,7 +289,7 @@ set_permission() {
 
 # Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
 install() {
-    check_commands cp mkdir chmod chown ln rm id dirname uname readlink
+    check_commands cp mkdir chmod chown ln rm id dirname uname
     set_environment "$1" "$2"
     deploy_to_target
     [ -n "$1" ] || setup_cron
