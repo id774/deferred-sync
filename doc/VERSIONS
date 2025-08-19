@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v25.08 (Release Date: TBD)
---------------------------
+v25.08 (2025-08-20)
+-------------------
 - Add --uninstall option to remove all installed components except logs.
 - Add --link option to optionally create symlinks under /etc/cron.config and /etc/cron.exec.
 - Refactor symlink creation to be idempotent and silent when unchanged.
