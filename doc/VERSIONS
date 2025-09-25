@@ -1,6 +1,11 @@
 deferred-sync Repository Version History
 ========================================
 
+v25.09 (Release Date: TBD)
+--------------------------
+- Add thinclient_drives to exclude list.
+- Unify deferred sync log rotation policy to 90 daily rotations.
+
 v25.08 (2025-08-20)
 -------------------
 - Add --uninstall option to remove all installed components except logs.
