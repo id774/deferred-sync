@@ -173,7 +173,7 @@ scheduling() {
             fi
         fi
         $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
-        $SUDO chmod 640 "/etc/opt/deferred-sync/$conf"
+        $SUDO chmod 0640 "/etc/opt/deferred-sync/$conf"
     done
 
     create_config_symlinks
@@ -255,7 +255,7 @@ logrotate() {
     $SUDO mkdir -p /var/log/deferred-sync
     $SUDO touch /var/log/deferred-sync/sync.log
     $SUDO chown $OWNER /var/log/deferred-sync/sync.log
-    $SUDO chmod 640 /var/log/deferred-sync/sync.log
+    $SUDO chmod 0640 /var/log/deferred-sync/sync.log
 }
 
 # Create default backup target directories (/home/backup, /home/remote) with secure permissions
@@ -264,7 +264,7 @@ create_backupdir() {
     for dir in /home/backup /home/remote; do
         [ -d "$dir" ] || $SUDO mkdir "$dir"
         $SUDO chown $OWNER "$dir"
-        $SUDO chmod 750 "$dir"
+        $SUDO chmod 0750 "$dir"
     done
 }
 
