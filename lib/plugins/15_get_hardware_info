@@ -4,6 +4,7 @@
 #
 # Outputs:
 #   - System information (`dmidecode --type system`)
+#   - PCI device information (`lspci`)
 #   - Battery and power details (`acpi -abi`)
 #   - SMART status for available disks with serial numbers
 #
@@ -23,6 +24,14 @@ get_hardware_info() {
         dmidecode --type system
     else
         echo "[WARN] dmidecode command not found" >&2
+    fi
+
+    # Retrieve PCI device information
+    if command -v lspci > /dev/null 2>&1; then
+        echo "[INFO] Retrieving PCI device information using lspci"
+        lspci
+    else
+        echo "[WARN] lspci command not found" >&2
     fi
 
     # Retrieve battery and power information

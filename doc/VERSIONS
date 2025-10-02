@@ -1,6 +1,10 @@
 deferred-sync Repository Version History
 ========================================
 
+v25.10 (Release Date: TBD)
+--------------------------
+- Add lspci support to hardware info plugin.
+
 v25.09 (2025-09-26)
 -------------------
 - Add thinclient_drives to exclude list.
