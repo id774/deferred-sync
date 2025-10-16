@@ -107,6 +107,7 @@ This is useful when integrating with a centralized cron execution and configurat
 │   ├── plugins/         # Directory containing plugins
 │   │   ├── show_version
 │   │   ├── get_resources
+│   │   ├── server_alive_check
 │   │   ├── get_hardware_info
 │   │   ├── system_upgrade
 │   │   ├── ubuntu_kernel_upgrade
