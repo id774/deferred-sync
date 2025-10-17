@@ -2,14 +2,22 @@
 #
 # load - A script to dynamically load plugins for deferred-sync.
 #
-# This script loads the required plugins based on configuration settings.
-# It allows for:
-#   - Loading specific plugins defined in `PLUGINS`
-#   - Loading all available plugins if `LOAD_PLUGINS_ALL=true`
+# Description:
+#   This script loads the required plugins based on configuration settings.
+#   It supports:
+#     - Loading specific plugins defined in `PLUGINS`
+#     - Loading all available plugins if `LOAD_PLUGINS_ALL=true`
 #
-# Note:
-#   - Plugins are sourced from `$SCRIPT_HOME/lib/plugins/`
+# Behavior:
+#   - Each plugin is sourced from `$SCRIPT_HOME/lib/plugins/`
+#   - If a plugin returns a non-zero status, a [WARN] message is printed,
+#     but subsequent plugins continue to execute.
+#   - The first non-zero status encountered is preserved and returned
+#     as the final exit code.
+#
+# Notes:
 #   - Plugins must be readable (`-r`) to be loaded.
+#   - This script does not stop on plugin failure; it only reports it.
 
 FAILED_STATUS=0  # keep first non-zero plugin status
 
