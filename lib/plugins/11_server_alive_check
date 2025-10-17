@@ -4,33 +4,46 @@
 #
 # Behavior:
 #   - Check if /etc/cron.exec/server_alive_check.sh (or $SERVER_ALIVE_CHECK) is executable.
-#   - If executable, run it and do not intercept or remap its exit status.
-#   - If not executable, print a [WARN] message to stderr and exit without error handling.
+#   - If executable, run it and propagate its exit status.
+#   - If not executable, print a [WARN] message to stderr and return 126 or 127 according to POSIX.
 #
 # Note:
+#   - 127 means the script does not exist.
+#   - 126 means the script exists but is not executable.
 #   - This script assumes it is running on a POSIX-compliant system.
 
 # Resolve target path (allow override via environment)
 SERVER_ALIVE_CHECK="${SERVER_ALIVE_CHECK:-/etc/cron.exec/server_alive_check.sh}"
 
 start_message() {
-    printf -- "[INFO] Loading: get_resources has been loaded at "
+    printf -- "[INFO] Loading: server_alive_check has been loaded at "
     date "+%Y/%m/%d %T"
 }
 
 run_server_alive_check() {
-    if [ -x "$SERVER_ALIVE_CHECK" ]; then
-        echo "[INFO] Executing: $SERVER_ALIVE_CHECK"
-        "$SERVER_ALIVE_CHECK"
-        return $?
+    # Not found → 127 (POSIX)
+    if [ ! -f "$SERVER_ALIVE_CHECK" ]; then
+        echo "[WARN] Script not found: $SERVER_ALIVE_CHECK" >&2
+        return 127
     fi
-    echo "[WARN] Not executable or missing: $SERVER_ALIVE_CHECK" >&2
-    return 0
+
+    # Found but not executable → 126 (POSIX)
+    if [ ! -x "$SERVER_ALIVE_CHECK" ]; then
+        echo "[WARN] Script not executable: $SERVER_ALIVE_CHECK" >&2
+        return 126
+    fi
+
+    # Executable → run and propagate exit status
+    echo "[INFO] Executing: $SERVER_ALIVE_CHECK"
+    "$SERVER_ALIVE_CHECK"
+    return $?
 }
 
 main() {
     start_message
     run_server_alive_check
+    return $?
 }
 
 main "$@"
+exit $?
