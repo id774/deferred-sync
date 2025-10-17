@@ -64,8 +64,8 @@ load_plugins() {
     else
         load_plugins_by_config
     fi
+    return ${FAILED_STATUS:-0}
 }
 
 # Execute plugin loading
 load_plugins
-exit ${FAILED_STATUS:-0}

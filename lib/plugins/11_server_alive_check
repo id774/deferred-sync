@@ -46,4 +46,3 @@ main() {
 }
 
 main "$@"
-exit $?

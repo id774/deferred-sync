@@ -21,7 +21,7 @@ dump_postgresql() {
     [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
 
     # Change directory to PGDUMP to ensure correct permissions
-    cd "$PGDUMP" || exit 1
+    cd "$PGDUMP" || return 1
 
     printf -- "[INFO] Executing: pg_dumpall at "
     date "+%Y/%m/%d %T"
