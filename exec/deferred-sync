@@ -2,17 +2,27 @@
 #
 # deferred-sync - The main execution script for deferred-sync.
 #
-# This script is executed via cron or manually to perform
-# incremental backups, system synchronization, and remote transfers.
+# Description:
+#   This script performs incremental backups, system synchronization,
+#   and remote transfers, either manually or through cron.
 #
 # Features:
 #   - Loads configuration from `config/sync.conf`
-#   - Executes pre-sync and post-sync scripts if defined
+#   - Executes pre-sync (`STARTSCRIPT`) and post-sync (`ENDSCRIPT`) scripts if defined
+#   - Dynamically loads plugins via `lib/load`
 #   - Logs all operations to `JOBLOG`
 #   - Sends a notification email upon completion (if configured)
 #
-# Note:
-#   - Ensure that `sync.conf` and required scripts are properly configured.
+# Behavior:
+#   - Each major phase (STARTSCRIPT, load, ENDSCRIPT) runs sequentially.
+#   - If any of them exits with a non-zero status, a [WARN] message is printed,
+#     but execution continues to the next phase.
+#   - All standard output and errors are appended to the job log (`JOBLOG`),
+#     except WARN messages, which are written to stderr.
+#
+# Notes:
+#   - Ensure that `config/sync.conf` and related scripts are properly configured.
+#   - This script follows POSIX compliance and does not abort on non-critical failures.
 
 setup() {
     LANG=C
@@ -56,13 +66,23 @@ deferred_sync() {
     } >>"$JOBLOG" 2>&1
 
     # Execute pre-sync script if defined
-    [ -n "$STARTSCRIPT" ] && . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
+    if [ -n "$STARTSCRIPT" ]; then
+        . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
+        st=$?
+        [ "$st" -ne 0 ] && echo "[WARN] STARTSCRIPT exited with status $st" >&2
+    fi
 
     # Load and execute plugins
     . "$SCRIPT_HOME/lib/load" >>"$JOBLOG" 2>&1
+    st=$?
+    [ "$st" -ne 0 ] && echo "[WARN] load exited with status $st" >&2
 
     # Execute post-sync script if defined
-    [ -n "$ENDSCRIPT" ] && . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
+    if [ -n "$ENDSCRIPT" ]; then
+        . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
+        st=$?
+        [ "$st" -ne 0 ] && echo "[WARN] ENDSCRIPT exited with status $st" >&2
+    fi
 
     # Log job completion time
     {
