@@ -17,6 +17,10 @@ start_message() {
 
 main() {
     start_message
+    # Add any custom pre-execution logic below.
+    # For example: verify disk space, check network availability, or initialize temp directories.
+    return $?
 }
 
 main "$@"
+exit $?

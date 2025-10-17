@@ -17,6 +17,10 @@ start_message() {
 
 main() {
     start_message
+    # Add any custom post-execution logic below.
+    # For example: remove temporary data, rotate logs, or send summary reports.
+    return $?
 }
 
 main "$@"
+exit $?
