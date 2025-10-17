@@ -3,12 +3,12 @@
 # 11_server_alive_check - Execute server_alive_check.sh if available.
 #
 # Behavior:
-#   - Check if /etc/cron.exec/server_alive_check.sh (or $SERVER_ALIVE_CHECK) is executable.
+#   - Check if /etc/cron.exec/server_alive_check.sh (or $SERVER_ALIVE_CHECK) is a regular file and executable.
 #   - If executable, run it and propagate its exit status.
 #   - If not executable, print a [WARN] message to stderr and return 126 or 127 according to POSIX.
 #
 # Note:
-#   - 127 means the script does not exist.
+#   - 127 means the script does not exist or is not a regular file.
 #   - 126 means the script exists but is not executable.
 #   - This script assumes it is running on a POSIX-compliant system.
 
@@ -21,9 +21,9 @@ start_message() {
 }
 
 run_server_alive_check() {
-    # Not found → 127 (POSIX)
+    # Not a regular file or does not exist → 127 (POSIX)
     if [ ! -f "$SERVER_ALIVE_CHECK" ]; then
-        echo "[WARN] Script not found: $SERVER_ALIVE_CHECK" >&2
+        echo "[WARN] Script not found or not a regular file: $SERVER_ALIVE_CHECK" >&2
         return 127
     fi
 

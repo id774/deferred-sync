@@ -11,11 +11,20 @@
 #   - Plugins are sourced from `$SCRIPT_HOME/lib/plugins/`
 #   - Plugins must be readable (`-r`) to be loaded.
 
+FAILED_STATUS=0  # keep first non-zero plugin status
+
 # Load a specific plugin by name
 load_plugin() {
     while [ "$#" -gt 0 ]; do
         for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
-            [ -r "$PLUGIN" ] && . "$PLUGIN"
+            if [ -r "$PLUGIN" ]; then
+                . "$PLUGIN"
+                st=$?
+                [ "$st" -ne 0 ] && {
+                    echo "[WARN] plugin failed: $PLUGIN status=$st" >&2
+                    [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
+                }
+            fi
         done
         shift
     done
@@ -29,7 +38,14 @@ load_plugins_by_config() {
 # Load all available plugins
 load_plugins_all() {
     for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
-        [ -r "$PLUGIN" ] && . "$PLUGIN"
+        if [ -r "$PLUGIN" ]; then
+            . "$PLUGIN"
+            st=$?
+            [ "$st" -ne 0 ] && {
+                echo "[WARN] plugin failed: $PLUGIN status=$st" >&2
+                [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
+            }
+        fi
     done
 }
 
@@ -44,3 +60,4 @@ load_plugins() {
 
 # Execute plugin loading
 load_plugins
+exit ${FAILED_STATUS:-0}
