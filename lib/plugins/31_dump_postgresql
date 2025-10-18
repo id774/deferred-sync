@@ -17,8 +17,11 @@ start_message() {
 }
 
 dump_postgresql() {
-    # Remove existing compressed dump if it exists
-    [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
+    # Check PGDUMP env and directory before touching files
+    if [ -z "${PGDUMP:-}" ]; then
+        printf -- "[WARN] PGDUMP is empty. Skipping dump.\n" >&2
+        return 1
+    fi
 
     # Check if PGDUMP directory exists and change to it
     if [ ! -d "$PGDUMP" ]; then
@@ -26,6 +29,9 @@ dump_postgresql() {
         return 1
     fi
     cd "$PGDUMP" || return 1
+
+    # Remove existing compressed dump if it exists (after cd)
+    [ -f "all.dump.gz" ] && rm "all.dump.gz"
 
     printf -- "[INFO] Executing: pg_dumpall at "
     date "+%Y/%m/%d %T"
