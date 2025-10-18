@@ -45,9 +45,14 @@ get_hardware_info() {
     # Retrieve SMART data for detected disks
     if command -v smartctl > /dev/null 2>&1; then
         echo "[INFO] Checking SMART status for available disks"
+        # SATA SCSI devices
         for DEVICE in /dev/sd[a-f]; do
             if [ -b "$DEVICE" ]; then
-                SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
+                if command -v udevadm >/dev/null 2>&1; then
+                    SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
+                else
+                    SERIAL=
+                fi
                 echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
                 echo "[INFO] Attempting smartctl -a -d sat $DEVICE"
                 if ! smartctl -a -d sat "$DEVICE"; then
@@ -56,9 +61,28 @@ get_hardware_info() {
                 fi
             fi
         done
+
+        # NVMe devices
+        for DEVICE in /dev/nvme[0-9]n[0-9]; do
+            if [ -b "$DEVICE" ]; then
+                if command -v udevadm >/dev/null 2>&1; then
+                    SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
+                else
+                    SERIAL=
+                fi
+                echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
+                echo "[INFO] Attempting smartctl -a -d nvme $DEVICE"
+                if ! smartctl -a -d nvme "$DEVICE"; then
+                    echo "[INFO] -d nvme failed for $DEVICE, falling back to default"
+                    smartctl -a "$DEVICE"
+                fi
+            fi
+        done
     else
         echo "[WARN] smartctl command not found" >&2
     fi
+
+    return 0
 }
 
 main() {
