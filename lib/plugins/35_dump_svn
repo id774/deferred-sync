@@ -34,17 +34,21 @@ get_svndump() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 dump_svn() {
+    FAILED=0
     for SVN_REPO in $SVN_REPOS; do
-        get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO"
+        get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO" || FAILED=$?
     done
+    return $FAILED
 }
 
 main() {
     start_message
     dump_svn
+    return $?
 }
 
 main "$@"
