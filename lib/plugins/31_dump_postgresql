@@ -20,7 +20,11 @@ dump_postgresql() {
     # Remove existing compressed dump if it exists
     [ -f "$PGDUMP/all.dump.gz" ] && rm "$PGDUMP/all.dump.gz"
 
-    # Change directory to PGDUMP to ensure correct permissions
+    # Check if PGDUMP directory exists and change to it
+    if [ ! -d "$PGDUMP" ]; then
+        printf -- "[WARN] Target directory %s does not exist. Skipping dump.\n" "$PGDUMP" >&2
+        return 1
+    fi
     cd "$PGDUMP" || return 1
 
     printf -- "[INFO] Executing: pg_dumpall at "
