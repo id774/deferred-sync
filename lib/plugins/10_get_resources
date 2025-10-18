@@ -43,6 +43,7 @@ get_resources() {
 main() {
     start_message
     get_resources
+    return 0
 }
 
 main "$@"
