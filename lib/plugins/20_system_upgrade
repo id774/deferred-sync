@@ -18,6 +18,7 @@ start_message() {
     date "+%Y/%m/%d %T"
 }
 
+# Return last command status from each updater
 update_debian_or_ubuntu() {
     [ -f /etc/apt/sources.list ] && cat /etc/apt/sources.list
 
@@ -31,6 +32,7 @@ update_debian_or_ubuntu() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return "$RC"
 }
 
 update_redhat_or_centos() {
@@ -43,43 +45,72 @@ update_redhat_or_centos() {
     RC=$?
     echo "[INFO] Return code is $RC"
 
-    package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
-    RC=$?
-    echo "[INFO] Return code is $RC"
+    if command -v package-cleanup >/dev/null 2>&1; then
+        if [ -n "${OLDKERNELS_COUNT:-}" ]; then
+            package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
+            RC=$?
+            echo "[INFO] Return code is $RC"
+        else
+            echo "[WARN] OLDKERNELS_COUNT is not set skipping old kernel cleanup" >&2
+        fi
+    else
+        echo "[WARN] package-cleanup command not found skipping old kernel cleanup" >&2
+    fi
+
+    return "$RC"
 }
 
 freshclam_manually(){
-    systemctl stop clamav-freshclam.service
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl stop clamav-freshclam.service
+    else
+        echo "[WARN] systemctl not found skipping service stop start around freshclam" >&2
+    fi
 
-    printf -- "[INFO] Executing: fleshclam at "
+    printf -- "[INFO] Executing: freshclam at "
     date "+%Y/%m/%d %T"
     freshclam
     RC=$?
     echo "[INFO] Return code is $RC"
 
-    systemctl start clamav-freshclam.service
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl start clamav-freshclam.service
+    fi
+
+    return "$RC"
 }
 
 upgrade_from_network() {
-    [ -f /etc/debian_version ] && update_debian_or_ubuntu
-    [ -f /etc/redhat-release ] && update_redhat_or_centos
+    FAILED=0
+    if [ -f /etc/debian_version ]; then
+        update_debian_or_ubuntu || FAILED=$?
+    fi
+    if [ -f /etc/redhat-release ]; then
+        update_redhat_or_centos || FAILED=$?
+    fi
 
     if command -v freshclam > /dev/null 2>&1; then
-        freshclam_manually
+        freshclam_manually || FAILED=$?
     fi
+
+    return "$FAILED"
 }
 
 system_upgrade() {
     if ping -c 1 debian.org > /dev/null 2>&1; then
         upgrade_from_network
+        return "$?"
+
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
+        return 1
     fi
 }
 
 main() {
     start_message
     system_upgrade
+    return "$?"
 }
 
 main "$@"
