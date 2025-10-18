@@ -29,34 +29,39 @@ get_remote() {
     printf -- "[INFO] Executing: get remote dir at "
     date "+%Y/%m/%d %T"
 
-    if [ -d "$GET_TARGET_DIR" ]; then
-        printf -- "[INFO] rsync %s %s@%s:%s %s/%s\n" "$OPTS" "$REMOTE_USER" "$1" "$2" "$GET_TARGET_DIR" "$1"
-
-        if ping -c 1 "$1" > /dev/null 2>&1; then
-            rsync $OPTS "$REMOTE_USER@$1:$2" "$GET_TARGET_DIR/$1"
-            RC=$?
-        else
-            printf -- "[WARN] Skipping retrieval from %s: Host unreachable\n" "$1" >&2
-            RC=1
-        fi
-
-        echo "[INFO] Return code is $RC"
-    else
-        printf -- "[INFO] Target directory %s does not exist. Skipping.\n" "$GET_TARGET_DIR"
+    if [ ! -d "$GET_TARGET_DIR" ]; then
+        printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$GET_TARGET_DIR" >&2
+        return 3
     fi
+
+    printf -- "[INFO] rsync %s %s@%s:%s %s/%s\n" "$OPTS" "$REMOTE_USER" "$1" "$2" "$GET_TARGET_DIR" "$1"
+
+    if ping -c 1 "$1" > /dev/null 2>&1; then
+        rsync $OPTS "$REMOTE_USER@$1:$2" "$GET_TARGET_DIR/$1"
+        RC=$?
+    else
+        printf -- "[WARN] Skipping retrieval from %s: Host unreachable\n" "$1" >&2
+        RC=1
+    fi
+
+    echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 get_remote_dir() {
+    FAILED=0
     for GET_HOST in $GET_HOSTS; do
         for GET_REMOTE_DIR in $GET_REMOTE_DIRS; do
-            get_remote "$GET_HOST" "$GET_REMOTE_DIR"
+            get_remote "$GET_HOST" "$GET_REMOTE_DIR" || FAILED=$?
         done
     done
+    return $FAILED
 }
 
 main() {
     start_message
     get_remote_dir
+    return $?
 }
 
 main "$@"
