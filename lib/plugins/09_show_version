@@ -26,7 +26,7 @@ show_version() {
 
     [ -x /opt/python/current/bin/python ] && {
         echo "[INFO] Retrieving Python version"
-        /opt/python/current/bin/python -V
+        /opt/python/current/bin/python -V 2>&1
     }
 
     [ -x /opt/java/jdk/current/bin/java ] && {
