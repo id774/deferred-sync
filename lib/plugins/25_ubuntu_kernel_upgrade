@@ -14,6 +14,7 @@ start_message() {
     date "+%Y/%m/%d %T"
 }
 
+# Return last command status
 purge_old_kernels() {
     CURKERNEL=$(uname -r | sed 's/-*[a-z]//g' | sed 's/-386//g')
     LINUXPKG="linux-(image|headers|ubuntu-modules|restricted-modules)"
@@ -28,21 +29,34 @@ purge_old_kernels() {
         apt-get -y purge $OLDKERNELS
         RC=$?
         echo "[INFO] Return code is $RC"
+        return $RC
     else
         echo "[INFO] No old kernels to remove."
+        return 0
     fi
 }
 
 ubuntu_kernel_upgrade() {
-    purge_old_kernels
+    purge_old_kernels || return $?
 
     printf -- "[INFO] Executing: apt upgrade at "
     date "+%Y/%m/%d %T"
 
-    apt-get update >> "$JOBLOG" 2>&1 && \
-      apt-get -y install "linux-image-$UBUNTU_ARCHITECTURE" \
-                         "linux-headers-$UBUNTU_ARCHITECTURE" \
-                         "linux-$UBUNTU_ARCHITECTURE"
+    if [ -n "${JOBLOG:-}" ]; then
+        apt-get update >> "$JOBLOG" 2>&1
+    else
+        apt-get update
+    fi
+    RC=$?
+    echo "[INFO] Return code is $RC"
+    [ "$RC" -ne 0 ] && return $RC
+
+    apt-get -y install "linux-image-$UBUNTU_ARCHITECTURE" \
+                       "linux-headers-$UBUNTU_ARCHITECTURE" \
+                       "linux-$UBUNTU_ARCHITECTURE"
+    RC=$?
+    echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 system_upgrade() {
@@ -51,18 +65,22 @@ system_upgrade() {
             ubuntu_kernel_upgrade
         else
             printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
+            return 2
         fi
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
+        return 1
     fi
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 main() {
     start_message
     system_upgrade
+    return $?
 }
 
 main "$@"

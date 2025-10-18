@@ -32,7 +32,7 @@ update_debian_or_ubuntu() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
-    return "$RC"
+    return $RC
 }
 
 update_redhat_or_centos() {
@@ -57,7 +57,7 @@ update_redhat_or_centos() {
         echo "[WARN] package-cleanup command not found skipping old kernel cleanup" >&2
     fi
 
-    return "$RC"
+    return $RC
 }
 
 freshclam_manually(){
@@ -77,7 +77,7 @@ freshclam_manually(){
         systemctl start clamav-freshclam.service
     fi
 
-    return "$RC"
+    return $RC
 }
 
 upgrade_from_network() {
@@ -93,13 +93,13 @@ upgrade_from_network() {
         freshclam_manually || FAILED=$?
     fi
 
-    return "$FAILED"
+    return $FAILED
 }
 
 system_upgrade() {
     if ping -c 1 debian.org > /dev/null 2>&1; then
         upgrade_from_network
-        return "$?"
+        return $?
 
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
@@ -110,7 +110,7 @@ system_upgrade() {
 main() {
     start_message
     system_upgrade
-    return "$?"
+    return $?
 }
 
 main "$@"
