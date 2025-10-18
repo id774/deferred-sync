@@ -65,11 +65,11 @@ system_upgrade() {
             ubuntu_kernel_upgrade
         else
             printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
-            return 2
+            return 3
         fi
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
-        return 1
+        return 2
     fi
 
     RC=$?

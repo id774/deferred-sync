@@ -37,14 +37,14 @@ mirror_to_remote() {
             RC=$?
         else
             printf -- "[WARN] Skipping backup to %s: Host unreachable\n" "$1" >&2
-            RC=1
+            RC=2
         fi
 
         echo "[INFO] Return code is $RC"
         return $RC
     else
         printf -- "[WARN] Backup directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
-        return 2
+        return 3
     fi
 }
 

@@ -20,13 +20,13 @@ dump_postgresql() {
     # Check PGDUMP env and directory before touching files
     if [ -z "${PGDUMP:-}" ]; then
         printf -- "[WARN] PGDUMP is empty. Skipping dump.\n" >&2
-        return 1
+        return 3
     fi
 
     # Check if PGDUMP directory exists and change to it
     if [ ! -d "$PGDUMP" ]; then
         printf -- "[WARN] Target directory %s does not exist. Skipping dump.\n" "$PGDUMP" >&2
-        return 1
+        return 3
     fi
     cd "$PGDUMP" || return 1
 

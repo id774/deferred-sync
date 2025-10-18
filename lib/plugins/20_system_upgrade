@@ -103,7 +103,7 @@ system_upgrade() {
 
     else
         printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
-        return 1
+        return 2
     fi
 }
 

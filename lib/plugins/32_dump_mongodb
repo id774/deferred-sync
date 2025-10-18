@@ -19,6 +19,16 @@ start_message() {
 }
 
 get_mongodbdump() {
+    if [ ! -d "$MONGODBDUMP_PATH" ]; then
+        printf -- "[WARN] Temp directory %s does not exist. Skipping.\n" "$MONGODBDUMP_PATH" >&2
+        return 3
+    fi
+    PARENT_DIR=$(dirname "$MONGODBDUMP")
+    if [ ! -d "$PARENT_DIR" ]; then
+        printf -- "[WARN] Parent directory %s does not exist. Skipping.\n" "$PARENT_DIR" >&2
+        return 3
+    fi
+
     # Remove existing compressed dump if it exists
     [ -f "$MONGODBDUMP" ] && rm "$MONGODBDUMP"
 

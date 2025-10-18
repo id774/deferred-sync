@@ -22,6 +22,11 @@ start_message() {
 get_mysqldump() {
     printf -- "mysqldump %s\n" "$1"
 
+    if [ ! -d "$MYSQLDUMP" ]; then
+        printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$MYSQLDUMP" >&2
+        return 3
+    fi
+
     # Remove existing compressed dump if it exists
     [ -f "$MYSQLDUMP/$1.zip" ] && rm "$MYSQLDUMP/$1.zip"
 

@@ -19,6 +19,15 @@ start_message() {
 }
 
 get_svndump() {
+    if [ ! -d "$SVNDUMP" ]; then
+        printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$SVNDUMP" >&2
+        return 3
+    fi
+    if [ ! -d "$2" ]; then
+        printf -- "[WARN] Repository path %s does not exist. Skipping.\n" "$2" >&2
+        return 3
+    fi
+
     printf -- "svndump %s\n" "$1"
 
     # Remove existing compressed dump if it exists

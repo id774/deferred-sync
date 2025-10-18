@@ -18,6 +18,12 @@
 # Notes:
 #   - Plugins must be readable (`-r`) to be loaded.
 #   - This script does not stop on plugin failure; it only reports it.
+#
+# Exit / Return codes convention:
+#   0 - Success
+#   1 - Command failure or resource missing (remote, database, etc.)
+#   2 - Network unreachable
+#   3 - Local prerequisite missing (directory, config)
 
 FAILED_STATUS=0  # keep first non-zero plugin status
 

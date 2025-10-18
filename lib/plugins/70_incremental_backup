@@ -80,6 +80,11 @@ exec_rsync() {
 }
 
 run_rsync() {
+    if [ ! -d "$BACKUPTO" ]; then
+        printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
+        return 3
+    fi
+
     purge_expires || return $?
     rsync_options || return $?
     exec_rsync || return $?
