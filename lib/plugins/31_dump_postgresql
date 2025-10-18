@@ -31,11 +31,13 @@ dump_postgresql() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 main() {
     start_message
     dump_postgresql
+    return $?
 }
 
 main "$@"
