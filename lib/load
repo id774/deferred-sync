@@ -25,7 +25,7 @@ FAILED_STATUS=0  # keep first non-zero plugin status
 load_plugin() {
     while [ "$#" -gt 0 ]; do
         for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
-            if [ -r "$PLUGIN" ]; then
+            if [ -r "$PLUGIN" ] && [ -f "$PLUGIN" ]; then
                 . "$PLUGIN"
                 st=$?
                 [ "$st" -ne 0 ] && {
