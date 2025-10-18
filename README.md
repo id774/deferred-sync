@@ -129,6 +129,52 @@ This is useful when integrating with a centralized cron execution and configurat
 │   ├── VERSIONS         # Version history of the repository
 ```
 
+## Policy
+
+deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design.
+
+### Return Code Convention
+
+All core components and plugins follow the same standardized return code convention:
+
+| Code | Meaning | Typical Case |
+|:----:|:---------|:--------------|
+| **0** | Success | Operation completed successfully |
+| **1** | Command failure or resource missing | Command execution error, missing database, or permission failure |
+| **2** | Network unreachable | Remote host unreachable, failed ping, or SSH connection error |
+| **3** | Local prerequisite missing | Local directory or configuration not found, environment not initialized |
+
+This convention ensures consistent behavior across all plugins and allows the core loader (`lib/load`) to apply a **warn-and-continue** policy for nonzero return values.
+
+### Plugin Behavior Policy
+
+Each plugin must:
+- **Never exit directly.** Always use `return` to propagate status to the parent process.
+- **Log results explicitly** using `[INFO]`, `[WARN]`, or `[ERROR]` prefixes.
+- **Return appropriate codes** based on the nature of the failure.
+- **Avoid side effects** (e.g., `mkdir`, file creation) when prerequisites are missing.
+- **Report missing environments** (such as `PGDUMP` or `BACKUPTO`) using `return 3`.
+
+### Core Loader Policy
+
+The core `lib/load` script:
+- Sequentially loads all enabled plugins.
+- Records the first nonzero plugin status in `FAILED_STATUS`.
+- Does **not** terminate the overall execution on plugin error.
+- Logs a `[WARN]` message and continues loading subsequent plugins.
+
+This ensures that critical backup, dump, and synchronization tasks can continue even when individual modules encounter errors.
+
+### Logging Policy
+
+All outputs must use standardized log levels:
+
+- `[INFO]` — Normal operations (start, completion, status)
+- `[WARN]` — Recoverable issues (skipped operations, missing directories)
+- `[ERROR]` — Fatal or unrecoverable issues (e.g., broken configuration)
+
+These messages are designed for easy parsing by monitoring systems and cron logs.
+
 ## Usage Example
 
 Set up `cron` to execute deferred-sync periodically. This ensures that all protected files and directories are backed up regularly.
