@@ -32,6 +32,7 @@ get_mongodbdump() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 dump_mongodb() {
@@ -39,11 +40,13 @@ dump_mongodb() {
     LC_ALL=C
 
     get_mongodbdump
+    return $?
 }
 
 main() {
     start_message
     dump_mongodb
+    return $?
 }
 
 main "$@"
