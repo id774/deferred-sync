@@ -35,17 +35,21 @@ get_mysqldump() {
 
     RC=$?
     echo "[INFO] Return code is $RC"
+    return $RC
 }
 
 dump_mysql() {
+    FAILED=0
     for MYSQL_DB in $MYSQL_DBS; do
-        get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS"
+        get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS" || FAILED=$?
     done
+    return $FAILED
 }
 
 main() {
     start_message
     dump_mysql
+    return $?
 }
 
 main "$@"
