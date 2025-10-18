@@ -15,6 +15,8 @@
 # Note:
 #   - This script assumes that `rsync` is installed and available.
 
+DATE=${DATE:-$(date +%Y%m%d)}
+
 start_message() {
     printf -- "[INFO] Loading: incremental_backup has been loaded at "
     date "+%Y/%m/%d %T"
@@ -31,6 +33,7 @@ purge_expire_dir() {
         fi
         shift
     done
+    return 0
 }
 
 purge_expires() {
@@ -40,6 +43,7 @@ purge_expires() {
     for DIR in "$BACKUPTO"/*_backup_*; do
         [ -e "$DIR" ] && purge_expire_dir "$(basename "$DIR")"
     done
+    return $?
 }
 
 rsync_options() {
@@ -52,30 +56,39 @@ rsync_options() {
         OPTS="$OPTS --exclude-from=/dev/stdin"
     fi
     [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
+    return 0
 }
 
 exec_rsync() {
     printf -- "[INFO] Executing: backup with rsync at "
     date "+%Y/%m/%d %T"
 
+    FAILED=0
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
-        grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
-
+        if [ -f "$EXCLUDEFILE" ]; then
+            # Feed non empty non comment lines to --exclude-from=/dev/stdin
+            grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+        else
+            rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+        fi
         RC=$?
         echo "[INFO] Return code is $RC"
+        [ $RC -ne 0 ] && FAILED=$RC
     done
+    return $FAILED
 }
 
 run_rsync() {
-    purge_expires
-    rsync_options
-    exec_rsync
+    purge_expires || return $?
+    rsync_options || return $?
+    exec_rsync || return $?
 }
 
 main() {
     start_message
     run_rsync
+    return $?
 }
 
 main "$@"
