@@ -41,20 +41,25 @@ mirror_to_remote() {
         fi
 
         echo "[INFO] Return code is $RC"
+        return $RC
     else
         printf -- "[WARN] Backup directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
+        return 2
     fi
 }
 
 backup_to_remote() {
+    FAILED=0
     for REMOTE_HOST in $REMOTE_HOSTS; do
-        mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR"
+        mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR" || FAILED=$?
     done
+    return $FAILED
 }
 
 main() {
     start_message
     backup_to_remote
+    return $?
 }
 
 main "$@"
