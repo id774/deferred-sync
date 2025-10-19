@@ -69,19 +69,19 @@ deferred_sync() {
     if [ -n "$STARTSCRIPT" ]; then
         . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
         st=$?
-        [ "$st" -ne 0 ] && echo "[WARN] STARTSCRIPT exited with status $st" >&2
+        [ "$st" -ne 0 ] && echo "[WARN] STARTSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
     fi
 
     # Load and execute plugins
     . "$SCRIPT_HOME/lib/load" >>"$JOBLOG" 2>&1
     st=$?
-    [ "$st" -ne 0 ] && echo "[WARN] load exited with status $st" >&2
+    [ "$st" -ne 0 ] && echo "[WARN] load exited with status $st" >>"$JOBLOG" 2>&1
 
     # Execute post-sync script if defined
     if [ -n "$ENDSCRIPT" ]; then
         . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
         st=$?
-        [ "$st" -ne 0 ] && echo "[WARN] ENDSCRIPT exited with status $st" >&2
+        [ "$st" -ne 0 ] && echo "[WARN] ENDSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
     fi
 
     # Log job completion time
@@ -99,7 +99,6 @@ deferred_sync() {
 main() {
     setup "$@"
     deferred_sync
-
     return 0
 }
 
