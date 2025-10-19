@@ -48,12 +48,14 @@ show_version() {
         echo "[INFO] Retrieving Protocol Buffers version"
         /opt/protobuf/current/bin/protoc --version
     }
+
+    return 0
 }
 
 main() {
     start_message
     show_version
-    return 0
+    return $?
 }
 
 main "$@"

@@ -38,12 +38,14 @@ get_resources() {
     free -t
     echo "[INFO] Retrieving disk usage"
     df -P -T
+
+    return 0
 }
 
 main() {
     start_message
     get_resources
-    return 0
+    return $?
 }
 
 main "$@"
