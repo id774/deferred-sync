@@ -52,7 +52,7 @@ load_plugins_by_config() {
 # Load all available plugins
 load_plugins_all() {
     for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
-        if [ -r "$PLUGIN" ]; then
+        if [ -r "$PLUGIN" ] && [ -f "$PLUGIN" ]; then
             . "$PLUGIN"
             st=$?
             [ "$st" -ne 0 ] && {

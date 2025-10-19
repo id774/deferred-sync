@@ -17,8 +17,8 @@
 #   - Each major phase (STARTSCRIPT, load, ENDSCRIPT) runs sequentially.
 #   - If any of them exits with a non-zero status, a [WARN] message is printed,
 #     but execution continues to the next phase.
-#   - All standard output and errors are appended to the job log (`JOBLOG`),
-#     except WARN messages, which are written to stderr.
+#   - All standard output and errors, including WARN messages, are appended
+#     to the job log (`JOBLOG`). No stderr is emitted during normal runs.
 #
 # Notes:
 #   - Ensure that `config/sync.conf` and related scripts are properly configured.
@@ -50,10 +50,14 @@ setup() {
 }
 
 send_mail_to_admin() {
-    # Send job log to administrator
-    if ! cat -v "$JOBLOG" | nkf -w | \
-        mail -s "[cron][$(hostname)] Deferred Sync Log" \
-        "$ADMIN_MAIL_ADDRESS"; then
+    # Send job log to administrator (fall back if nkf or mail is absent)
+    SUBJ="[cron][$(hostname)] Deferred Sync Log"
+    if command -v nkf >/dev/null 2>&1; then
+        TO_SEND=$(nkf -w <"$JOBLOG")
+    else
+        TO_SEND=$(cat "$JOBLOG")
+    fi
+    if ! printf "%s" "$TO_SEND" | mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS"; then
         echo "[ERROR] Failed to send mail to $ADMIN_MAIL_ADDRESS" >&2
     fi
 }
