@@ -35,7 +35,7 @@ setup() {
     # Check if config file is readable
     if [ ! -r "${SCRIPT_HOME}/${CONFIG}" ]; then
         echo "[ERROR] Config file not found or unreadable: ${SCRIPT_HOME}/${CONFIG}" >&2
-        exit 2
+        exit 3
     fi
     . "${SCRIPT_HOME}/${CONFIG}"
 
