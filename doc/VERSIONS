@@ -7,7 +7,7 @@ v25.10 (Release Date: TBD)
 - Standardize plugin scripts to propagate return codes and aggregate failures across backup, dump, and remote sync operations.
 - Document standardized return code convention (0=OK,1=fail,2=network,3=local prerequisite) across core and plugins.
 - Harden log mail delivery: stream JOBLOG, fall back when `nkf` is unavailable, and report failures explicitly.
-- Restrict auto-loading in `load_plugins_all` to regular files (`-f`) for safety.
+- Restrict plugin loading to regular files (`-f`) for safety.
 - Add lspci support to hardware info plugin.
 - Add server_alive_check plugin to run server_alive_check if available.
 
