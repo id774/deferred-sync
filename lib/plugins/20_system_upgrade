@@ -80,7 +80,7 @@ freshclam_manually(){
     return $RC
 }
 
-upgrade_from_network() {
+system_upgrade() {
     FAILED=0
     if [ -f /etc/debian_version ]; then
         update_debian_or_ubuntu || FAILED=$?
@@ -94,17 +94,6 @@ upgrade_from_network() {
     fi
 
     return $FAILED
-}
-
-system_upgrade() {
-    if ping -c 1 debian.org > /dev/null 2>&1; then
-        upgrade_from_network
-        return $?
-
-    else
-        printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
-        return 2
-    fi
 }
 
 main() {
