@@ -60,21 +60,15 @@ ubuntu_kernel_upgrade() {
 }
 
 system_upgrade() {
-    if ping -c 1 ubuntu.com > /dev/null 2>&1; then
-        if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
-            ubuntu_kernel_upgrade
-        else
-            printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
-            return 3
-        fi
+    if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
+        ubuntu_kernel_upgrade
+        RC=$?
+        echo "[INFO] Return code is $RC"
+        return $RC
     else
-        printf -- "[WARN] Skipping upgrade: Network unavailable\n" >&2
-        return 2
+        printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
+        return 3
     fi
-
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
 }
 
 main() {
