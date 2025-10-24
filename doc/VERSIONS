@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v25.10 (Release Date: TBD)
---------------------------
+v25.10 (2025-10-24)
+-------------------
 - Refine core load sequence to return instead of exit, adopting warn-and-continue behavior on nonzero plugin failures.
 - Standardize plugin scripts to propagate return codes and aggregate failures across backup, dump, and remote sync operations.
 - Document standardized return code convention (0=OK,1=fail,2=network,3=local prerequisite) across core and plugins.
