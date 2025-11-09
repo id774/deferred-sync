@@ -4,7 +4,7 @@
 #
 # Outputs:
 #   - Kernel version (`uname -a`)
-#   - Distribution information (`lsb_release -a` or `/etc/debian_version`)
+#   - Distribution information (`lsb_release -a` and/or `/etc/debian_version`)
 #   - System uptime (`uptime`)
 #   - Memory usage (`free -t`)
 #   - Disk usage (`df -P -T`)
@@ -22,11 +22,14 @@ get_resources() {
     echo "[INFO] Retrieving kernel and system information"
     uname -a
 
-    # Print distribution-specific release information
-    if command -v lsb_release > /dev/null 2>&1; then
+    # Prefer lsb_release output when available
+    if command -v lsb_release >/dev/null 2>&1; then
         echo "[INFO] Retrieving distribution information using lsb_release"
         lsb_release -a
-    elif [ -f /etc/debian_version ]; then
+    fi
+
+    # Always log /etc/debian_version if it exists (for minor version etc.)
+    if [ -f /etc/debian_version ]; then
         echo "[INFO] Retrieving distribution version from /etc/debian_version"
         cat /etc/debian_version
     fi
@@ -34,8 +37,10 @@ get_resources() {
     # Print system uptime and resource usage
     echo "[INFO] Retrieving system uptime"
     uptime
+
     echo "[INFO] Retrieving memory usage"
     free -t
+
     echo "[INFO] Retrieving disk usage"
     df -P -T
 
