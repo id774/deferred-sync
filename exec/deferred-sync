@@ -14,7 +14,7 @@
 #   - Sends a notification email upon completion (if configured)
 #
 # Behavior:
-#   - Each major phase (STARTSCRIPT, load, ENDSCRIPT) runs sequentially.
+#   - Each major phase (STARTSCRIPT, Plugin loader, ENDSCRIPT) runs sequentially.
 #   - If any of them exits with a non-zero status, a [WARN] message is printed,
 #     but execution continues to the next phase.
 #   - All standard output and errors, including WARN messages, are appended
@@ -69,23 +69,38 @@ deferred_sync() {
         date "+%Y/%m/%d %T"
     } >>"$JOBLOG" 2>&1
 
-    # Execute pre-sync script if defined
+    # STARTSCRIPT
     if [ -n "$STARTSCRIPT" ]; then
+        echo "[INFO] STARTSCRIPT started" >>"$JOBLOG" 2>&1
         . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
         st=$?
-        [ "$st" -ne 0 ] && echo "[WARN] STARTSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+        if [ "$st" -eq 0 ]; then
+            echo "[INFO] STARTSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+        else
+            echo "[WARN] STARTSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+        fi
     fi
 
-    # Load and execute plugins
+    # Plugin loader
+    echo "[INFO] Plugin loader started" >>"$JOBLOG" 2>&1
     . "$SCRIPT_HOME/lib/load" >>"$JOBLOG" 2>&1
     st=$?
-    [ "$st" -ne 0 ] && echo "[WARN] load exited with status $st" >>"$JOBLOG" 2>&1
+    if [ "$st" -eq 0 ]; then
+        echo "[INFO] Plugin loader completed successfully" >>"$JOBLOG" 2>&1
+    else
+        echo "[WARN] Plugin loader exited with status $st" >>"$JOBLOG" 2>&1
+    fi
 
-    # Execute post-sync script if defined
+    # ENDSCRIPT
     if [ -n "$ENDSCRIPT" ]; then
+        echo "[INFO] ENDSCRIPT started" >>"$JOBLOG" 2>&1
         . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
         st=$?
-        [ "$st" -ne 0 ] && echo "[WARN] ENDSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+        if [ "$st" -eq 0 ]; then
+            echo "[INFO] ENDSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+        else
+            echo "[WARN] ENDSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+        fi
     fi
 
     # Log job completion time
