@@ -14,7 +14,7 @@
 #   - Sends a notification email upon completion (if configured)
 #
 # Behavior:
-#   - Each major phase (STARTSCRIPT, Plugin loader, ENDSCRIPT) runs sequentially.
+#   - Each major phase (STARTSCRIPT, PLUGIN LOADER, ENDSCRIPT) runs sequentially.
 #   - If any of them exits with a non-zero status, a [WARN] message is printed,
 #     but execution continues to the next phase.
 #   - All standard output and errors, including WARN messages, are appended
@@ -81,14 +81,14 @@ deferred_sync() {
         fi
     fi
 
-    # Plugin loader
-    echo "[INFO] Plugin loader started" >>"$JOBLOG" 2>&1
+    # PLUGIN LOADER
+    echo "[INFO] PLUGIN LOADER started" >>"$JOBLOG" 2>&1
     . "$SCRIPT_HOME/lib/load" >>"$JOBLOG" 2>&1
     st=$?
     if [ "$st" -eq 0 ]; then
-        echo "[INFO] Plugin loader completed successfully" >>"$JOBLOG" 2>&1
+        echo "[INFO] PLUGIN LOADER completed successfully" >>"$JOBLOG" 2>&1
     else
-        echo "[WARN] Plugin loader exited with status $st" >>"$JOBLOG" 2>&1
+        echo "[WARN] PLUGIN LOADER exited with status $st" >>"$JOBLOG" 2>&1
     fi
 
     # ENDSCRIPT
