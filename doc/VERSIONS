@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v25.11 (Release Date: TBD)
---------------------------
+v25.11 (2025-11-28)
+-------------------
 - Add /etc/debian_version output after lsb_release for minor version logging in get_resources plugin.
 - Add unified INFO and WARN logging for STARTSCRIPT, PLUGIN LOADER, and ENDSCRIPT phases.
 
