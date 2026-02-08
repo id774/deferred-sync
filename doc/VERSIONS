@@ -1,6 +1,10 @@
 deferred-sync Repository Version History
 ========================================
 
+v26.02 (Release Date: TBD)
+--------------------------
+- Fix purge_expires to return success when no backups exist and propagate purge failures,
+
 v25.11 (2025-11-28)
 -------------------
 - Add /etc/debian_version output after lsb_release for minor version logging in get_resources plugin.

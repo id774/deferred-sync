@@ -41,9 +41,10 @@ purge_expires() {
     date "+%Y/%m/%d %T"
 
     for DIR in "$BACKUPTO"/*_backup_*; do
-        [ -e "$DIR" ] && purge_expire_dir "$(basename "$DIR")"
+        [ -e "$DIR" ] || continue
+        purge_expire_dir "$(basename "$DIR")" || return $?
     done
-    return $?
+    return 0
 }
 
 rsync_options() {
