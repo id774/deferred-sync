@@ -8,11 +8,13 @@
 #   - Battery and power details (`acpi -abi`)
 #   - Block device mapping (`lsblk`, `lsblk -f`)
 #   - LVM logical volume mapping (`lvs -o lv_name,vg_name,lv_size,devices`)
+#   - Network interface status (`ip -br link`, `ip -br addr`)
 #   - SMART status for available disks with serial numbers
 #
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
-#   - `dmidecode`, `acpi`, `lsblk`, `lvs`, `smartctl`, and `udevadm` must be installed to retrieve respective information.
+#   - `dmidecode`, `acpi`, `lsblk`, `lvs`, `ip`, `smartctl`, and `udevadm`
+#     must be installed to retrieve respective information.
 
 start_message() {
     printf -- "[INFO] Loading: get_hardware_info has been loaded at "
@@ -60,6 +62,16 @@ get_hardware_info() {
         lvs -o lv_name,vg_name,lv_size,devices
     else
         echo "[WARN] lvs command not found" >&2
+    fi
+
+    # Retrieve network interface status
+    if command -v ip > /dev/null 2>&1; then
+        echo "[INFO] Retrieving network interface link status using ip -br link"
+        ip -br link
+        echo "[INFO] Retrieving network interface address information using ip -br addr"
+        ip -br addr
+    else
+        echo "[WARN] ip command not found" >&2
     fi
 
     # Retrieve SMART data for detected disks
