@@ -6,11 +6,13 @@
 #   - System information (`dmidecode --type system`)
 #   - PCI device information (`lspci`)
 #   - Battery and power details (`acpi -abi`)
+#   - Block device mapping (`lsblk`, `lsblk -f`)
+#   - LVM logical volume mapping (`lvs -o lv_name,vg_name,lv_size,devices`)
 #   - SMART status for available disks with serial numbers
 #
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
-#   - `dmidecode`, `acpi`, `smartctl`, and `udevadm` must be installed to retrieve respective information.
+#   - `dmidecode`, `acpi`, `lsblk`, `lvs`, `smartctl`, and `udevadm` must be installed to retrieve respective information.
 
 start_message() {
     printf -- "[INFO] Loading: get_hardware_info has been loaded at "
@@ -40,6 +42,24 @@ get_hardware_info() {
         acpi -abi
     else
         echo "[WARN] acpi command not found" >&2
+    fi
+
+    # Retrieve block device and filesystem mapping
+    if command -v lsblk > /dev/null 2>&1; then
+        echo "[INFO] Retrieving block device mapping using lsblk"
+        lsblk
+        echo "[INFO] Retrieving filesystem information using lsblk -f"
+        lsblk -f
+    else
+        echo "[WARN] lsblk command not found" >&2
+    fi
+
+    # Retrieve LVM logical volume mapping (lv -> devices)
+    if command -v lvs > /dev/null 2>&1; then
+        echo "[INFO] Retrieving LVM logical volume mapping using lvs"
+        lvs -o lv_name,vg_name,lv_size,devices
+    else
+        echo "[WARN] lvs command not found" >&2
     fi
 
     # Retrieve SMART data for detected disks
