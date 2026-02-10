@@ -8,7 +8,7 @@
 #   - Battery and power details (`acpi -abi`)
 #   - Block device mapping (`lsblk`, `lsblk -f`)
 #   - LVM logical volume mapping (`lvs -o lv_name,vg_name,lv_size,devices`)
-#   - Network interface status (`ip -br link`, `ip -br addr`)
+#   - Network interface status (`ip addr show`)
 #   - SMART status for available disks with serial numbers
 #
 # Note:
@@ -64,12 +64,10 @@ get_hardware_info() {
         echo "[WARN] lvs command not found" >&2
     fi
 
-    # Retrieve network interface status
+    # Retrieve network interface detailed status
     if command -v ip > /dev/null 2>&1; then
-        echo "[INFO] Retrieving network interface link status using ip -br link"
-        ip -br link
-        echo "[INFO] Retrieving network interface address information using ip -br addr"
-        ip -br addr
+        echo "[INFO] Retrieving network interface information using ip addr show"
+        ip addr show
     else
         echo "[WARN] ip command not found" >&2
     fi

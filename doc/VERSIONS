@@ -4,7 +4,7 @@ deferred-sync Repository Version History
 v26.02 (Release Date: TBD)
 --------------------------
 - Fix purge_expires to return success when no backups exist and propagate purge failures,
-- Add lsblk (including lsblk -f), LVM device mapping (lvs), and network interface status (ip -br link/addr) to hardware information collection.
+- Add lsblk (including lsblk -f), LVM device mapping (lvs), and detailed network interface status (ip addr show) to hardware information collection.
 
 v25.11 (2025-11-28)
 -------------------
