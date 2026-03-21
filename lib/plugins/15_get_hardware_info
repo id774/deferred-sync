@@ -6,82 +6,128 @@
 #   - System information (`dmidecode --type system`)
 #   - PCI device information (`lspci`)
 #   - Battery and power details (`acpi -abi`)
+#   - DNS resolver and NetworkManager information
 #   - SMART status for available disks with serial numbers
 #
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
-#   - `dmidecode`, `acpi`, `smartctl`, and `udevadm`
-#     must be installed to retrieve respective information.
+#   - `dmidecode`, `acpi`, `smartctl`, `udevadm`, `resolvectl`,
+#     and `nmcli` are used when available.
 
 start_message() {
     printf -- "[INFO] Loading: get_hardware_info has been loaded at "
     date "+%Y/%m/%d %T"
 }
 
+# Check command availability
+has_command() {
+    command -v "$1" > /dev/null 2>&1
+}
+
+# Execute command with info log
+exec_with_info() {
+    CMD="$1"
+    MESSAGE="$2"
+    shift 2
+
+    if has_command "$CMD"; then
+        echo "[INFO] $MESSAGE"
+        "$CMD" "$@"
+    fi
+}
+
+# Show DNS-related information
+show_dns_info() {
+    echo "[INFO] Retrieving DNS configuration"
+
+    if [ -e /etc/resolv.conf ]; then
+        if has_command readlink; then
+            echo "[INFO] Showing /etc/resolv.conf target"
+            readlink -f /etc/resolv.conf 2>/dev/null
+        fi
+
+        echo "[INFO] Showing /etc/resolv.conf contents"
+        cat /etc/resolv.conf 2>/dev/null
+    fi
+
+    exec_with_info resolvectl \
+        "Showing current resolver status using resolvectl" \
+        status
+
+    if has_command nmcli; then
+        echo "[INFO] Showing NetworkManager device status using nmcli"
+        nmcli device show
+
+        echo "[INFO] Showing NetworkManager connection profiles using nmcli"
+        nmcli connection show
+    fi
+}
+
+# Show SMART information for block devices
+show_smart_info() {
+    if ! has_command smartctl; then
+        return 0
+    fi
+
+    echo "[INFO] Checking SMART status for available disks"
+
+    # Check SATA and SCSI devices
+    for DEVICE in /dev/sd[a-f]; do
+        if [ -b "$DEVICE" ]; then
+            if has_command udevadm; then
+                SERIAL=$(
+                    udevadm info --query=all --name="$DEVICE" 2>/dev/null |
+                        sed -n 's/^E: ID_SERIAL_SHORT=//p'
+                )
+            else
+                SERIAL=
+            fi
+
+            echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
+            echo "[INFO] Attempting smartctl -a -d sat $DEVICE"
+            if ! smartctl -a -d sat "$DEVICE"; then
+                echo "[INFO] -d sat failed for $DEVICE, falling back to default"
+                smartctl -a "$DEVICE"
+            fi
+        fi
+    done
+
+    # Check NVMe devices
+    for DEVICE in /dev/nvme[0-9]n[0-9]; do
+        if [ -b "$DEVICE" ]; then
+            if has_command udevadm; then
+                SERIAL=$(
+                    udevadm info --query=all --name="$DEVICE" 2>/dev/null |
+                        sed -n 's/^E: ID_SERIAL_SHORT=//p'
+                )
+            else
+                SERIAL=
+            fi
+
+            echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
+            echo "[INFO] Attempting smartctl -a -d nvme $DEVICE"
+            if ! smartctl -a -d nvme "$DEVICE"; then
+                echo "[INFO] -d nvme failed for $DEVICE, falling back to default"
+                smartctl -a "$DEVICE"
+            fi
+        fi
+    done
+}
+
 get_hardware_info() {
-    # Retrieve system information
-    if command -v dmidecode > /dev/null 2>&1; then
-        echo "[INFO] Retrieving system information using dmidecode"
-        dmidecode --type system
-    else
-        echo "[WARN] dmidecode command not found" >&2
-    fi
+    exec_with_info dmidecode \
+        "Retrieving system information using dmidecode" \
+        --type system
 
-    # Retrieve PCI device information
-    if command -v lspci > /dev/null 2>&1; then
-        echo "[INFO] Retrieving PCI device information using lspci"
-        lspci
-    else
-        echo "[WARN] lspci command not found" >&2
-    fi
+    exec_with_info lspci \
+        "Retrieving PCI device information using lspci"
 
-    # Retrieve battery and power information
-    if command -v acpi > /dev/null 2>&1; then
-        echo "[INFO] Retrieving battery and power status using acpi"
-        acpi -abi
-    else
-        echo "[WARN] acpi command not found" >&2
-    fi
+    exec_with_info acpi \
+        "Retrieving battery and power status using acpi" \
+        -abi
 
-    # Retrieve SMART data for detected disks
-    if command -v smartctl > /dev/null 2>&1; then
-        echo "[INFO] Checking SMART status for available disks"
-        # SATA SCSI devices
-        for DEVICE in /dev/sd[a-f]; do
-            if [ -b "$DEVICE" ]; then
-                if command -v udevadm >/dev/null 2>&1; then
-                    SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
-                else
-                    SERIAL=
-                fi
-                echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
-                echo "[INFO] Attempting smartctl -a -d sat $DEVICE"
-                if ! smartctl -a -d sat "$DEVICE"; then
-                    echo "[INFO] -d sat failed for $DEVICE, falling back to default"
-                    smartctl -a "$DEVICE"
-                fi
-            fi
-        done
-
-        # NVMe devices
-        for DEVICE in /dev/nvme[0-9]n[0-9]; do
-            if [ -b "$DEVICE" ]; then
-                if command -v udevadm >/dev/null 2>&1; then
-                    SERIAL=$(udevadm info --query=all --name="$DEVICE" 2>/dev/null | sed -n 's/^E: ID_SERIAL_SHORT=//p')
-                else
-                    SERIAL=
-                fi
-                echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
-                echo "[INFO] Attempting smartctl -a -d nvme $DEVICE"
-                if ! smartctl -a -d nvme "$DEVICE"; then
-                    echo "[INFO] -d nvme failed for $DEVICE, falling back to default"
-                    smartctl -a "$DEVICE"
-                fi
-            fi
-        done
-    else
-        echo "[WARN] smartctl command not found" >&2
-    fi
+    show_dns_info
+    show_smart_info
 
     return 0
 }

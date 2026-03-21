@@ -1,6 +1,10 @@
 deferred-sync Repository Version History
 ========================================
 
+v26.03 (Release Date: TBD)
+--------------------------
+- Refactor hardware info script to use command wrapper and add DNS information retrieval.
+
 v26.02 (2026-02-27)
 -------------------
 - Fix purge_expires to return success when no backups exist and propagate purge failures.
