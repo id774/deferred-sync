@@ -5,7 +5,7 @@
 # Outputs:
 #   - System information (`dmidecode --type system`)
 #   - PCI device information (`lspci`)
-#   - Battery and power details (`acpi -abi`)
+#   - Battery and power details (`acpi -b -a -t -i`)
 #   - DNS resolver and NetworkManager information
 #   - SMART status for available disks with serial numbers
 #
@@ -124,7 +124,7 @@ get_hardware_info() {
 
     exec_with_info acpi \
         "Retrieving battery and power status using acpi" \
-        -abi
+        -b -a -t -i
 
     show_dns_info
     show_smart_info
