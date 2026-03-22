@@ -40,6 +40,18 @@ exec_with_info() {
 show_dns_info() {
     echo "[INFO] Retrieving DNS configuration"
 
+    if has_command nmcli; then
+        echo "[INFO] Showing NetworkManager device status using nmcli"
+        nmcli device show 2>/dev/null
+
+        echo "[INFO] Showing NetworkManager connection profiles using nmcli"
+        nmcli connection show 2>/dev/null
+    fi
+
+    exec_with_info resolvectl \
+        "Showing current resolver status using resolvectl" \
+        status
+
     if [ -e /etc/resolv.conf ]; then
         if has_command readlink; then
             echo "[INFO] Showing /etc/resolv.conf target"
@@ -48,18 +60,6 @@ show_dns_info() {
 
         echo "[INFO] Showing /etc/resolv.conf contents"
         cat /etc/resolv.conf 2>/dev/null
-    fi
-
-    exec_with_info resolvectl \
-        "Showing current resolver status using resolvectl" \
-        status
-
-    if has_command nmcli; then
-        echo "[INFO] Showing NetworkManager device status using nmcli"
-        nmcli device show 2>/dev/null
-
-        echo "[INFO] Showing NetworkManager connection profiles using nmcli"
-        nmcli connection show 2>/dev/null
     fi
 }
 
