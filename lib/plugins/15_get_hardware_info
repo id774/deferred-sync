@@ -32,7 +32,7 @@ exec_with_info() {
 
     if has_command "$CMD"; then
         echo "[INFO] $MESSAGE"
-        "$CMD" "$@"
+        "$CMD" "$@" 2>/dev/null
     fi
 }
 
@@ -56,10 +56,10 @@ show_dns_info() {
 
     if has_command nmcli; then
         echo "[INFO] Showing NetworkManager device status using nmcli"
-        nmcli device show
+        nmcli device show 2>/dev/null
 
         echo "[INFO] Showing NetworkManager connection profiles using nmcli"
-        nmcli connection show
+        nmcli connection show 2>/dev/null
     fi
 }
 
