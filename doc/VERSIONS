@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.03 (Release Date: TBD)
---------------------------
+v26.03 (2026-03-28)
+-------------------
 - Refactor hardware info script with command wrapper, add DNS reporting, suppress routine stderr, and preserve smartctl diagnostics.
 
 v26.02 (2026-02-27)
