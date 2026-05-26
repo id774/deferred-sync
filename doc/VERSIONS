@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.05 (Release Date: TBD)
---------------------------
+v26.05 (2026-05-26)
+-------------------
 - Exclude additional backup storage directories.
 
 v26.03 (2026-03-28)
