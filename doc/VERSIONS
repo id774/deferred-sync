@@ -7,6 +7,7 @@ v26.07 (Release Date: TBD)
 - Accept nosudo argument in install.sh, not just --no-sudo.
 - Fix typo Satday to Saturday in deferred-sync cron comment.
 - Fix stale dump cleanup in 30_dump_mysql to target .sql.gz instead of .zip.
+- Change unreachable host return code to 2 in 85_get_remote_dir to distinguish from other failures.
 
 v26.05 (2026-05-26)
 -------------------

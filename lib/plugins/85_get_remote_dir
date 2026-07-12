@@ -41,7 +41,7 @@ get_remote() {
         RC=$?
     else
         printf -- "[WARN] Skipping retrieval from %s: Host unreachable\n" "$1" >&2
-        RC=1
+        RC=2
     fi
 
     echo "[INFO] Return code is $RC"
