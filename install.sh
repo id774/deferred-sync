@@ -349,7 +349,7 @@ main() {
             -l|--link)
                 LINK_FLAG=1
                 ;;
-            --no-sudo)
+            nosudo|--no-sudo)
                 NOSUDO="nosudo"
                 ;;
             /*)
