@@ -1,5 +1,5 @@
 # Scheduled execution of deferred-sync
-# Runs every weekday (Monday to Satday) at 03:01
+# Runs every weekday (Monday to Saturday) at 03:01
 # Logs will be sent to the root user via cron MAILTO
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

@@ -5,6 +5,7 @@ v26.07 (Release Date: TBD)
 --------------------------
 - Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
 - Accept nosudo argument in install.sh, not just --no-sudo.
+- Fix typo Satday to Saturday in deferred-sync cron comment.
 
 v26.05 (2026-05-26)
 -------------------
