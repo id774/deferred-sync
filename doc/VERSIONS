@@ -6,6 +6,7 @@ v26.07 (Release Date: TBD)
 - Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
 - Accept nosudo argument in install.sh, not just --no-sudo.
 - Fix typo Satday to Saturday in deferred-sync cron comment.
+- Fix stale dump cleanup in 30_dump_mysql to target .sql.gz instead of .zip.
 
 v26.05 (2026-05-26)
 -------------------

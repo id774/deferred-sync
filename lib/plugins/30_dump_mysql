@@ -28,7 +28,7 @@ get_mysqldump() {
     fi
 
     # Remove existing compressed dump if it exists
-    [ -f "$MYSQLDUMP/$1.zip" ] && rm "$MYSQLDUMP/$1.zip"
+    [ -f "$MYSQLDUMP/$1.sql.gz" ] && rm "$MYSQLDUMP/$1.sql.gz"
 
     printf -- "[INFO] Executing: mysqldump at "
     date "+%Y/%m/%d %T"
