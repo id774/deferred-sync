@@ -133,19 +133,6 @@ This is useful when integrating with a centralized cron execution and configurat
 
 deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design.
 
-### Return Code Convention
-
-All core components and plugins follow the same standardized return code convention:
-
-| Code | Meaning | Typical Case |
-|:----:|:---------|:--------------|
-| **0** | Success | Operation completed successfully |
-| **1** | Command failure or resource missing | Command execution error, missing database, or permission failure |
-| **2** | Network unreachable | Remote host unreachable, failed ping, or SSH connection error |
-| **3** | Local prerequisite missing | Local directory or configuration not found, environment not initialized |
-
-This convention ensures consistent behavior across all plugins and allows the core loader (`lib/load`) to apply a **warn-and-continue** policy for nonzero return values.
-
 ### Plugin Behavior Policy
 
 Each plugin must:
@@ -174,6 +161,19 @@ All outputs must use standardized log levels:
 - `[ERROR]` — Fatal or unrecoverable issues (e.g., broken configuration)
 
 These messages are designed for easy parsing by monitoring systems and cron logs.
+
+### Return Code Convention
+
+All core components and plugins follow the same standardized return code convention:
+
+| Code | Meaning | Typical Case |
+|:----:|:---------|:--------------|
+| **0** | Success | Operation completed successfully |
+| **1** | Command failure or resource missing | Command execution error, missing database, or permission failure |
+| **2** | Network unreachable | Remote host unreachable, failed ping, or SSH connection error |
+| **3** | Local prerequisite missing | Local directory or configuration not found, environment not initialized |
+
+This convention ensures consistent behavior across all plugins and allows the core loader (`lib/load`) to apply a **warn-and-continue** policy for nonzero return values.
 
 ## Usage Example
 
