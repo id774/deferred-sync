@@ -25,6 +25,8 @@
 #  Notes:
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
 #  - [nosudo]: If specified, the script runs without sudo.
+#  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
+#  - Do not remove custom installation targets automatically.
 #
 #  Version History:
 #  v3.1 2026-07-11

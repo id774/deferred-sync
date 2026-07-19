@@ -68,6 +68,9 @@ sudo ./install.sh --uninstall
 
 This will remove all files installed by deferred-sync **except** the log directory (`/var/log/deferred-sync`).
 
+For safety, `--uninstall` removes only `/opt/deferred-sync` as the installation target.
+Custom installation targets are not removed automatically.
+
 ## Configuration
 
 The main configuration file is `config/sync.conf`. It defines all parameters required for operation, including:
