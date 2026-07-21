@@ -9,6 +9,7 @@ v26.07 (Release Date: TBD)
 - Fix stale dump cleanup in 30_dump_mysql to target .sql.gz instead of .zip.
 - Change unreachable host return code to 2 in 85_get_remote_dir to distinguish from other failures.
 - Fix 32_dump_mongodb removing its own required temp directory after a successful dump.
+- Preserve yum failures when a later old-kernel cleanup succeeds.
 
 v26.05 (2026-05-26)
 -------------------
