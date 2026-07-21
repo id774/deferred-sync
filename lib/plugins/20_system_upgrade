@@ -36,6 +36,7 @@ update_debian_or_ubuntu() {
 }
 
 update_redhat_or_centos() {
+    FAILED=0
     [ -f /etc/yum.conf ] && cat /etc/yum.conf
 
     printf -- "[INFO] Executing: yum update at "
@@ -44,12 +45,14 @@ update_redhat_or_centos() {
     yum -y update && yum clean all
     RC=$?
     echo "[INFO] Return code is $RC"
+    [ "$RC" -ne 0 ] && FAILED=$RC
 
     if command -v package-cleanup >/dev/null 2>&1; then
         if [ -n "${OLDKERNELS_COUNT:-}" ]; then
             package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
             RC=$?
             echo "[INFO] Return code is $RC"
+            [ "$RC" -ne 0 ] && [ "$FAILED" -eq 0 ] && FAILED=$RC
         else
             echo "[WARN] OLDKERNELS_COUNT is not set skipping old kernel cleanup" >&2
         fi
@@ -57,7 +60,7 @@ update_redhat_or_centos() {
         echo "[WARN] package-cleanup command not found skipping old kernel cleanup" >&2
     fi
 
-    return $RC
+    return $FAILED
 }
 
 freshclam_manually(){
