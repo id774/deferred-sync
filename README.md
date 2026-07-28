@@ -54,8 +54,9 @@ but cron, logrotate, and backup directory setup are skipped.
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
-Specifying `nosudo` runs the installer without `sudo` and skips the recursive ownership change
-of the target directory. If you wish to install in your home directory, run:
+Specifying `nosudo`, `--no-sudo`, or `-n` runs the installer without `sudo` and skips the
+recursive ownership change of the target directory. If you wish to install in your home
+directory, run:
 
 ```sh
 ./install.sh ~/local/deferred-sync nosudo

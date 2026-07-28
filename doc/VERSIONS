@@ -21,6 +21,7 @@ v26.07 (Release Date: TBD)
 - Document that the /etc/cron.exec symlink always targets the default installation path.
 - Correct the README directory structure and document plugin ordering and name matching.
 - Document the return codes of plugins that propagate an external command status.
+- Accept -n as an alias for the install.sh nosudo and --no-sudo arguments.
 
 v26.05 (2026-05-26)
 -------------------

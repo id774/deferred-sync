@@ -15,16 +15,17 @@
 #  Contact: idnanashi@gmail.com
 #
 #  Usage:
-#      ./install.sh [target_path] [nosudo] [--link]
+#      ./install.sh [target_path] [nosudo|--no-sudo|-n] [--link]
 #
 #  Options:
 #      -h, --help       Show this help message and exit.
 #      -u, --uninstall  Remove deferred-sync and all related files except logs.
 #      -l, --link       Create symlinks under /etc/cron.config and /etc/cron.exec.
+#      -n, --no-sudo    Run without sudo (also accepted as nosudo).
 #
 #  Notes:
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
-#  - [nosudo]: If specified, the script runs without sudo.
+#  - [nosudo|--no-sudo|-n]: If specified, the script runs without sudo.
 #  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
 #  - Do not remove custom installation targets automatically.
 #
@@ -355,7 +356,7 @@ main() {
             -l|--link)
                 LINK_FLAG=1
                 ;;
-            nosudo|--no-sudo)
+            nosudo|--no-sudo|-n)
                 NOSUDO="nosudo"
                 ;;
             /*)
