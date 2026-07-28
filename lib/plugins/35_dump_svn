@@ -3,7 +3,7 @@
 # 35_dump_svn - A script to dump SVN repositories and compress the dump.
 #
 # Required environment variables:
-#   SVNDUMP   : Directory where the dump files (SQL and compressed files) will be stored.
+#   SVNDUMP   : Directory where the dump and compressed files will be stored.
 #               Example: /var/lib/svn/svn_dump
 #   SVN_PATH  : Base path where SVN repositories are stored.
 #               Example: /var/lib/svn/repos
