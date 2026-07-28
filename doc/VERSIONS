@@ -5,8 +5,7 @@ v26.07 (Release Date: TBD)
 --------------------------
 - Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
 - Accept nosudo argument in install.sh, not just --no-sudo.
-- Add exit $? at the end of install.sh for consistent exit status handling.
-- Return a nonzero status from install.sh when an unknown option is given.
+- Propagate install.sh exit statuses consistently, including a nonzero status for unknown options.
 - Fix typo Satday to Saturday in deferred-sync cron comment.
 - Remove the unused EXECDIR assignment in exec/deferred-sync.
 - Align the mail fallback note in exec/deferred-sync with the implementation.
