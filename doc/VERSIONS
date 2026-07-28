@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.07 (2026-07-28)
--------------------
+v26.07 (Release Date: TBD)
+--------------------------
 - Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
 - Accept nosudo argument in install.sh, not just --no-sudo.
 - Fix typo Satday to Saturday in deferred-sync cron comment.
@@ -11,8 +11,10 @@ v26.07 (2026-07-28)
 - Fix 32_dump_mongodb removing its own required temp directory after a successful dump.
 - Preserve yum failures when a later old-kernel cleanup succeeds.
 - Confine the working directory change in 31_dump_postgresql to a subshell so it no longer leaks into subsequently sourced plugins.
+- Add exit $? at the end of install.sh for consistent exit status handling.
 - Correct the credential handling note in the 30_dump_mysql header.
 - Document that an explicit install target skips cron, logrotate, and backup directory setup.
+- Document that the /etc/cron.exec symlink always targets the default installation path.
 - Correct the README directory structure and document plugin ordering and name matching.
 - Document the return codes of plugins that propagate an external command status.
 

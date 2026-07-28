@@ -29,6 +29,8 @@
 #  - Do not remove custom installation targets automatically.
 #
 #  Version History:
+#  v3.2 2026-07-28
+#       Exit with the status of main to follow the common script convention.
 #  v3.1 2026-07-11
 #       Replace the awk {n,} interval expression in usage() with a portable
 #       equivalent, since mawk on some systems matches it incorrectly.
@@ -370,3 +372,4 @@ main() {
 
 # Execute main function
 main "$@"
+exit $?
