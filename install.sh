@@ -33,6 +33,7 @@
 #  v3.2 2026-07-28
 #       Exit with the status of main to follow the common script convention.
 #       Return a nonzero status when an unknown option is given.
+#       Accept --no-sudo and -n as aliases for nosudo.
 #  v3.1 2026-07-11
 #       Replace the awk {n,} interval expression in usage() with a portable
 #       equivalent, since mawk on some systems matches it incorrectly.
