@@ -23,21 +23,26 @@ dump_postgresql() {
         return 3
     fi
 
-    # Check if PGDUMP directory exists and change to it
+    # Check if the PGDUMP directory exists before running the dump
     if [ ! -d "$PGDUMP" ]; then
         printf -- "[WARN] Target directory %s does not exist. Skipping dump.\n" "$PGDUMP" >&2
         return 3
     fi
-    cd "$PGDUMP" || return 1
-
-    # Remove existing compressed dump if it exists (after cd)
-    [ -f "all.dump.gz" ] && rm "all.dump.gz"
 
     printf -- "[INFO] Executing: pg_dumpall at "
     date "+%Y/%m/%d %T"
 
-    # Perform the dump and compress the output using sudo
-    sudo -u "$PG_USER" sh -c "pg_dumpall -c > 'all.dump' && gzip -f 'all.dump'"
+    # Run in a subshell so the directory change does not leak into the
+    # calling shell and affect plugins sourced after this one
+    (
+        cd "$PGDUMP" || exit 1
+
+        # Remove existing compressed dump if it exists (after cd)
+        [ -f "all.dump.gz" ] && rm "all.dump.gz"
+
+        # Perform the dump and compress the output using sudo
+        sudo -u "$PG_USER" sh -c "pg_dumpall -c > 'all.dump' && gzip -f 'all.dump'"
+    )
 
     RC=$?
     echo "[INFO] Return code is $RC"

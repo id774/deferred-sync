@@ -10,6 +10,13 @@ v26.07 (Release Date: TBD)
 - Change unreachable host return code to 2 in 85_get_remote_dir to distinguish from other failures.
 - Fix 32_dump_mongodb removing its own required temp directory after a successful dump.
 - Preserve yum failures when a later old-kernel cleanup succeeds.
+- Confine the working directory change in 31_dump_postgresql to a subshell so it no longer leaks into subsequently sourced plugins.
+- Add exit $? at the end of install.sh for consistent exit status handling.
+- Correct the credential handling note in the 30_dump_mysql header.
+- Document that an explicit install target skips cron, logrotate, and backup directory setup.
+- Document that the /etc/cron.exec symlink always targets the default installation path.
+- Correct the README directory structure and document plugin ordering and name matching.
+- Document the return codes of plugins that propagate an external command status.
 
 v26.05 (2026-05-26)
 -------------------
