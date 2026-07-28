@@ -12,7 +12,9 @@
 #                Example: "db1 db2 db3"
 #
 # Note:
-#   - This script assumes that authentication is handled via the MySQL password environment variable.
+#   - MYSQL_USER and MYSQL_PASS are passed to `mysqldump` on the command line,
+#     so the password may be visible in the process list to other local users.
+#     Use a MySQL option file (e.g. ~/.my.cnf) if that is a concern.
 
 start_message() {
     printf -- "[INFO] Loading: dump_mysql has been loaded at "

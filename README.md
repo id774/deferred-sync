@@ -34,25 +34,41 @@ Some plugins may not be compatible with Solaris and macOS.
 
 ## Installation
 
-To install deferred-sync, execute the provided `install.sh` script:
+For a standard system-wide installation, run the provided `install.sh` script without arguments:
 
 ```sh
-./install.sh /opt/deferred-sync
+./install.sh
 ```
 
-By default, it installs under `/opt/deferred-sync` and places the execution script in `/etc/cron.daily/` to run automatically.
+This installs under `/opt/deferred-sync` and additionally sets up:
 
-You can optionally add the `--link` flag to create symlinks in `/etc/cron.config/` and `/etc/cron.exec/`:
+- `/etc/cron.daily/deferred-sync` (skipped if `/etc/cron.d/deferred-sync` already exists)
+- `/etc/logrotate.d/deferred-sync`
+- the default backup directories `/home/backup` and `/home/remote`
+
+These steps run only on Linux, and only when no `[target_path]` is given. Passing an explicit
+`[target_path]` is treated as a custom installation: the components are deployed to that path,
+but cron, logrotate, and backup directory setup are skipped.
 
 ```sh
-./install.sh /opt/deferred-sync nosudo --link
+./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
-If you wish to install in your home directory, run:
+Specifying `nosudo` runs the installer without `sudo` and skips the recursive ownership change
+of the target directory. If you wish to install in your home directory, run:
 
 ```sh
 ./install.sh ~/local/deferred-sync nosudo
 ```
+
+You can optionally add the `--link` flag to create symlinks in `/etc/cron.config/` and `/etc/cron.exec/`:
+
+```sh
+./install.sh --link
+```
+
+The `/etc/cron.exec/deferred-sync` symlink always points at `/opt/deferred-sync/exec/deferred-sync`,
+so `--link` is intended for the default installation path.
 
 If you want to specify an exact execution time, instead of relying on `cron.daily`, you can manually configure `cron.d` using the sample file provided in `cron/cron.d/deferred-sync`.
 
@@ -99,38 +115,48 @@ This is useful when integrating with a centralized cron execution and configurat
 ```
 .
 ├── exec/
-│   ├── deferred-sync    # Main execution script
+│   └── deferred-sync         # Main execution script
 │
 ├── config/
-│   ├── sync.conf        # Configuration file
-│   ├── exclude.conf     # List of excluded files
+│   ├── sync.conf             # Configuration file
+│   └── exclude.conf          # List of excluded files
 │
 ├── lib/
-│   ├── load             # Plugin loader
-│   ├── plugins/         # Directory containing plugins
-│   │   ├── show_version
-│   │   ├── get_resources
-│   │   ├── server_alive_check
-│   │   ├── get_hardware_info
-│   │   ├── system_upgrade
-│   │   ├── ubuntu_kernel_upgrade
-│   │   ├── dump_postgresql
-│   │   ├── dump_mysql
-│   │   ├── dump_mongodb
-│   │   ├── dump_svn
-│   │   ├── incremental_backup
-│   │   ├── backup_to_remote
-│   │   ├── get_remote_dir
+│   ├── load                  # Plugin loader
+│   ├── before                # Default STARTSCRIPT (pre-sync hook)
+│   ├── after                 # Default ENDSCRIPT (post-sync hook)
+│   └── plugins/              # Directory containing plugins
+│       ├── 09_show_version
+│       ├── 10_get_resources
+│       ├── 11_server_alive_check
+│       ├── 15_get_hardware_info
+│       ├── 20_system_upgrade
+│       ├── 25_ubuntu_kernel_upgrade
+│       ├── 30_dump_mysql
+│       ├── 31_dump_postgresql
+│       ├── 32_dump_mongodb
+│       ├── 35_dump_svn
+│       ├── 70_incremental_backup
+│       ├── 80_backup_to_remote
+│       └── 85_get_remote_dir
 │
-├── install.sh           # Installation script
+├── install.sh                # Installation script
 │
 ├── cron/
-│   ├── deferred-sync    # Script placed in `/etc/cron.daily/`
-│   ├── cron.d/          # Sample file for custom scheduling in `/etc/cron.d/`
+│   ├── deferred-sync         # Script placed in `/etc/cron.daily/`
+│   ├── cron.d/               # Sample file for custom scheduling in `/etc/cron.d/`
+│   └── logrotate.d/          # Log rotation config for `/etc/logrotate.d/`
 │
-├── doc/
-│   ├── VERSIONS         # Version history of the repository
+└── doc/
+    ├── VERSIONS              # Version history of the repository
+    ├── LICENSE               # License notice
+    ├── COPYING               # GPL version 3 text
+    └── COPYING.LESSER        # LGPL version 3 text
 ```
+
+Plugins are executed in filename order. The numeric prefix controls that order and may be
+omitted in `PLUGINS`, since each entry is matched against the end of the plugin filename
+(for example, `get_resources` matches `10_get_resources`).
 
 ## Policy
 
@@ -144,6 +170,8 @@ Each plugin must:
 - **Return appropriate codes** based on the nature of the failure.
 - **Avoid side effects** (e.g., `mkdir`, file creation) when prerequisites are missing.
 - **Report missing environments** (such as `PGDUMP` or `BACKUPTO`) using `return 3`.
+- **Contain shell state changes.** Plugins are sourced into the calling shell, so a change of
+  working directory must be confined to a subshell to avoid affecting later plugins.
 
 ### Core Loader Policy
 
@@ -177,6 +205,17 @@ All core components and plugins follow the same standardized return code convent
 | **3** | Local prerequisite missing | Local directory or configuration not found, environment not initialized |
 
 This convention ensures consistent behavior across all plugins and allows the core loader (`lib/load`) to apply a **warn-and-continue** policy for nonzero return values.
+
+Plugins that merely wrap an external command propagate that command's exit status instead, so
+values outside this table can appear in the log:
+
+- `11_server_alive_check` follows the POSIX shell convention and returns `127` when the target
+  script does not exist and `126` when it exists but is not executable. Otherwise it returns the
+  exit status of the invoked script.
+- `20_system_upgrade` and `25_ubuntu_kernel_upgrade` return the exit status of the underlying
+  package manager (`apt-get`, `yum`, or `package-cleanup`).
+
+The warn-and-continue policy of `lib/load` applies to these values in the same way.
 
 ## Usage Example
 
