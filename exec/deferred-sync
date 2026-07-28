@@ -39,7 +39,6 @@ setup() {
     fi
     . "${SCRIPT_HOME}/${CONFIG}"
 
-    EXECDIR=$(dirname "$0")
     DATE=$(date +%Y%m%d)
 
     # Check if JOBLOG is writable
@@ -50,7 +49,7 @@ setup() {
 }
 
 send_mail_to_admin() {
-    # Send job log to administrator (fall back if nkf or mail is absent)
+    # Send job log to administrator (fall back if nkf is absent, report mail failures)
     SUBJ="[cron][$(hostname)] Deferred Sync Log"
     if command -v nkf >/dev/null 2>&1; then
         TO_SEND=$(nkf -w <"$JOBLOG")

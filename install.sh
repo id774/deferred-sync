@@ -31,6 +31,7 @@
 #  Version History:
 #  v3.2 2026-07-28
 #       Exit with the status of main to follow the common script convention.
+#       Return a nonzero status when an unknown option is given.
 #  v3.1 2026-07-11
 #       Replace the awk {n,} interval expression in usage() with a portable
 #       equivalent, since mawk on some systems matches it incorrectly.
@@ -61,13 +62,14 @@
 ########################################################################
 
 # Display full script header information extracted from the top comment block
+# Exit with the status given as $1, or 0 when omitted
 usage() {
     awk '
         BEGIN { in_header = 0 }
         /^#+$/ && length($0) >= 10 { if (!in_header) { in_header = 1; next } else exit }
         in_header && /^# ?/ { print substr($0, 3) }
     ' "$0"
-    exit 0
+    exit "${1:-0}"
 }
 
 # Check if required commands are available and executable
@@ -361,7 +363,7 @@ main() {
                 ;;
             *)
                 echo "[ERROR] Unknown option: $arg" >&2
-                usage
+                usage 1
                 ;;
         esac
     done
