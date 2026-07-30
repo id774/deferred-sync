@@ -48,7 +48,8 @@ This installs under `/opt/deferred-sync` and additionally sets up:
 
 These steps run only on Linux, and only when no `[target_path]` is given. Passing an explicit
 `[target_path]` is treated as a custom installation: the components are deployed to that path,
-but cron, logrotate, and backup directory setup are skipped.
+but cron, logrotate, and backup directory setup are skipped. Give `[target_path]` as an absolute
+path, since a relative path is rejected as an unknown option.
 
 ```sh
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup

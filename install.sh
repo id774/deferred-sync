@@ -19,12 +19,14 @@
 #
 #  Options:
 #      -h, --help       Show this help message and exit.
+#      -v, --version    Show the same header information as --help and exit.
 #      -u, --uninstall  Remove deferred-sync and all related files except logs.
 #      -l, --link       Create symlinks under /etc/cron.config and /etc/cron.exec.
 #      -n, --no-sudo    Run without sudo (also accepted as nosudo).
 #
 #  Notes:
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
+#  - Give [target_path] as an absolute path; a relative path is rejected as an unknown option.
 #  - [nosudo|--no-sudo|-n]: If specified, the script runs without sudo.
 #  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
 #  - Do not remove custom installation targets automatically.
