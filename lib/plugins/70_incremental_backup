@@ -68,7 +68,7 @@ exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         if [ -f "$EXCLUDEFILE" ]; then
-            # Feed non empty non comment lines to --exclude-from=/dev/stdin
+            # Strip blank lines and pipe the rest to --exclude-from=/dev/stdin, which skips # lines
             grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
         else
             rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
