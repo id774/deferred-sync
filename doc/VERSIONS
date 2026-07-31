@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.07 (Release Date: TBD)
---------------------------
+v26.07 (2026-07-31)
+-------------------
 - Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
 - Accept nosudo, --no-sudo, and -n as no-sudo arguments in install.sh.
 - Propagate install.sh exit statuses consistently, including a nonzero status for unknown options.
