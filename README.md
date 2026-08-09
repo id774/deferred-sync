@@ -112,54 +112,6 @@ If you pass the `--link` option during installation, deferred-sync will automati
 
 This is useful when integrating with a centralized cron execution and configuration framework.
 
-## Directory Structure
-
-```
-.
-├── exec/
-│   └── deferred-sync         # Main execution script
-│
-├── config/
-│   ├── sync.conf             # Configuration file
-│   └── exclude.conf          # List of excluded files
-│
-├── lib/
-│   ├── load                  # Plugin loader
-│   ├── before                # Default STARTSCRIPT (pre-sync hook)
-│   ├── after                 # Default ENDSCRIPT (post-sync hook)
-│   └── plugins/              # Directory containing plugins
-│       ├── 09_show_version
-│       ├── 10_get_resources
-│       ├── 11_server_alive_check
-│       ├── 15_get_hardware_info
-│       ├── 20_system_upgrade
-│       ├── 25_ubuntu_kernel_upgrade
-│       ├── 30_dump_mysql
-│       ├── 31_dump_postgresql
-│       ├── 32_dump_mongodb
-│       ├── 35_dump_svn
-│       ├── 70_incremental_backup
-│       ├── 80_backup_to_remote
-│       └── 85_get_remote_dir
-│
-├── install.sh                # Installation script
-│
-├── cron/
-│   ├── deferred-sync         # Script placed in `/etc/cron.daily/`
-│   ├── cron.d/               # Sample file for custom scheduling in `/etc/cron.d/`
-│   └── logrotate.d/          # Log rotation config for `/etc/logrotate.d/`
-│
-└── doc/
-    ├── VERSIONS              # Version history of the repository
-    ├── LICENSE               # License notice
-    ├── COPYING               # GPL version 3 text
-    └── COPYING.LESSER        # LGPL version 3 text
-```
-
-Plugins are executed in filename order. The numeric prefix controls that order and may be
-omitted in `PLUGINS`, since each entry is matched against the end of the plugin filename
-(for example, `get_resources` matches `10_get_resources`).
-
 ## Policy
 
 deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design.
@@ -244,6 +196,61 @@ Set up `cron` to execute deferred-sync periodically. This ensures that all prote
 |  Backup Server      |  (Remote Location)
 +----------------------+
 ```
+
+## Directory Structure
+
+This section describes the main directories of the repository and what each one
+is for. It is not a complete file listing: only the entries worth knowing about
+before configuring a run or writing a plugin are shown.
+
+```
+.
+├── exec/
+│   └── deferred-sync         Main execution script. The entry point cron invokes.
+├── config/                   Deployed to /etc/opt/deferred-sync/ and edited there.
+│   ├── sync.conf             All settings for a run (see Configuration).
+│   └── exclude.conf          Patterns excluded from the backup.
+├── lib/                      Everything the main script sources at run time.
+│   ├── load                  Plugin loader. Runs each plugin and applies warn-and-continue.
+│   ├── before                Default STARTSCRIPT, run before synchronization.
+│   ├── after                 Default ENDSCRIPT, run after synchronization.
+│   └── plugins/              One file per task, run in filename order.
+│       ├── 09_show_version
+│       ├── 10_get_resources
+│       ├── 11_server_alive_check
+│       ├── 15_get_hardware_info
+│       ├── 20_system_upgrade
+│       ├── 25_ubuntu_kernel_upgrade
+│       ├── 30_dump_mysql
+│       ├── 31_dump_postgresql
+│       ├── 32_dump_mongodb
+│       ├── 35_dump_svn
+│       ├── 70_incremental_backup
+│       ├── 80_backup_to_remote
+│       └── 85_get_remote_dir
+├── install.sh                Installer and uninstaller.
+├── cron/                     Scheduling and log rotation samples, installed on Linux.
+│   ├── deferred-sync         Placed in /etc/cron.daily/.
+│   ├── cron.d/               Sample for a fixed execution time, for /etc/cron.d/.
+│   └── logrotate.d/          Log rotation config, for /etc/logrotate.d/.
+└── doc/
+    ├── VERSIONS              Version history of the repository.
+    ├── LICENSE               License notice.
+    ├── COPYING               GPL version 3 text.
+    └── COPYING.LESSER        LGPL version 3 text.
+```
+
+The split between `exec/`, `config/` and `lib/` is what the installer deploys:
+`exec/` is the one thing cron calls, `config/` is the only part meant to be
+edited on a host, and `lib/` is the code that `sync.conf` selects between. A
+change in behavior is normally a change in `config/`, not in the other two.
+
+`lib/plugins/` is where the work actually happens, and each file is one task.
+Plugins run in filename order; the numeric prefix controls that order and may be
+omitted in `PLUGINS`, since each entry is matched against the end of the plugin
+filename (for example, `get_resources` matches `10_get_resources`). Adding a task
+means adding a file here, named so that it sorts into the right place, and
+following the [Plugin Behavior Policy](#plugin-behavior-policy).
 
 ## Contribution
 
