@@ -1,5 +1,18 @@
 # deferred-sync
 
+## Contents
+
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Supported Operating Systems](#supported-operating-systems)
+4. [Installation](#installation)
+5. [Configuration](#configuration)
+6. [Policy](#policy)
+7. [Usage Example](#usage-example)
+8. [Directory Structure](#directory-structure)
+9. [Contribution](#contribution)
+10. [License](#license)
+
 ## Overview
 
 deferred-sync is a backup and synchronization tool designed to periodically copy and version-control critical files while enabling remote backup capabilities. It is particularly useful for:
