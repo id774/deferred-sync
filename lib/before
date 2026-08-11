@@ -8,7 +8,11 @@
 #   - Logging the start of the sync process
 #
 # Note:
-#   - Users can freely modify this script to include additional pre-execution logic.
+#   - This file is an example of the shape a STARTSCRIPT takes, not a place to keep one.
+#     install.sh redeploys lib/ on every install, so an edit made here is lost on upgrade.
+#     A host that needs its own pre-execution logic keeps that script outside the
+#     installation target and points STARTSCRIPT in sync.conf at it.
+#   - This script is sourced by the job, so it returns instead of exiting.
 
 start_message() {
     printf -- "[INFO] Loading: startscript has been loaded at "
@@ -17,8 +21,8 @@ start_message() {
 
 main() {
     start_message
-    # Add any custom pre-execution logic below.
-    # For example: verify disk space, check network availability, or initialize temp directories.
+    # A host keeps its own pre-execution logic in the file STARTSCRIPT points at,
+    # not here. See the note in the header.
     return $?
 }
 
