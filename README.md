@@ -127,62 +127,15 @@ This is useful when integrating with a centralized cron execution and configurat
 
 ## Policy
 
-deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design.
+deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design. It is stated in [doc/POLICY.md](doc/POLICY.md), which is where these rules are maintained.
 
-### Plugin Behavior Policy
+What matters before writing or enabling a plugin:
 
-Each plugin must:
-- **Never exit directly.** Always use `return` to propagate status to the parent process.
-- **Log results explicitly** using `[INFO]`, `[WARN]`, or `[ERROR]` prefixes.
-- **Return appropriate codes** based on the nature of the failure.
-- **Avoid side effects** (e.g., `mkdir`, file creation) when prerequisites are missing.
-- **Report missing environments** (such as `PGDUMP` or `BACKUPTO`) using `return 3`.
-- **Contain shell state changes.** Plugins are sourced into the calling shell, so a change of
-  working directory must be confined to a subshell to avoid affecting later plugins.
-
-### Core Loader Policy
-
-The core `lib/load` script:
-- Sequentially loads all enabled plugins.
-- Records the first nonzero plugin status in `FAILED_STATUS`.
-- Does **not** terminate the overall execution on plugin error.
-- Logs a `[WARN]` message and continues loading subsequent plugins.
-
-This ensures that critical backup, dump, and synchronization tasks can continue even when individual modules encounter errors.
-
-### Logging Policy
-
-All outputs must use standardized log levels:
-
-- `[INFO]` — Normal operations (start, completion, status)
-- `[WARN]` — Recoverable issues (skipped operations, missing directories)
-- `[ERROR]` — Fatal or unrecoverable issues (e.g., broken configuration)
-
-These messages are designed for easy parsing by monitoring systems and cron logs.
-
-### Return Code Convention
-
-All core components and plugins follow the same standardized return code convention:
-
-| Code | Meaning | Typical Case |
-|:----:|:---------|:--------------|
-| **0** | Success | Operation completed successfully |
-| **1** | Command failure or resource missing | Command execution error, missing database, or permission failure |
-| **2** | Network unreachable | Remote host unreachable, failed ping, or SSH connection error |
-| **3** | Local prerequisite missing | Local directory or configuration not found, environment not initialized |
-
-This convention ensures consistent behavior across all plugins and allows the core loader (`lib/load`) to apply a **warn-and-continue** policy for nonzero return values.
-
-Plugins that merely wrap an external command propagate that command's exit status instead, so
-values outside this table can appear in the log:
-
-- `11_server_alive_check` follows the POSIX shell convention and returns `127` when the target
-  script does not exist and `126` when it exists but is not executable. Otherwise it returns the
-  exit status of the invoked script.
-- `20_system_upgrade` and `25_ubuntu_kernel_upgrade` return the exit status of the underlying
-  package manager (`apt-get`, `yum`, or `package-cleanup`).
-
-The warn-and-continue policy of `lib/load` applies to these values in the same way.
+- **A plugin is sourced, not executed.** It returns instead of exiting, keeps a `cd` inside a subshell, and owns the variable names it sets. See [The Contract Between the Core and a Plugin](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
+- **Nothing aborts the job.** `lib/load` reports a failing plugin as `[WARN]`, keeps the first nonzero status, and runs the rest. See [Warn and Continue](doc/POLICY.md#32-warn-and-continue).
+- **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing, with the two documented wrappers propagating an external status. See [Return Codes](doc/POLICY.md#33-return-codes).
+- **A missing prerequisite is skipped, never created**, so that a failed mount cannot become a backup written to the wrong disk. See [Safety](doc/POLICY.md#4-safety).
+- **Log output** uses `[INFO]`, `[WARN]`, and `[ERROR]`, and stamps each phase with the time, because the log is read hours after the run. See [Logging](doc/POLICY.md#6-logging).
 
 ## Usage Example
 
@@ -247,6 +200,7 @@ before configuring a run or writing a plugin are shown.
 │   ├── cron.d/               Sample for a fixed execution time, for /etc/cron.d/.
 │   └── logrotate.d/          Log rotation config, for /etc/logrotate.d/.
 └── doc/
+    ├── POLICY.md             Implementation policy for this repository.
     ├── VERSIONS              Version history of the repository.
     ├── LICENSE               License notice.
     ├── COPYING               GPL version 3 text.
@@ -263,7 +217,7 @@ Plugins run in filename order; the numeric prefix controls that order and may be
 omitted in `PLUGINS`, since each entry is matched against the end of the plugin
 filename (for example, `get_resources` matches `10_get_resources`). Adding a task
 means adding a file here, named so that it sorts into the right place, and
-following the [Plugin Behavior Policy](#plugin-behavior-policy).
+following the [plugin contract](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
 
 ## Contribution
 
@@ -272,7 +226,11 @@ We welcome contributions! Here's how you can help:
 2. Add or improve a feature, or fix an issue.
 3. Submit a pull request with clear documentation and changes.
 
-Please ensure your code is well-structured and documented.
+Please ensure your code is well-structured and documented, and follow
+[doc/POLICY.md](doc/POLICY.md). Everything under `lib/` is sourced by a root
+shell that cron starts unattended, so that document asks new code there to
+destroy nothing it was not asked to touch, to let the job continue when it
+fails, and to leave a log that answers the question the next morning.
 
 ## License
 
