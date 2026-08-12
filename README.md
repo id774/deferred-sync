@@ -202,7 +202,7 @@ before configuring a run or writing a plugin are shown.
 └── doc/
     ├── POLICY.md             Implementation policy for this repository.
     ├── VERSIONS              Version history of the repository.
-    ├── LICENSE               License notice.
+    ├── LICENSE.md            License notice.
     ├── COPYING               GPL version 3 text.
     └── COPYING.LESSER        LGPL version 3 text.
 ```
@@ -235,6 +235,6 @@ fails, and to leave a log that answers the question the next morning.
 ## License
 
 This repository is dual licensed under the [GPL version 3](https://www.gnu.org/licenses/gpl-3.0.html) or the [LGPL version 3](https://www.gnu.org/licenses/lgpl-3.0.html), at your option.
-For full details, please refer to the [LICENSE](doc/LICENSE) file.  See also [COPYING](doc/COPYING) and [COPYING.LESSER](doc/COPYING.LESSER) for the complete license texts.
+For full details, please refer to the [LICENSE](doc/LICENSE.md) file.  See also [COPYING](doc/COPYING) and [COPYING.LESSER](doc/COPYING.LESSER) for the complete license texts.
 
 Thank you for using and contributing to this repository!
