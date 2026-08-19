@@ -9,6 +9,7 @@ v26.08 (Release Date: TBD)
 - Move the README policy rules into doc/POLICY.md and leave the README pointing at it.
 - Correct the lib/before and lib/after notes, since an edit there is lost when install.sh redeploys lib/.
 - Add .gitattributes giving *.md the markdown diff driver.
+- Stream JOBLOG to mail without buffering the full log in a shell variable.
 
 v26.07 (2026-07-31)
 -------------------

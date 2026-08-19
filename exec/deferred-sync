@@ -52,11 +52,12 @@ send_mail_to_admin() {
     # Send job log to administrator (fall back if nkf is absent, report mail failures)
     SUBJ="[cron][$(hostname)] Deferred Sync Log"
     if command -v nkf >/dev/null 2>&1; then
-        TO_SEND=$(nkf -w <"$JOBLOG")
+        nkf -w <"$JOBLOG" | mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS"
     else
-        TO_SEND=$(cat "$JOBLOG")
+        mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS" <"$JOBLOG"
     fi
-    if ! printf "%s" "$TO_SEND" | mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS"; then
+    st=$?
+    if [ "$st" -ne 0 ]; then
         echo "[ERROR] Failed to send mail to $ADMIN_MAIL_ADDRESS" >&2
     fi
 }
