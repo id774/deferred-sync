@@ -27,6 +27,11 @@ runs and with what privilege.
 - `scripts/doc/POLICY` governs a maintained toolset, not this repository.
   Section 10 states which of its rules hold here, which do not, and the one
   place where this repository deliberately does the opposite.
+- [FEATURES.md](FEATURES.md) is the user-facing reference for the execution
+  flow, plugins, backup and synchronization behavior, configuration, and
+  state-changing operations. It is descriptive rather than normative:
+  this policy remains the implementation contract, and the implementation
+  and component headers remain authoritative for exact behavior.
 
 ## 2. What a Run Is
 
