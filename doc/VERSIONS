@@ -10,6 +10,7 @@ v26.08 (Release Date: TBD)
 - Correct the lib/before and lib/after notes, since an edit there is lost when install.sh redeploys lib/.
 - Add .gitattributes giving *.md the markdown diff driver.
 - Stream JOBLOG to mail without buffering the full log in a shell variable.
+- Add doc/FEATURES.md as the user-facing feature reference and link it from README and doc/POLICY.md.
 
 v26.07 (2026-07-31)
 -------------------

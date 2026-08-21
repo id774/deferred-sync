@@ -31,6 +31,11 @@ The tool is implemented as a shell script framework with plugin support, allowin
 - **Support for automatic execution via `cron`**
 - **Configurable exclusion of files and directories**
 
+For a complete user-facing reference to the execution flow, plugins,
+backup and synchronization behavior, configuration, installation modes,
+and state-changing operations, see
+[doc/FEATURES.md](doc/FEATURES.md).
+
 ## Supported Operating Systems
 
 deferred-sync is designed to run on the following UNIX-like operating systems:
@@ -200,6 +205,7 @@ before configuring a run or writing a plugin are shown.
 │   ├── cron.d/               Sample for a fixed execution time, for /etc/cron.d/.
 │   └── logrotate.d/          Log rotation config, for /etc/logrotate.d/.
 └── doc/
+    ├── FEATURES.md           User-facing feature and behavior reference.
     ├── POLICY.md             Implementation policy for this repository.
     ├── VERSIONS              Version history of the repository.
     ├── LICENSE.md            License notice.
