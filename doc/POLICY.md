@@ -239,7 +239,8 @@ written in rather than to be run.
   is pushed to a remote host. `BACKUPDIRS` in `config/sync.conf` lists
   `/home/mysqldump` and `/home/svndump`, so `30_dump_mysql` and `35_dump_svn`
   running after `70_incremental_backup` would back up yesterday's dump.
-- A new plugin takes the number its dependencies give it. The existing bands
+- A new plugin takes the number required by its operational and data-flow
+  sequencing relative to the existing plugins. The existing bands
   are 09-15 for reporting, 20-25 for system upgrades, 30-35 for dumps, 70 for
   the local backup, and 80-85 for remote transfers. Leave gaps.
 - `PLUGINS` entries are matched against the end of the file name, so
@@ -289,17 +290,20 @@ written in rather than to be run.
   last-known-good replacement guarantee, so this policy does not state
   one.
 
-### 4.3 Repeated and Overlapping Runs
+### 4.3 Repeated and Concurrent Runs
 
-- Sequential repeatability is required: running the same configured job
-  again after the previous run has completed must not cause accidental
-  cumulative state or widen a destructive target merely because it is a
-  rerun.
-- This repository does not currently provide a locking or concurrency
-  mechanism that guarantees arbitrary overlapping runs are safe.
-  Deployment should therefore avoid unintended concurrent execution.
-- Do not document concurrent overlap as guaranteed safe unless an explicit
-  concurrency design actually provides that guarantee.
+- Sequential repeatability is required: after one run has completed, running
+  the same configured job again must not widen a destructive target or create
+  accidental cumulative state merely because it is a rerun.
+- Concurrent or overlapping runs are not a supported operating mode. This
+  repository does not provide a lock, pidfile, `flock`, or another
+  concurrency-control mechanism.
+- Deployment and operations must prevent a second run from starting while a
+  previous run is still active. This is an operational requirement, not an
+  implementation guarantee of overlap safety.
+- Do not test or document arbitrary overlapping execution as a supported
+  capability unless concurrency control is deliberately introduced by a
+  separately authorized implementation change.
 
 ### 4.4 Privilege
 
@@ -442,8 +446,8 @@ colon, with its content indented by three spaces:
   authentication, a dependency, a known weakness.
 
 No author, no licence line, and no version history. Those belong to the
-repository, and repeating them in thirteen plugins creates thirteen copies to
-keep true.
+repository, and repeating them in every plugin creates unnecessary copies to
+keep consistent.
 
 ### 7.2 `install.sh`
 
@@ -608,8 +612,11 @@ Before it is proposed, a change answers these:
   an installed host still uses?
 - Does it put a credential, a real host name, or an account into the
   repository or into the log that is mailed?
-- Is it safe when the same job runs again tomorrow, and when yesterday's has
-  not finished?
+- Is it safe when the same configured job runs again after the previous run
+  has completed?
+- Does the change preserve the operational assumption that a second run is
+  not started while a previous run is still active, rather than silently
+  introducing a dependency on overlapping execution?
 - Does every key it reads appear in the file's header, spelled as `sync.conf`
   spells it?
 - Which documents change with it: the file header, `doc/VERSIONS`, the
