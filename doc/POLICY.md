@@ -1,60 +1,128 @@
 # deferred-sync Implementation Policy
 
-This document states what the code in this repository is held to. It is the
-whole implementation policy: the rules the README used to carry are stated
-here, and the README points at this file rather than repeating it.
+This document defines the implementation and maintenance policy of this
+repository. It covers the scheduled run, sourced components and plugins,
+configuration, installer, documentation, versioning, and validation.
 
-Three kinds of file live here, and what each is held to follows from when it
-runs and with what privilege.
+Three kinds of operational file live here, and their rules follow from how
+they are used.
 
 - The run: `exec/deferred-sync`, `lib/load`, `lib/before`, `lib/after`, and
-  `lib/plugins/*`. Sourced by a shell that cron starts as root, unattended, on
-  a schedule.
-- The configuration: `config/sync.conf` and `config/exclude.conf`. Deployed to
-  a host once and edited there, not here.
-- The installer: `install.sh`. Run by hand, by a person who is watching, and
-  bound by the policy of the companion repository
-  [`scripts`](https://github.com/id774/scripts).
+  `lib/plugins/*`. These files form the unattended backup and synchronization
+  job. The main executable may also be run manually.
+- The configuration: `config/sync.conf` and `config/exclude.conf`. The copies
+  in this repository are templates for a new installation. A deployed
+  configuration is persistent host-specific runtime state.
+- The installer: `install.sh`. It is an executable POSIX shell program run
+  interactively to install, update, link, or uninstall deferred-sync.
 
 ## 1. About This Document
 
-- The rules apply to what is written from now on. Nothing here is a reason to
-  rewrite a plugin that works. A file is brought into line when it is edited
-  for another reason, and no further.
-- Where this document and the code disagree, the code is what runs and this
-  document is what was meant. Close the gap in the direction that section 2
-  points.
-- `scripts/doc/POLICY` governs a maintained toolset, not this repository.
-  Section 10 states which of its rules hold here, which do not, and the one
-  place where this repository deliberately does the opposite.
-- [FEATURES.md](FEATURES.md) is the user-facing reference for the execution
-  flow, plugins, backup and synchronization behavior, configuration, and
-  state-changing operations. It is descriptive rather than normative:
-  this policy remains the implementation contract, and the implementation
-  and component headers remain authoritative for exact behavior.
+### 1.1 Decision Priorities
+
+When requirements compete, make the design decision in this order:
+
+1. **Compatibility**
+2. **Safety**
+3. **Efficiency**
+
+This is a priority order, not an equally weighted checklist.
+
+**Compatibility** means preserving normal and intended observable behavior
+and keeping the supported execution environments working. In this repository
+that includes the warn-and-continue execution model, the sourced-plugin
+contract, plugin execution semantics and ordering, configuration keys and
+their meanings, configured plugin names, return-status semantics, and the
+documented POSIX shell compatibility target.
+
+Compatibility does not mean preserving whatever the current implementation
+happens to do. A clear bug, regression, unintended side effect, or broken
+behavior is not preserved merely because it already exists.
+
+**Safety** comes after Compatibility and before Efficiency. In this repository
+it includes keeping destructive operations inside their intended targets,
+treating a missing mount or destination as a missing prerequisite rather than
+silently creating it, limiting privileged operations, protecting credentials,
+and avoiding unsafe continuation.
+
+**Efficiency** means avoiding unnecessary processing, process creation, I/O,
+network access, and resource consumption. Efficiency does not justify
+weakening Compatibility or Safety.
+
+Changes to supported environments, support floors, repository release
+versions, deliberate retirement of an established interface, and
+repository-wide design policy are maintainer decisions.
+
+### 1.2 Documentation Roles and Sources of Truth
+
+The documentation structure of this repository is:
+
+- `doc/POLICY.md` records the repository-wide implementation and maintenance
+  policy.
+- `doc/FEATURES.md` is the detailed user-facing behavior and capability
+  reference.
+- `README.md` provides the project overview, installation instructions, basic
+  configuration, supported environments, usage, and directory structure.
+- `doc/VERSIONS` records release-level history.
+- A component header records the local interface and operational contract
+  needed to understand or operate that component.
+- `config/sync.conf` is the configuration template used for a new
+  installation. A deployed configuration is persistent host-specific runtime
+  state.
+
+The implementation is the primary evidence of what currently happens. It is
+not, by itself, proof that the current behavior is the intended specification.
+
+When implementation and documentation disagree, compare the implementation,
+documented interface, component header, history, existing design, and
+maintenance intent. If the implementation contains a regression, do not adopt
+that regression as the specification merely because it is present in the
+current code.
+
+### 1.3 Wording Strength
+
+Reserve absolute wording such as `must`, `always`, and `never` for an
+invariant that admits no reasonable exception.
+
+Use wording such as `prefer`, `should`, or `when appropriate` for a design
+preference or situational rule.
+
+A rule must not be written so that applying its wording literally produces a
+result contrary to Compatibility, Safety, or Efficiency. Where wording and
+purpose conflict, the priorities and intended behavior defined above govern.
+
+This is not a formal MUST/SHOULD/MAY taxonomy.
 
 ## 2. What a Run Is
 
-Every rule below comes from this paragraph, and a question this document does
-not answer is answered by reading it again.
+deferred-sync is primarily designed for unattended scheduled backup,
+synchronization, inspection, dump, and maintenance work. A system-wide run
+normally has the privileges required for those operations. The main executable
+may also be invoked manually.
 
-`cron/cron.d/deferred-sync` runs `exec/deferred-sync` as root, Monday through
-Saturday, at 03:01. Nobody is watching. What it does is destructive by nature:
-`rsync --delete --delete-excluded` over a live tree, `rm -rf` over expired
-backup directories, `mysqldump` and `svnadmin dump` over production data, and
-`rsync` to hosts reached over SSH. What it leaves behind is a log file and, if
-`ADMIN_MAIL_ADDRESS` is set, a mail carrying that log.
+The exact schedule is deployment configuration, not an implementation-policy
+invariant. The repository supplies both a `cron.daily` wrapper and a
+`cron.d` sample with an explicit schedule.
 
-Three things follow, and they are the whole design.
+The run performs operations that can change or remove data, including
+`rsync --delete`, retention cleanup, database and repository dumps, remote
+synchronization, and optional system maintenance.
 
-- **Do not destroy what the run was not asked to touch.** The window in which
-  a mistake here is noticed is a day wide, and the data it eats is the copy
-  that existed to be restored from.
-- **Do not stop.** A failure in one task must not cost the night's backup. A
-  partial run that reports what it skipped is worth more than a clean abort.
-- **Leave a log that answers the question later.** The log is the only witness.
-  A message that cannot be read at breakfast, without the host in front of you,
-  has not been written.
+Three operational requirements follow.
+
+- **Do not destroy what the operation was not asked to touch.** Destructive
+  targets and prerequisites are checked before modification.
+- **Continue independent work after a task failure.** Once setup has
+  succeeded, failure of one independent phase, plugin, database, repository,
+  or remote host does not by itself cancel the remaining independent work.
+- **Leave enough information to diagnose the run later.** The job is normally
+  unattended, so its log must identify phases, failures, return statuses, and
+  useful timing information.
+
+The continue-after-failure rule does not require unsafe continuation.
+Execution may stop when required configuration cannot be read, the job log
+cannot be used safely, a prerequisite required for further execution is
+missing, or continuing would itself be destructive or unsafe.
 
 ## 3. The Contract Between the Core and a Plugin
 
@@ -65,8 +133,10 @@ process, and it does not get its own anything. `lib/plugins/*` and `lib/*` are
 therefore not executable, and carry `#!/bin/sh` to name the language they are
 written in rather than to be run.
 
-- **Never `exit`.** `exit` in a sourced file ends the job, taking every
-  later plugin with it. End with `return`, always.
+- **Never terminate the parent job with `exit` from a sourced component.**
+  Normal completion of a sourced plugin or hook returns to its caller.
+  An `exit` used inside a subshell only to terminate that subshell is
+  allowed because it does not terminate the parent job.
 - **Confine a change of the working directory to a subshell.** A bare `cd`
   leaks into every plugin sourced afterwards, which is why
   `31_dump_postgresql` wraps its dump in `( ... )`.
@@ -79,9 +149,11 @@ written in rather than to be run.
   of `sync.conf` are the interface. A variable another plugin happened to set
   is not, and a plugin must not be made to work by placing it after another
   one in the order.
-- **Default what you need.** A plugin that reads a core variable supplies a
-  fallback, as `70_incremental_backup` does with `DATE=${DATE:-$(date
-  +%Y%m%d)}`, so that it still runs when it is the only plugin enabled.
+- **Use a default only when it is safe and behavior-preserving.** A new
+  configuration value uses a default when that default preserves the
+  established behavior of a deployed configuration that does not contain
+  the new key. When no safe default exists, the component does not invent
+  one: it reports the missing prerequisite and returns status `3`.
 - The same rules bind `lib/before` and `lib/after`. They are sourced too.
 
 ### 3.2 Warn and Continue
@@ -92,9 +164,11 @@ written in rather than to be run.
 - `lib/load` sources each enabled plugin in turn, reports a non-zero status as
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
-- Neither of them aborts the job, and no change may make them. A condition
-  severe enough that continuing would do damage is handled by the plugin that
-  detects it, by declining to act and returning.
+- A normal task failure does not abort the remaining independent work.
+  A component that detects a condition making its own operation unsafe
+  declines that operation and returns a non-zero status. A prerequisite
+  failure that prevents the run itself from being established may stop
+  execution as described in Section 2.
 - The first status is kept rather than the last because the first failure is
   usually the cause and the rest are its consequences.
 
@@ -107,24 +181,27 @@ written in rather than to be run.
 | **2** | Network unreachable | A host does not answer, `ping` fails, SSH cannot connect |
 | **3** | Local prerequisite missing | A directory or configuration is absent, the environment is not initialized |
 
-- Every plugin and every core component returns one of these, and the loader
-  applies warn-and-continue to all of them alike.
-- A plugin that is a wrapper around one external command may propagate that
-  command's status instead, and then the header says so. Two do:
-  `11_server_alive_check` returns `127` when the target script does not exist
-  and `126` when it exists but is not executable, following the POSIX shell
-  convention, and otherwise the status of the script it ran;
-  `20_system_upgrade` and `25_ubuntu_kernel_upgrade` return the status of
-  `apt-get`, `yum`, or `package-cleanup`.
-- A plugin that performs the same operation over a list keeps going through
-  the list and returns a non-zero status from it, rather than returning at the
-  first failure. `dump_svn`, `dump_mysql`, `backup_to_remote`, and
-  `get_remote_dir` all take this form.
+- Codes `0` through `3` are the standard semantic status vocabulary used
+  by the core and plugins.
+- A wrapper around an external command may intentionally propagate that
+  command's status instead. When it does, the component header documents
+  that behavior and the loader still treats every non-zero result as a
+  warning and continues with independent work.
+- `11_server_alive_check` uses the conventional `127` status when its
+  configured target does not exist or is not a regular file and `126`
+  when it exists but is not executable, and otherwise propagates the
+  status of the target it runs.
+- The system-maintenance plugins may propagate the status of package
+  commands they execute.
+- A plugin that performs the same operation over a configured list
+  continues through the list and returns a non-zero aggregate result
+  rather than stopping at the first failed item.
 
 ### 3.4 Order
 
 - A plugin file is named `NN_name`, and the numeric prefix is the order in
-  which `lib/load` sources it. The order encodes dependency, not preference:
+  which `lib/load` sources it. The order encodes operational and data-flow
+  sequencing, not an inter-plugin API dependency:
   information is gathered before the system is changed, dumps are written
   before the backup that copies them, and the local backup completes before it
   is pushed to a remote host. `BACKUPDIRS` in `config/sync.conf` lists
@@ -134,9 +211,11 @@ written in rather than to be run.
   are 09-15 for reporting, 20-25 for system upgrades, 30-35 for dumps, 70 for
   the local backup, and 80-85 for remote transfers. Leave gaps.
 - `PLUGINS` entries are matched against the end of the file name, so
-  `get_resources` selects `10_get_resources`. Renaming a plugin therefore
-  breaks the `sync.conf` of every installed host, and section 5.1 applies to
-  the name as much as to a key.
+  `get_resources` selects `10_get_resources`. A plugin name is part of the
+  deployed configuration interface. Renaming a plugin can break a host whose
+  `PLUGINS` setting refers to that name, so a plugin is not renamed merely as
+  a routine refactoring, and section 5.1 applies to the name as much as to a
+  key.
 
 ## 4. Safety
 
@@ -162,24 +241,33 @@ written in rather than to be run.
   compares a date parsed out of the name before removing anything.
 - Compute the target of a removal, then check it, then remove it. Do not let a
   glob that matched nothing, or an unset variable, reach `rm`.
-- `DRY_RUN` reaches every command that writes or deletes on a remote or a
-  backup tree. A new operation of that kind honours it too, and prints what it
-  would have done.
+- `DRY_RUN=true` controls the dry-run behavior of the rsync-based
+  synchronization paths that explicitly add rsync's `--dry-run` option.
+  It is not a repository-wide no-op switch and must not be described as a
+  safety sandbox for every plugin or destructive operation. In
+  particular, retention cleanup is not suppressed merely because
+  `DRY_RUN=true`.
 - A fixed path is safer than a configured one where the operation cannot be
   undone: `install.sh --uninstall` removes `/opt/deferred-sync` and refuses to
   follow a custom target, and `safe_symlink` aborts rather than replace a
   directory.
-- Where an operation replaces a previous artefact, it removes the old one only
-  after the new one is written, or it removes a name it is about to rewrite in
-  the same step. It does not delete first and hope.
+- Do not claim atomic replacement or preservation of the previous
+  successful artifact unless the implementation actually provides that
+  guarantee. The current dump plugins do not provide a repository-wide
+  last-known-good replacement guarantee, so this policy does not state
+  one.
 
-### 4.3 Running Twice
+### 4.3 Repeated and Overlapping Runs
 
-- A run must be safe to repeat, and safe to overlap with the tail of a
-  previous one. Cron does not check whether yesterday's job finished.
-- An operation that is not naturally repeatable is made so by the name it
-  writes to. A dump named after the database, overwritten each night, is
-  repeatable; one that appends is not.
+- Sequential repeatability is required: running the same configured job
+  again after the previous run has completed must not cause accidental
+  cumulative state or widen a destructive target merely because it is a
+  rerun.
+- This repository does not currently provide a locking or concurrency
+  mechanism that guarantees arbitrary overlapping runs are safe.
+  Deployment should therefore avoid unintended concurrent execution.
+- Do not document concurrent overlap as guaranteed safe unless an explicit
+  concurrency design actually provides that guarantee.
 
 ### 4.4 Privilege
 
@@ -190,6 +278,14 @@ written in rather than to be run.
   credentials. A plugin does not loosen a mode it did not set.
 
 ## 5. Configuration
+
+The repository copies of `config/sync.conf` and `config/exclude.conf` are
+templates for a new installation. A deployed system configuration is
+persistent host-specific runtime state.
+
+A standard system installation preserves an existing deployed
+configuration instead of replacing it on upgrade. New code must therefore
+remain compatible with established configuration keys and value semantics.
 
 ### 5.1 A Key Is a Promise
 
@@ -250,9 +346,14 @@ It is sourced by a root shell. Whatever it contains, runs.
 
 ## 6. Logging
 
-- Three prefixes, and no others: `[INFO]` for what happened, `[WARN]` for what
-  was skipped or failed without stopping the run, `[ERROR]` for a condition
-  that ends the phase.
+- Project-generated diagnostic and status messages use `[INFO]`, `[WARN]`,
+  and `[ERROR]`: `[INFO]` records normal progress, `[WARN]` records a
+  skipped or failed operation that does not by itself stop independent
+  later work, and `[ERROR]` records a condition that prevents the current
+  phase or required setup from completing.
+- Job start and end boundary records may retain their existing `*** ...`
+  form, and output emitted directly by an external command is not required
+  to be rewritten with one of the three project prefixes.
 - `[WARN]` and `[ERROR]` go to stderr, which `exec/deferred-sync` redirects
   into `JOBLOG` along with everything else. During a normal run nothing
   escapes to the terminal.
@@ -268,12 +369,10 @@ start_message() {
 
 - After an external command, report the status: `echo "[INFO] Return code is
   $RC"`. Reading a log that says only that a command ran tells you nothing.
-- This timestamping is a deliberate departure from `scripts/doc/POLICY`
-  section 2.4, which asks that ordinary log messages carry no timestamp. That
-  rule is written for a tool a person watches. Here the log is read hours
-  later, and the first question is which phase was running when the host
-  became slow, filled its disk, or was rebooted. The time on every phase
-  boundary answers it; a bare sequence of messages does not.
+- Phase boundaries and long-running operations carry timestamps because
+  deferred-sync normally runs unattended and the log is inspected later.
+  The timestamp helps identify which operation was active when a host
+  slowed down, filled storage, or was interrupted.
 - Do not store a timestamp and reuse it. Call `date` where the line is
   printed.
 - Name the plugin in its own messages, not the file's number. The number is an
@@ -297,10 +396,12 @@ Below that come only the sections the file needs, each a `#` line ending in a
 colon, with its content indented by three spaces:
 
 - `Description:` where the title line is not enough.
-- `Required environment variables:` naming every key the file reads, spelled
-  exactly as `sync.conf` spells it, each with a one-line meaning and an
-  `Example:`. **This is the only documentation those keys have.** A key the
-  code reads and the header omits is undocumented everywhere.
+- `Required environment variables:` names every required configuration or
+  environment value the component reads, spelled exactly as
+  `sync.conf` spells it where applicable, with a one-line meaning and an
+  `Example:`. The header is the component's exact local contract for those
+  inputs. If the code reads a required value and the header omits it, the
+  component header is incomplete.
 - `Outputs:` for a plugin whose product is what it prints.
 - `Behavior:` where the order or the failure handling is the point, as in
   `lib/load`.
@@ -314,10 +415,21 @@ keep true.
 
 ### 7.2 `install.sh`
 
-`install.sh` carries the structured header of `scripts/doc/POLICY` section
-1.6.1 instead: the `#` block with `Description`, the identifying block,
-`Usage`, `Options`, `Notes`, and `Version History`, from which its `usage()`
-prints. It already does, and that stays.
+`install.sh` is an executable POSIX shell program and carries a structured
+user-facing header delimited by separator lines. Its header contains the
+description, identifying information, usage, options, notes, and its own
+version history. `usage()` prints that header.
+
+The installer provides `-h` / `--help` and `-v` / `--version`, checks the
+external commands required by its execution path, checks sudo only when
+privileged operation is required, and uses the repository's
+`[INFO]` / `[WARN]` / `[ERROR]` diagnostic convention.
+
+Its own version history uses `major.minor` independently of the repository
+release version. A user-visible CLI, installation-behavior, safety, or
+significant structural change may form a new installer release.
+Documentation-only, comment-only, and formatting-only changes do not
+require an installer version increment.
 
 ### 7.3 Configuration Files
 
@@ -348,7 +460,8 @@ that reads them.
 
 ## 9. POSIX Shell
 
-- Everything here is POSIX `sh`, with `#!/bin/sh`. The README supports Solaris
+- Project-owned shell syntax, parameter expansion, function syntax, and
+  shell-language behavior target POSIX `/bin/sh`. The README supports Solaris
   10 and RHEL 5, and `/bin/sh` is dash on Debian and Ubuntu. A construct that
   works because `/bin/sh` happens to be bash is a defect.
 - No `local`, no arrays, no `[[ ... ]]`, no `function` keyword, no `source`, no
@@ -364,46 +477,56 @@ that reads them.
 - Branch on what the environment provides, not on what it is called: a file
   such as `/etc/debian_version`, or `command -v` for a program. Keep that
   detection in one place per question.
-- The companion repository `dot_zsh` reaches the opposite conclusion for its
-  own tree, because that tree is read only by zsh. This one is read by
-  whatever `/bin/sh` is on the host, and the difference is not a matter of
-  taste.
+- POSIX shell compatibility does not mean that every external utility and
+  every utility option used by every plugin must itself be specified by
+  POSIX. An external command may be used when the required functionality
+  depends on it. Optional commands are detected where they are used, and
+  platform-specific functionality may have a narrower supported scope.
+- The minimum operating-system versions listed in the README are
+  compatibility and maintenance targets. The project is maintained for
+  later releases as they appear; the `and later` wording does not claim
+  that an unknown future release has already been tested. Changing a
+  support floor is a maintainer decision. Individual plugins may support
+  a narrower set of systems when their required capability is
+  platform-specific.
 
-## 10. What `scripts/doc/POLICY` Lends
+## 10. Installer and Change Policy
 
-### 10.1 What Applies
+### 10.1 Installer
 
-- `install.sh` is bound by it in full: POSIX `/bin/sh`, the structured header,
-  `usage()` printing that header, `check_commands` and `check_sudo`, the exit
-  codes 0, 1, 126, and 127, and the `major.minor` version history in its own
-  header.
-- Its section 1.2.4 on naming: name a thing by what it is, not by a part of
-  it, in the headers, the documents, and the commit messages.
-- Its sections 1.6.2 to 1.6.4 on documents, as section 11 below states.
-- Its section 1.8 on pull requests and branches: one purpose to a pull
-  request, one commit to a coherent change, amended and force pushed with
-  `--force-with-lease` rather than gaining a commit per remark, conflicts
-  resolved by rebasing, and a revised branch reading as the change finally
-  intended.
-- Its section 1.5 on destructive operations and least privilege, which
-  section 4 above states in the terms this repository needs.
+`install.sh` is an executable POSIX `/bin/sh` installer.
 
-### 10.2 What Does Not Apply to the Run
+- Its structured header and `usage()` describe the same user-facing
+  interface.
+- `-h` / `--help` show help.
+- `-v` / `--version` show the header information.
+- Required external commands are checked before the path that needs them
+  proceeds.
+- Sudo is checked only when the selected operation requires privileged
+  execution.
+- The established exit-status convention uses `0` for success, `1` for a
+  general failure, `126` when a required command exists but is not
+  executable, and `127` when a required command is unavailable.
+- Uninstallation keeps its target fixed at `/opt/deferred-sync`; a custom
+  installation target is not removed automatically.
+- Existing persistent configuration under `/etc/opt/deferred-sync` is not
+  overwritten during installation.
+- The installer keeps its own `major.minor` version history independently
+  of the repository release version.
+- A documentation-only, comment-only, or formatting-only change does not
+  increment the installer version.
 
-- The structured header block. Section 7.1 states what a sourced file carries.
-- Per-file version numbers and `Version History` entries.
-- `-h` and `-v`, usage output, and the exit code table. A plugin takes no
-  options and is not invoked directly.
-- `check_commands` as a gate. A plugin that needs a command tests for it where
-  it is used and skips in silence, because refusing the whole run over an
-  absent optional tool contradicts section 3.2.
-- A test suite. What a change is checked against is section 12.
+### 10.2 Pull Requests and History
 
-### 10.3 Where This Repository Does the Opposite
-
-Its section 2.4 asks that ordinary log messages carry no timestamp. Here every
-phase boundary carries one, for the reason section 6 gives. This is the one
-deliberate contradiction, and it is not to be tidied away.
+- A pull request has one coherent purpose.
+- One coherent change is normally represented by one commit.
+- Independent changes may be separate commits.
+- Review corrections may amend and rewrite the branch so that the final
+  diff represents the intended change without abandoned intermediate
+  wording or code.
+- Conflict resolution does not add unrelated history to the branch.
+- `doc/VERSIONS` records release-level changes, not a chronological list
+  of every commit or review correction.
 
 ## 11. Versions and Documents
 
@@ -412,14 +535,13 @@ deliberate contradiction, and it is not to be tidied away.
   Guidelines at the foot of that file govern the entries.
 - Files of the run carry no version of their own. `doc/VERSIONS` is their
   history.
-- `install.sh` keeps its own `major.minor` version history, under the rules of
-  `scripts/doc/POLICY` sections 1.7.1 and 1.7.2.
-- A document written in Markdown takes `.md` when it is newly created, which
-  is why this file is `doc/POLICY.md` while the policy of `scripts`, written
-  earlier, is `doc/POLICY`.
-- `LICENSE`, `COPYING`, `COPYING.LESSER`, and `VERSIONS` keep the names they
-  have. A path here is a public URL, and no existing document is renamed to
-  add or change an extension.
+- `install.sh` keeps its own `major.minor` version history under the
+  installer rules stated in this policy.
+- The current Markdown documents are `README.md`, `doc/POLICY.md`,
+  `doc/FEATURES.md`, and `doc/LICENSE.md`.
+- `doc/COPYING`, `doc/COPYING.LESSER`, and `doc/VERSIONS` keep their
+  current extensionless names. Existing public document paths are not
+  renamed merely for formatting consistency.
 - `.gitattributes` gives `diff=markdown` to `*.md`, so that a diff hunk header
   names the section it falls in. It is a diff aid and nothing more. No file is
   given `linguist-language`, and `doc/VERSIONS`, `doc/COPYING`, and
@@ -429,15 +551,19 @@ deliberate contradiction, and it is not to be tidied away.
 
 ## 12. Judging a Change
 
-There is no test suite. A change to the run is checked by running it, and the
-check is part of the change:
+Validation is selected according to the files and behavior changed.
 
-```sh
-DRY_RUN=true PLUGINS="incremental_backup" ./exec/deferred-sync
-```
-
-with `JOBLOG` pointed somewhere writable, and the log read afterwards. A
-change that touches a destructive path is proposed with what that log said.
+- A shell implementation change includes an applicable POSIX shell syntax
+  check.
+- A behavior change is checked against the behavior it changes.
+- A destructive-path runtime check uses isolated temporary data,
+  temporary destinations, and test configuration. Production backup or
+  synchronization targets are not validation targets.
+- `DRY_RUN=true` is used only for an operation whose implementation
+  actually honors it. It is not treated as a whole-program sandbox.
+- A documentation-only change does not require an unrelated runtime
+  execution merely to satisfy a checklist.
+- No new test framework is required merely because a change is made.
 
 Before it is proposed, a change answers these:
 

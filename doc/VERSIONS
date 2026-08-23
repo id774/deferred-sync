@@ -3,14 +3,19 @@ deferred-sync Repository Version History
 
 v26.08 (Release Date: TBD)
 --------------------------
-- Add the shared version history description guidelines to the end of this file.
+- Add the version history description guidelines to the end of this file.
 - Describe each main directory in the README Directory Structure section.
-- Add doc/POLICY.md, stating the implementation policy for the run, the configuration, and the installer.
-- Move the README policy rules into doc/POLICY.md and leave the README pointing at it.
-- Correct the lib/before and lib/after notes, since an edit there is lost when install.sh redeploys lib/.
+- Establish doc/POLICY.md as the self-contained implementation and
+  maintenance policy for compatibility, safety, unattended execution,
+  plugin contracts, configuration compatibility, logging, installation,
+  documentation, versioning, and validation.
+- Add doc/FEATURES.md as the detailed user-facing behavior reference and
+  align README, FEATURES, and POLICY with their repository-defined roles
+  and the current implementation.
+- Correct the lib/before and lib/after notes, since an edit there is lost
+  when install.sh redeploys lib/.
 - Add .gitattributes giving *.md the markdown diff driver.
 - Stream JOBLOG to mail without buffering the full log in a shell variable.
-- Add doc/FEATURES.md as the user-facing feature reference and link it from README and doc/POLICY.md.
 
 v26.07 (2026-07-31)
 -------------------

@@ -132,7 +132,7 @@ This is useful when integrating with a centralized cron execution and configurat
 
 ## Policy
 
-deferred-sync adheres to a strict, POSIX-compliant policy for error handling, return codes, and plugin design. It is stated in [doc/POLICY.md](doc/POLICY.md), which is where these rules are maintained.
+deferred-sync maintains a self-contained implementation and maintenance policy covering compatibility, safety, unattended execution, plugin behavior, configuration, logging, installation, and validation. It is stated in [doc/POLICY.md](doc/POLICY.md), which is where these rules are maintained.
 
 What matters before writing or enabling a plugin:
 
@@ -221,9 +221,12 @@ change in behavior is normally a change in `config/`, not in the other two.
 `lib/plugins/` is where the work actually happens, and each file is one task.
 Plugins run in filename order; the numeric prefix controls that order and may be
 omitted in `PLUGINS`, since each entry is matched against the end of the plugin
-filename (for example, `get_resources` matches `10_get_resources`). Adding a task
-means adding a file here, named so that it sorts into the right place, and
-following the [plugin contract](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
+filename (for example, `get_resources` matches `10_get_resources`). Each plugin
+file has one clear operational responsibility. A change that belongs to an
+existing responsibility stays in that plugin. An independent new operational
+task uses a new plugin file, with its numeric prefix chosen from the
+operational and data-flow order in which the task must run, following the
+[plugin contract](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
 
 ## Contribution
 
