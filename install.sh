@@ -101,12 +101,19 @@ check_sudo() {
 # Set environment variables
 set_environment() {
     echo "[INFO] Setting up environment..."
-    if command -v realpath >/dev/null 2>&1; then
-        SCRIPT_HOME="$(dirname "$(realpath "$0")")"
-    else
-        # Fallback: no realpath; avoid non-portable 'readlink -f'
-        # This resolves the directory path of the script reliably enough for our layout.
-        SCRIPT_HOME="$(cd "$(dirname "$0")" && pwd -P)"
+    SCRIPT_PATH=$0
+    case "$SCRIPT_PATH" in
+        */*) ;;
+        *)
+            if [ ! -f "$SCRIPT_PATH" ]; then
+                SCRIPT_PATH=$(command -v "$SCRIPT_PATH" 2>/dev/null)
+            fi
+            ;;
+    esac
+    SCRIPT_HOME=$(CDPATH= cd -P "$(dirname "$SCRIPT_PATH")" 2>/dev/null && pwd)
+    if [ -z "$SCRIPT_HOME" ]; then
+        echo "[ERROR] Failed to resolve the installer directory." >&2
+        exit 1
     fi
     export SCRIPT_HOME
 
@@ -302,7 +309,7 @@ set_permission() {
 
 # Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
 install() {
-    check_commands cp mkdir chmod chown ln rm id dirname uname
+    check_commands cp mkdir chmod chown ln rm id dirname uname touch
     set_environment "$1" "$2"
     deploy_to_target
     [ -n "$1" ] || setup_cron
@@ -313,6 +320,7 @@ install() {
 
 # Uninstall all deferred-sync components except logs
 uninstall() {
+    check_commands id rm dirname
     echo "[INFO] Uninstalling deferred-sync..."
 
     TARGET="/opt/deferred-sync"
