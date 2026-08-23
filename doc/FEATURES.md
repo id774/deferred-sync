@@ -10,7 +10,7 @@ The README explains the project overview, installation, basic configuration, and
 
 `doc/POLICY.md` defines the implementation policy, plugin contract, safety rules, return codes, and logging conventions.
 
-The header documentation and implementation of each component remain authoritative for exact behavior.
+The implementation is the primary evidence of what each component currently does, while the component header records its local operational contract and this document records the intended user-facing behavior. A mismatch is resolved by comparing the implementation, documented interface, history, and maintenance intent rather than by treating an accidental implementation detail as the specification.
 
 This `FEATURES.md` sits between those layers.
 
@@ -107,7 +107,7 @@ The local backup runs before remote transfer so that remote synchronization uses
 
 ## 5. Plugin Catalog
 
-deferred-sync currently contains 13 plugins.
+The current plugin catalog is shown below.
 
 | Plugin | Category | Main capability | Main output or side effect |
 | --- | --- | --- | --- |
