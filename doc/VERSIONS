@@ -6,9 +6,10 @@ v26.08 (Release Date: TBD)
 - Add the version history description guidelines to the end of this file.
 - Describe each main directory in the README Directory Structure section.
 - Establish doc/POLICY.md as the self-contained implementation and
-  maintenance policy for compatibility, safety, unattended execution,
-  plugin contracts, configuration compatibility, logging, installation,
-  documentation, versioning, and validation.
+  maintenance policy for compatibility, safety, change discipline for
+  established infrastructure, unattended execution, plugin contracts,
+  configuration compatibility, logging, installation, documentation,
+  versioning, and validation.
 - Add doc/FEATURES.md as the detailed user-facing behavior reference and
   align README, FEATURES, and POLICY with their repository-defined roles
   and the current implementation.
