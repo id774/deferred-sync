@@ -186,19 +186,6 @@ before configuring a run or writing a plugin are shown.
 │   ├── before                Default STARTSCRIPT, run before synchronization.
 │   ├── after                 Default ENDSCRIPT, run after synchronization.
 │   └── plugins/              One file per task, run in filename order.
-│       ├── 09_show_version
-│       ├── 10_get_resources
-│       ├── 11_server_alive_check
-│       ├── 15_get_hardware_info
-│       ├── 20_system_upgrade
-│       ├── 25_ubuntu_kernel_upgrade
-│       ├── 30_dump_mysql
-│       ├── 31_dump_postgresql
-│       ├── 32_dump_mongodb
-│       ├── 35_dump_svn
-│       ├── 70_incremental_backup
-│       ├── 80_backup_to_remote
-│       └── 85_get_remote_dir
 ├── install.sh                Installer and uninstaller.
 ├── cron/                     Scheduling and log rotation samples, installed on Linux.
 │   ├── deferred-sync         Placed in /etc/cron.daily/.
@@ -219,6 +206,11 @@ edited on a host, and `lib/` is the code that `sync.conf` selects between. A
 change in behavior is normally a change in `config/`, not in the other two.
 
 `lib/plugins/` is where the work actually happens, and each file is one task.
+The current plugin catalogue, including plugin filenames, roles, and main
+side effects, is maintained in
+[doc/FEATURES.md](doc/FEATURES.md#5-plugin-catalog).
+The README deliberately does not duplicate that inventory.
+
 Plugins run in filename order; the numeric prefix controls that order and may be
 omitted in `PLUGINS`, since each entry is matched against the end of the plugin
 filename (for example, `get_resources` matches `10_get_resources`). Each plugin
