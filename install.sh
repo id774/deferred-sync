@@ -32,6 +32,8 @@
 #  - Do not remove custom installation targets automatically.
 #
 #  Version History:
+#  v3.3 2026-08-23
+#       Improve installer portability and prerequisite command validation.
 #  v3.2 2026-07-28
 #       Exit with the status of main to follow the common script convention.
 #       Return a nonzero status when an unknown option is given.
