@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.08 (Release Date: TBD)
---------------------------
+v26.08 (2026-08-29)
+-------------------
 - Add the version history description guidelines to the end of this file.
 - Describe each main directory in the README Directory Structure section.
 - Establish doc/POLICY.md as the self-contained implementation and
