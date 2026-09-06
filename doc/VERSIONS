@@ -7,36 +7,49 @@ v26.08 (2026-08-29)
 - Describe each main directory in the README Directory Structure section.
 - Establish doc/POLICY.md as the self-contained implementation and maintenance
   policy, covering compatibility, safety, plugin contracts, and versioning.
-- Add doc/FEATURES.md as the detailed user-facing behavior reference and align README,
-  FEATURES, and POLICY with their repository-defined roles and the current implementation.
-- Correct the lib/before and lib/after notes, since an edit there is lost
-  when install.sh redeploys lib/.
+- Add doc/FEATURES.md as the user-facing behavior reference, and align README,
+  FEATURES, and POLICY with their defined roles.
+- Correct the lib/before and lib/after notes, since an edit there is lost when
+  install.sh redeploys lib/.
 - Add .gitattributes giving *.md the markdown diff driver.
 - Stream JOBLOG to mail without buffering the full log in a shell variable.
 - Improve installer portability and prerequisite command validation.
 
 v26.07 (2026-07-31)
 -------------------
-- Replace awk {n,} interval expression in usage() with a portable equivalent for mawk compatibility.
+- Replace awk {n,} interval expression in usage() with a portable equivalent for
+  mawk compatibility.
 - Accept nosudo, --no-sudo, and -n as no-sudo arguments in install.sh.
-- Propagate install.sh exit statuses consistently, including a nonzero status for unknown options.
-- Document the -v and --version options and the absolute path requirement for the install target.
-- Correct the schedule comment in the deferred-sync cron.d sample, including the Saturday typo.
+- Propagate install.sh exit statuses consistently, including a nonzero status for
+  unknown options.
+- Document the -v and --version options and the absolute path requirement for the
+  install target.
+- Correct the schedule comment in the deferred-sync cron.d sample, including the
+  Saturday typo.
 - Remove the unused EXECDIR assignment in exec/deferred-sync.
 - Align the mail fallback note in exec/deferred-sync with the implementation.
-- Resolve the remote backup directory with hostname in sync.conf, since $HOSTNAME is unset under POSIX sh.
+- Resolve the remote backup directory with hostname in sync.conf, since $HOSTNAME
+  is unset under POSIX sh.
 - Preserve yum failures when a later old-kernel cleanup succeeds.
-- Preserve apt failures in 20_system_upgrade when the yum path also runs and succeeds.
+- Preserve apt failures in 20_system_upgrade when the yum path also runs and
+  succeeds.
 - Fix stale dump cleanup in 30_dump_mysql to target .sql.gz instead of .zip.
 - Correct the credential handling note in the 30_dump_mysql header.
-- Confine the working directory change in 31_dump_postgresql to a subshell so it no longer leaks into subsequently sourced plugins.
-- Fix 32_dump_mongodb removing its own required temp directory after a successful dump.
+- Confine the working directory change in 31_dump_postgresql to a subshell so it
+  no longer leaks into subsequently sourced plugins.
+- Fix 32_dump_mongodb removing its own required temp directory after a successful
+  dump.
 - Correct the SVN dump description in the 35_dump_svn header.
-- Correct the exclude filter comment in 70_incremental_backup to match the implementation.
-- Change unreachable host return code to 2 in 85_get_remote_dir to distinguish from other failures.
-- Document that an explicit install target skips cron, logrotate, and backup directory setup.
-- Document that the /etc/cron.exec symlink always targets the default installation path.
-- Correct the README directory structure and document plugin ordering and name matching.
+- Correct the exclude filter comment in 70_incremental_backup to match the
+  implementation.
+- Change unreachable host return code to 2 in 85_get_remote_dir to distinguish
+  from other failures.
+- Document that an explicit install target skips cron, logrotate, and backup
+  directory setup.
+- Document that the /etc/cron.exec symlink always targets the default installation
+  path.
+- Correct the README directory structure and document plugin ordering and name
+  matching.
 - Document the return codes of plugins that propagate an external command status.
 
 v26.05 (2026-05-26)
@@ -45,24 +58,33 @@ v26.05 (2026-05-26)
 
 v26.03 (2026-03-28)
 -------------------
-- Refactor hardware info script with command wrapper, add DNS reporting, suppress routine stderr, and preserve smartctl diagnostics.
+- Refactor hardware info script with command wrapper, add DNS reporting, suppress
+  routine stderr, and preserve smartctl diagnostics.
 
 v26.02 (2026-02-27)
 -------------------
-- Fix purge_expires to return success when no backups exist and propagate purge failures.
-- Add lsblk (including lsblk -f), LVM device mapping (lvs), and detailed network interface status (ip addr show) to system resource information collection.
+- Fix purge_expires to return success when no backups exist and propagate purge
+  failures.
+- Add lsblk (including lsblk -f), LVM device mapping (lvs), and detailed network
+  interface status (ip addr show) to system resource information collection.
 
 v25.11 (2025-11-28)
 -------------------
-- Add /etc/debian_version output after lsb_release for minor version logging in get_resources plugin.
-- Add unified INFO and WARN logging for STARTSCRIPT, PLUGIN LOADER, and ENDSCRIPT phases.
+- Add /etc/debian_version output after lsb_release for minor version logging in
+  get_resources plugin.
+- Add unified INFO and WARN logging for STARTSCRIPT, PLUGIN LOADER, and ENDSCRIPT
+  phases.
 
 v25.10 (2025-10-24)
 -------------------
-- Refine core load sequence to return instead of exit, adopting warn-and-continue behavior on nonzero plugin failures.
-- Standardize plugin scripts to propagate return codes and aggregate failures across backup, dump, and remote sync operations.
-- Document standardized return code convention (0=OK,1=fail,2=network,3=local prerequisite) across core and plugins.
-- Harden log mail delivery: stream JOBLOG, fall back when `nkf` is unavailable, and report failures explicitly.
+- Refine core load sequence to return instead of exit, adopting warn-and-continue
+  behavior on nonzero plugin failures.
+- Standardize plugin scripts to propagate return codes and aggregate failures
+  across backup, dump, and remote sync operations.
+- Document standardized return code convention (0=OK,1=fail,2=network,3=local
+  prerequisite) across core and plugins.
+- Harden log mail delivery: stream JOBLOG, fall back when `nkf` is unavailable,
+  and report failures explicitly.
 - Restrict plugin loading to regular files (`-f`) for safety.
 - Simplify upgrade logic by removing redundant network reachability checks.
 - Add lspci support to hardware info plugin.
@@ -76,33 +98,43 @@ v25.09 (2025-09-26)
 v25.08 (2025-08-20)
 -------------------
 - Add --uninstall option to remove all installed components except logs.
-- Add --link option to optionally create symlinks under /etc/cron.config and /etc/cron.exec.
+- Add --link option to optionally create symlinks under /etc/cron.config and
+  /etc/cron.exec.
 - Refactor symlink creation to be idempotent and silent when unchanged.
 
 v25.07 (2025-07-22)
 -------------------
-- Standardize shell script comments to start with verbs instead of using 'Function to' phrasing.
-- Move usage instructions above version history and improve section structure in installer script.
+- Standardize shell script comments to start with verbs instead of using 'Function
+  to' phrasing.
+- Move usage instructions above version history and improve section structure in
+  installer script.
 
 v25.06 (2025-06-26)
 -------------------
-- Add fallback to smartctl -d sat in get_hardware_info for USB disk compatibility with improved comments.
+- Add fallback to smartctl -d sat in get_hardware_info for USB disk compatibility
+  with improved comments.
 - Fix undefined PATH in deferred-sync cron to restore expected command behavior.
-- Improve installer script reliability by explicitly returning exit codes in main functions.
+- Improve installer script reliability by explicitly returning exit codes in main
+  functions.
 - Update installer scripts to display full header block as help message.
 
 v25.05 (2025-05-30)
 -------------------
-- Refactored all scripts to use main and start_message functions for structural consistency.
-- Add writability check for JOBLOG in setup to ensure early failure on log permission issues.
-- Add config file readability check and mail delivery failure handling in deferred-sync.
-- Add return 0 to all main functions and exit $? at end of main scripts for consistent exit status handling.
+- Refactored all scripts to use main and start_message functions for structural
+  consistency.
+- Add writability check for JOBLOG in setup to ensure early failure on log
+  permission issues.
+- Add config file readability check and mail delivery failure handling in
+  deferred-sync.
+- Add return 0 to all main functions and exit $? at end of main scripts for
+  consistent exit status handling.
 
 v25.04 (2025-04-29)
 -------------------
 - Unified log output format across all plugins for consistency and clarity.
 - Updated header comment in exclude.conf to reflect its current config path.
-- Added [INFO] logs and fixed RC assignments in resource, hardware, and backup plugins.
+- Added [INFO] logs and fixed RC assignments in resource, hardware, and backup
+  plugins.
 - Improved log granularity with [INFO] and [ERROR] tags in install.sh.
 - Skip copying to /etc/cron.daily if /etc/cron.d/deferred-sync exists.
 
