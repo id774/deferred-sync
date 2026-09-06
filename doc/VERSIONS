@@ -5,14 +5,10 @@ v26.08 (2026-08-29)
 -------------------
 - Add the version history description guidelines to the end of this file.
 - Describe each main directory in the README Directory Structure section.
-- Establish doc/POLICY.md as the self-contained implementation and
-  maintenance policy for compatibility, safety, change discipline for
-  established infrastructure, unattended execution, plugin contracts,
-  configuration compatibility, logging, installation, documentation,
-  versioning, and validation.
-- Add doc/FEATURES.md as the detailed user-facing behavior reference and
-  align README, FEATURES, and POLICY with their repository-defined roles
-  and the current implementation.
+- Establish doc/POLICY.md as the self-contained implementation and maintenance
+  policy, covering compatibility, safety, plugin contracts, and versioning.
+- Add doc/FEATURES.md as the detailed user-facing behavior reference and align README,
+  FEATURES, and POLICY with their repository-defined roles and the current implementation.
 - Correct the lib/before and lib/after notes, since an edit there is lost
   when install.sh redeploys lib/.
 - Add .gitattributes giving *.md the markdown diff driver.
@@ -122,7 +118,7 @@ v25.03 (2025-03-23)
 
 v0.1 (2011-10-20)
 -----------------
-- Initial release of deferred-sync.
+- Initial release.
 - Basic backup and sync functionality with rsync.
 - Included initial plugin support.
 
