@@ -35,19 +35,14 @@
 #  v3.3 2026-08-23
 #       Improve installer portability and prerequisite command validation.
 #  v3.2 2026-07-28
-#       Exit with the status of main to follow the common script convention.
-#       Return a nonzero status when an unknown option is given.
-#       Accept --no-sudo and -n as aliases for nosudo.
+#       Exit with the status of main to follow the common script convention. Return a nonzero
+#       status when an unknown option is given. Accept --no-sudo and -n as aliases for nosudo.
 #  v3.1 2026-07-11
 #       Replace the awk {n,} interval expression in usage() with a portable
 #       equivalent, since mawk on some systems matches it incorrectly.
 #  v3.0 2025-08-17
-#       Add uninstall support via --uninstall to remove all components.
-#       Add --link option to control whether cron.config/cron.exec links are created.
-#       Add support for conditional symlinks:
-#       - Link /etc/cron.config/{sync.conf,exclude.conf} to /etc/opt/deferred-sync/
-#       - Link /etc/cron.exec/deferred-sync to /opt/deferred-sync/exec/
-#       Unify all config link creation to be idempotent and silent unless modified.
+#       Add --uninstall and --link options, and make config/exec symlink
+#       creation conditional, idempotent, and silent unless modified.
 #  v2.5 2025-06-23
 #       Unified usage output to display full script header and support common help/version options.
 #  v2.4 2025-04-27
