@@ -467,6 +467,9 @@ significant structural change may form a new installer release.
 Documentation-only, comment-only, and formatting-only changes do not
 require an installer version increment.
 
+Each entry's description is at most two lines, and a single line at or
+under 80 columns is preferred whenever practical.
+
 ### 7.3 Configuration Files
 
 A configuration file opens with its own path, a sentence saying what it
@@ -549,6 +552,8 @@ that reads them.
   overwritten during installation.
 - The installer keeps its own `major.minor` version history independently
   of the repository release version.
+- Each entry's description is at most two lines, and a single line at or
+  under 80 columns is preferred whenever practical.
 - A documentation-only, comment-only, or formatting-only change does not
   increment the installer version.
 
@@ -568,7 +573,8 @@ that reads them.
 
 - The repository version is `<year>.<month>`, recorded in
   [`VERSIONS`](VERSIONS) and used for the Git tag. The Version History
-  Guidelines at the foot of that file govern the entries.
+  Guidelines at the foot of that file govern the entries, including the
+  two-line, 80-column bullet limit stated there.
 - Files of the run carry no version of their own. `doc/VERSIONS` is their
   history.
 - `install.sh` keeps its own `major.minor` version history under the
