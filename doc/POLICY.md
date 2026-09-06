@@ -470,6 +470,9 @@ require an installer version increment.
 Each entry's description is at most two lines, and a single line at or
 under 80 columns is preferred whenever practical.
 
+The first entry, at the lowest version `install.sh`'s own history reaches,
+reads only `Initial release.` and nothing else.
+
 ### 7.3 Configuration Files
 
 A configuration file opens with its own path, a sentence saying what it
@@ -554,6 +557,8 @@ that reads them.
   of the repository release version.
 - Each entry's description is at most two lines, and a single line at or
   under 80 columns is preferred whenever practical.
+- The first entry, at the lowest version the installer's own history
+  reaches, reads only `Initial release.` and nothing else.
 - A documentation-only, comment-only, or formatting-only change does not
   increment the installer version.
 
@@ -574,7 +579,7 @@ that reads them.
 - The repository version is `<year>.<month>`, recorded in
   [`VERSIONS`](VERSIONS) and used for the Git tag. The Version History
   Guidelines at the foot of that file govern the entries, including the
-  two-line, 80-column bullet limit stated there.
+  two-line, 80-column bullet limit stated there and the first-version rule.
 - Files of the run carry no version of their own. `doc/VERSIONS` is their
   history.
 - `install.sh` keeps its own `major.minor` version history under the

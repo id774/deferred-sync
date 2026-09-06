@@ -119,8 +119,6 @@ v25.03 (2025-03-23)
 v0.1 (2011-10-20)
 -----------------
 - Initial release.
-- Basic backup and sync functionality with rsync.
-- Included initial plugin support.
 
 Version History Guidelines
 ==========================
@@ -142,3 +140,5 @@ Version History Guidelines
   same file or feature.
 - Place closely related entries near each other.
 - Append an independent new change to the end of the current version entry.
+- The first entry, at the lowest version this file reaches, reads only
+  "Initial release." and nothing else.
