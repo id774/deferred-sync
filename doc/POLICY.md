@@ -561,6 +561,13 @@ that reads them.
   reaches, reads only `Initial release.` and nothing else.
 - A documentation-only, comment-only, or formatting-only change does not
   increment the installer version.
+- A helper owns the external-command prerequisites it directly uses. The
+  standard header-extracting `usage()` calls `check_commands awk` immediately
+  before invoking `awk`; a usage-only `awk` dependency is not carried in the
+  install or uninstall command lists.
+- Moving a usage-only `awk` prerequisite into `usage()` is prerequisite
+  ownership normalization. By maintainer decision, that normalization alone
+  does not increment the installer version or add a `Version History` entry.
 
 ### 10.2 Pull Requests and History
 
