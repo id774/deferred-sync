@@ -65,6 +65,7 @@
 # Display full script header information extracted from the top comment block
 # Exit with the status given as $1, or 0 when omitted
 usage() {
+    check_commands awk
     awk '
         BEGIN { in_header = 0 }
         /^#+$/ && length($0) >= 10 { if (!in_header) { in_header = 1; next } else exit }
