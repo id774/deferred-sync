@@ -1,6 +1,16 @@
 deferred-sync Repository Version History
 ========================================
 
+v26.09 (2026-09-09)
+-------------------
+- Report an unreadable STARTSCRIPT or ENDSCRIPT and an unresolved or ambiguous
+  PLUGINS entry as [WARN] with status 3 and continue instead of aborting.
+- Propagate a retention cleanup failure in 70_incremental_backup and skip the
+  local rsync backup in that run.
+- Run install.sh privileged operations directly as root without requiring sudo
+  (installer v3.4), and document sudo as a non-root requirement only.
+- Correct the cron.d MAILTO comment to describe JOBLOG and ADMIN_MAIL_ADDRESS.
+
 v26.08 (2026-08-29)
 -------------------
 - Add the version history description guidelines to the end of this file.

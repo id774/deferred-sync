@@ -17,6 +17,9 @@
 #   - Each major phase (STARTSCRIPT, PLUGIN LOADER, ENDSCRIPT) runs sequentially.
 #   - If any of them exits with a non-zero status, a [WARN] message is printed,
 #     but execution continues to the next phase.
+#   - A configured STARTSCRIPT or ENDSCRIPT that is not a readable regular
+#     file is reported as [WARN] with status 3 and skipped; it never
+#     terminates the job.
 #   - All standard output and errors, including WARN messages, are appended
 #     to the job log (`JOBLOG`). No stderr is emitted during normal runs.
 #
@@ -62,6 +65,15 @@ send_mail_to_admin() {
     fi
 }
 
+# Check that the hook given as $2 for the phase named $1 can be sourced
+hook_sourceable() {
+    if [ -f "$2" ] && [ -r "$2" ]; then
+        return 0
+    fi
+    echo "[WARN] $1 is not a readable regular file: $2" >>"$JOBLOG" 2>&1
+    return 3
+}
+
 deferred_sync() {
     # Log job start time
     {
@@ -72,8 +84,12 @@ deferred_sync() {
     # STARTSCRIPT
     if [ -n "$STARTSCRIPT" ]; then
         echo "[INFO] STARTSCRIPT started" >>"$JOBLOG" 2>&1
-        . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
-        st=$?
+        if hook_sourceable STARTSCRIPT "$STARTSCRIPT"; then
+            . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
+            st=$?
+        else
+            st=$?
+        fi
         if [ "$st" -eq 0 ]; then
             echo "[INFO] STARTSCRIPT completed successfully" >>"$JOBLOG" 2>&1
         else
@@ -94,8 +110,12 @@ deferred_sync() {
     # ENDSCRIPT
     if [ -n "$ENDSCRIPT" ]; then
         echo "[INFO] ENDSCRIPT started" >>"$JOBLOG" 2>&1
-        . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
-        st=$?
+        if hook_sourceable ENDSCRIPT "$ENDSCRIPT"; then
+            . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
+            st=$?
+        else
+            st=$?
+        fi
         if [ "$st" -eq 0 ]; then
             echo "[INFO] ENDSCRIPT completed successfully" >>"$JOBLOG" 2>&1
         else

@@ -10,6 +10,10 @@
 #
 # Behavior:
 #   - Each plugin is sourced from `$SCRIPT_HOME/lib/plugins/`
+#   - A `PLUGINS` entry matches the end of a plugin file name and must
+#     resolve to exactly one plugin. An entry matching no plugin or more
+#     than one plugin is reported as [WARN] with status 3 and nothing is
+#     sourced for it; the remaining entries are still processed.
 #   - If a plugin returns a non-zero status, a [WARN] message is printed,
 #     but subsequent plugins continue to execute.
 #   - The first non-zero status encountered is preserved and returned
@@ -27,19 +31,37 @@
 
 FAILED_STATUS=0  # keep first non-zero plugin status
 
+# Record a non-zero status, keeping the first one
+record_failure() {
+    [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$1
+}
+
 # Load a specific plugin by name
 load_plugin() {
     while [ "$#" -gt 0 ]; do
+        MATCHED=""
+        MATCH_COUNT=0
         for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
             if [ -r "$PLUGIN" ] && [ -f "$PLUGIN" ]; then
-                . "$PLUGIN"
-                st=$?
-                [ "$st" -ne 0 ] && {
-                    echo "[WARN] Plugin: $PLUGIN exited with status $st" >&2
-                    [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
-                }
+                MATCHED=$PLUGIN
+                MATCH_COUNT=$((MATCH_COUNT + 1))
             fi
         done
+        if [ "$MATCH_COUNT" -eq 1 ]; then
+            PLUGIN=$MATCHED
+            . "$PLUGIN"
+            st=$?
+            [ "$st" -ne 0 ] && {
+                echo "[WARN] Plugin: $PLUGIN exited with status $st" >&2
+                record_failure "$st"
+            }
+        elif [ "$MATCH_COUNT" -eq 0 ]; then
+            echo "[WARN] Plugin: $1 matches no plugin in $SCRIPT_HOME/lib/plugins" >&2
+            record_failure 3
+        else
+            echo "[WARN] Plugin: $1 is ambiguous and matches $MATCH_COUNT plugins" >&2
+            record_failure 3
+        fi
         shift
     done
 }
@@ -57,7 +79,7 @@ load_plugins_all() {
             st=$?
             [ "$st" -ne 0 ] && {
                 echo "[WARN] Plugin: $PLUGIN exited with status $st" >&2
-                [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
+                record_failure "$st"
             }
         fi
     done

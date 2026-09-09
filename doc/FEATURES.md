@@ -59,6 +59,8 @@ The basic execution sequence is:
 
 If one of these phases returns a nonzero status, deferred-sync records a warning and continues to the next phase instead of aborting the whole job immediately.
 
+If a configured `STARTSCRIPT` or `ENDSCRIPT` is not a readable regular file, it is not sourced; the phase records a warning with status `3` and the job continues to the next phase.
+
 This behavior is intended for unattended backup jobs, where failure of one auxiliary task should not automatically prevent all remaining backup work from running.
 
 ## 3. Plugin Execution
@@ -80,6 +82,8 @@ and the default `PLUGINS` list is:
 
     get_resources
     incremental_backup
+
+Each `PLUGINS` entry is matched against the end of a plugin filename and must resolve to exactly one plugin. An entry that matches no plugin, or more than one plugin, is reported as a warning with status `3`, nothing is sourced for it, and the remaining entries are still processed.
 
 Therefore, the presence of a plugin in the repository does not by itself mean that the feature runs automatically.
 
@@ -307,6 +311,8 @@ Deletion is restricted to matching directories below `BACKUPTO`.
 
 If no matching backup directories exist, nothing is removed.
 
+If an expired backup directory cannot be removed, the plugin returns status `1` and the rsync backup is not started in that run.
+
 ## 11. Exclusions
 
 If `EXCLUDEFILE` exists, its contents are supplied to rsync as exclusion rules.
@@ -480,10 +486,12 @@ Mail delivery failure is reported as an error.
 | Default | `/opt/deferred-sync` | Configured | Used | Standard system-wide installation |
 | Custom target | Explicit absolute path | Skipped | Normally used | Deploys components only |
 | `--no-sudo` / `-n` / `nosudo` | Default or custom | Depends on installation mode | Not used | Suitable for user-controlled targets |
-| `--link` | Default installation model | Adds optional integration links | Normally used | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
-| `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used | Does not automatically remove custom targets |
+| `--link` | Default or custom, but link sources are fixed to `/opt/deferred-sync` and `/etc/opt/deferred-sync` | Adds optional integration links | Normally used | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
+| `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used unless run as root | Does not automatically remove custom targets |
 
 A standard system-wide installation deploys the core components and can also configure cron, logrotate, configuration directories, and backup directories.
+
+When the installer is run as root, it performs privileged operations directly and does not require `sudo`. When it is run as a non-root user without the no-sudo option, `sudo` must be available and authorized.
 
 Existing:
 

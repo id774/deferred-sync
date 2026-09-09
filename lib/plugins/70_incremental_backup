@@ -14,6 +14,8 @@
 #
 # Note:
 #   - This script assumes that `rsync` is installed and available.
+#   - If an expired backup directory cannot be removed, the plugin returns 1
+#     and the rsync backup is not started in that run.
 
 DATE=${DATE:-$(date +%Y%m%d)}
 
@@ -29,7 +31,10 @@ purge_expire_dir() {
 
         if [ "$BDATE" -le "$EXPIREDATE" ]; then
             printf -- "deleting %s/%s\n" "$BACKUPTO" "$1"
-            rm -rf "$BACKUPTO/$1"
+            if ! rm -rf "$BACKUPTO/$1"; then
+                printf -- "[WARN] Failed to delete %s/%s\n" "$BACKUPTO" "$1" >&2
+                return 1
+            fi
         fi
         shift
     done

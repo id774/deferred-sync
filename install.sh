@@ -28,10 +28,15 @@
 #  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
 #  - Give [target_path] as an absolute path; a relative path is rejected as an unknown option.
 #  - [nosudo|--no-sudo|-n]: If specified, the script runs without sudo.
+#  - When run as root, the script performs privileged operations directly and
+#    does not require sudo; sudo is required only for a non-root privileged install.
 #  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
 #  - Do not remove custom installation targets automatically.
 #
 #  Version History:
+#  v3.4 2026-09-09
+#       Run privileged installation directly when invoked as root, and require
+#       sudo only for a non-root privileged installation.
 #  v3.3 2026-08-23
 #       Improve installer portability and prerequisite command validation.
 #  v3.2 2026-07-28
@@ -126,10 +131,20 @@ set_environment() {
     esac
 
     TARGET=${1:-/opt/deferred-sync}
-    [ -n "$2" ] && SUDO="" || SUDO="sudo"
+    if [ -n "$2" ]; then
+        SUDO=""
+        OWNER="$(id -un):$(id -gn)"
+    elif [ "$(id -u)" -eq 0 ]; then
+        SUDO=""
+    else
+        SUDO="sudo"
+    fi
 
     echo "[INFO] Using sudo: ${SUDO:-no}"
-    [ "$SUDO" = "sudo" ] && check_sudo || OWNER="$(id -un):$(id -gn)"
+    if [ "$SUDO" = "sudo" ]; then
+        check_commands sudo
+        check_sudo
+    fi
     echo "[INFO] Copy options: $OPTIONS"
     echo "[INFO] Owner: $OWNER"
 }

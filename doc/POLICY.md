@@ -192,7 +192,12 @@ written in rather than to be run.
 
 - `exec/deferred-sync` runs `STARTSCRIPT`, then the plugin loader, then
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
-  the next phase starts regardless.
+  the next phase starts regardless. A configured hook that is not a readable
+  regular file is not sourced; the phase reports `[WARN]` with status `3` and
+  the next phase starts. The hook is never allowed to terminate the job.
+- A `PLUGINS` entry that resolves to no plugin, or to more than one plugin,
+  is reported as `[WARN]` with status `3`, nothing is sourced for it, and the
+  remaining entries are still processed.
 - `lib/load` sources each enabled plugin in turn, reports a non-zero status as
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
@@ -244,11 +249,11 @@ written in rather than to be run.
   are 09-15 for reporting, 20-25 for system upgrades, 30-35 for dumps, 70 for
   the local backup, and 80-85 for remote transfers. Leave gaps.
 - `PLUGINS` entries are matched against the end of the file name, so
-  `get_resources` selects `10_get_resources`. A plugin name is part of the
-  deployed configuration interface. Renaming a plugin can break a host whose
-  `PLUGINS` setting refers to that name, so a plugin is not renamed merely as
-  a routine refactoring, and section 5.1 applies to the name as much as to a
-  key.
+  `get_resources` selects `10_get_resources`. An entry must resolve to
+  exactly one plugin. A plugin name is part of the deployed configuration
+  interface. Renaming a plugin can break a host whose `PLUGINS` setting refers
+  to that name, so a plugin is not renamed merely as a routine refactoring,
+  and section 5.1 applies to the name as much as to a key.
 
 ## 4. Safety
 
@@ -458,7 +463,8 @@ version history. `usage()` prints that header.
 
 The installer provides `-h` / `--help` and `-v` / `--version`, checks the
 external commands required by its execution path, checks sudo only when
-privileged operation is required, and uses the repository's
+privileged operation is required and the invoking user is not root, and
+uses the repository's
 `[INFO]` / `[WARN]` / `[ERROR]` diagnostic convention.
 
 Its own version history uses `major.minor` independently of the repository
@@ -545,7 +551,8 @@ that reads them.
 - Required external commands are checked before the path that needs them
   proceeds.
 - Sudo is checked only when the selected operation requires privileged
-  execution.
+  execution and the invoking user is not root. A root invocation performs
+  privileged operations directly and does not require `sudo`.
 - The established exit-status convention uses `0` for success, `1` for a
   general failure, `126` when a required command exists but is not
   executable, and `127` when a required command is unavailable.

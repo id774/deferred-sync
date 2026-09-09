@@ -73,6 +73,9 @@ path, since a relative path is rejected as an unknown option.
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
+When run as root, the installer performs privileged operations directly and does not require
+`sudo`; a non-root user needs `sudo` for a system-wide installation.
+
 Specifying `nosudo`, `--no-sudo`, or `-n` runs the installer without `sudo` and skips the
 recursive ownership change of the target directory. If you wish to install in your home
 directory, run:
