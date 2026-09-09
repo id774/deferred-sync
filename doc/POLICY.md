@@ -568,6 +568,11 @@ that reads them.
 - Moving a usage-only `awk` prerequisite into `usage()` is prerequisite
   ownership normalization. By maintainer decision, that normalization alone
   does not increment the installer version or add a `Version History` entry.
+- `check_sudo()` owns the `sudo` command prerequisite it directly uses and
+  calls `check_commands sudo` immediately before invoking `sudo -v`.
+- Adding `check_commands sudo` at the start of `check_sudo()` is prerequisite
+  ownership normalization. By maintainer decision, that normalization alone
+  does not increment the installer version or add a `Version History` entry.
 
 ### 10.2 Pull Requests and History
 
