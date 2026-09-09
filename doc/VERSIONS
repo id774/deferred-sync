@@ -1,6 +1,15 @@
 deferred-sync Repository Version History
 ========================================
 
+v26.09 (Release Date: TBD)
+--------------------------
+- Stop the local rsync backup when retention cleanup fails instead of
+  continuing after an unsuccessful purge.
+- Skip an unavailable STARTSCRIPT or ENDSCRIPT with a warning and continue the
+  remaining run phases.
+- Require each selective PLUGINS entry to resolve to exactly one readable
+  plugin before sourcing it.
+
 v26.08 (2026-08-29)
 -------------------
 - Add the version history description guidelines to the end of this file.
