@@ -3,12 +3,16 @@ deferred-sync Repository Version History
 
 v26.09 (Release Date: TBD)
 --------------------------
-- Stop the local rsync backup when retention cleanup fails instead of
-  continuing after an unsuccessful purge.
-- Skip an unavailable STARTSCRIPT or ENDSCRIPT with a warning and continue the
-  remaining run phases.
-- Require each selective PLUGINS entry to resolve to exactly one readable
-  plugin before sourcing it.
+- Make STARTSCRIPT/ENDSCRIPT and selective PLUGINS resolution fail safely
+  instead of aborting the shell or running an ambiguous match.
+- Make incremental backup fail safely on invalid retention settings, purge
+  failures, and exclude-file read failures.
+- Fix installer: resolve /etc/cron.exec invocation, avoid sudo for root,
+  support Solaris cp, and fail on filesystem errors.
+- Make plugin status reflect ClamAV service and remote rsync failures
+  accurately, removing the ping-based reachability check.
+- Align cron MAILTO, retention naming, exclusion handling, and run-failure
+  documentation with the implemented behavior.
 
 v26.08 (2026-08-29)
 -------------------

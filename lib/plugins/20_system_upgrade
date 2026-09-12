@@ -12,6 +12,8 @@
 #
 # Note:
 #   - This script assumes that the system is connected to the internet and package managers are configured correctly.
+#   - When systemctl is available, the stop/start status of clamav-freshclam.service
+#     around freshclam is included in this plugin's result, not just freshclam's own status.
 
 start_message() {
     printf -- "[INFO] Loading: system_upgrade has been loaded at "
@@ -65,8 +67,13 @@ update_redhat_or_centos() {
 }
 
 freshclam_manually(){
+    FRESHCLAM_FAILED=0
+
     if command -v systemctl >/dev/null 2>&1; then
         systemctl stop clamav-freshclam.service
+        RC=$?
+        echo "[INFO] Return code is $RC"
+        [ "$RC" -ne 0 ] && [ "$FRESHCLAM_FAILED" -eq 0 ] && FRESHCLAM_FAILED=$RC
     else
         echo "[WARN] systemctl not found skipping service stop start around freshclam" >&2
     fi
@@ -76,12 +83,16 @@ freshclam_manually(){
     freshclam
     RC=$?
     echo "[INFO] Return code is $RC"
+    [ "$RC" -ne 0 ] && [ "$FRESHCLAM_FAILED" -eq 0 ] && FRESHCLAM_FAILED=$RC
 
     if command -v systemctl >/dev/null 2>&1; then
         systemctl start clamav-freshclam.service
+        RC=$?
+        echo "[INFO] Return code is $RC"
+        [ "$RC" -ne 0 ] && [ "$FRESHCLAM_FAILED" -eq 0 ] && FRESHCLAM_FAILED=$RC
     fi
 
-    return $RC
+    return $FRESHCLAM_FAILED
 }
 
 system_upgrade() {

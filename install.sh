@@ -32,6 +32,8 @@
 #  - Do not remove custom installation targets automatically.
 #
 #  Version History:
+#  v3.4 2026-09-12
+#       Avoid sudo for root, support Solaris cp, and fail on filesystem errors.
 #  v3.3 2026-08-23
 #       Improve installer portability and prerequisite command validation.
 #  v3.2 2026-07-28
@@ -123,14 +125,23 @@ set_environment() {
 
     case "$(uname)" in
         Darwin) OPTIONS=-pPRv; OWNER=root:wheel ;;
-        *) OPTIONS=-Rvd; OWNER=root:adm ;;
+        SunOS)  OPTIONS=-pPR;  OWNER=root:adm ;;
+        *)      OPTIONS=-Rvd;  OWNER=root:adm ;;
     esac
 
     TARGET=${1:-/opt/deferred-sync}
-    [ -n "$2" ] && SUDO="" || SUDO="sudo"
+
+    if [ -n "$2" ]; then
+        SUDO=""
+        OWNER="$(id -un):$(id -gn)"
+    elif [ "$(id -u)" -eq 0 ]; then
+        SUDO=""
+    else
+        SUDO="sudo"
+        check_sudo
+    fi
 
     echo "[INFO] Using sudo: ${SUDO:-no}"
-    [ "$SUDO" = "sudo" ] && check_sudo || OWNER="$(id -un):$(id -gn)"
     echo "[INFO] Copy options: $OPTIONS"
     echo "[INFO] Owner: $OWNER"
 }
@@ -191,8 +202,14 @@ scheduling() {
                 exit 1
             fi
         fi
-        $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"
-        $SUDO chmod 0640 "/etc/opt/deferred-sync/$conf"
+        if ! $SUDO chown $OWNER "/etc/opt/deferred-sync/$conf"; then
+            echo "[ERROR] Failed to change owner of /etc/opt/deferred-sync/$conf." >&2
+            exit 1
+        fi
+        if ! $SUDO chmod 0640 "/etc/opt/deferred-sync/$conf"; then
+            echo "[ERROR] Failed to set permissions on /etc/opt/deferred-sync/$conf." >&2
+            exit 1
+        fi
     done
 
     create_config_symlinks
@@ -271,19 +288,42 @@ logrotate() {
         exit 1
     fi
 
-    $SUDO mkdir -p /var/log/deferred-sync
-    $SUDO touch /var/log/deferred-sync/sync.log
-    $SUDO chown $OWNER /var/log/deferred-sync/sync.log
-    $SUDO chmod 0640 /var/log/deferred-sync/sync.log
+    if ! $SUDO mkdir -p /var/log/deferred-sync; then
+        echo "[ERROR] Failed to create /var/log/deferred-sync." >&2
+        exit 1
+    fi
+    if ! $SUDO touch /var/log/deferred-sync/sync.log; then
+        echo "[ERROR] Failed to create /var/log/deferred-sync/sync.log." >&2
+        exit 1
+    fi
+    if ! $SUDO chown $OWNER /var/log/deferred-sync/sync.log; then
+        echo "[ERROR] Failed to change owner of /var/log/deferred-sync/sync.log." >&2
+        exit 1
+    fi
+    if ! $SUDO chmod 0640 /var/log/deferred-sync/sync.log; then
+        echo "[ERROR] Failed to set permissions on /var/log/deferred-sync/sync.log." >&2
+        exit 1
+    fi
 }
 
 # Create default backup target directories (/home/backup, /home/remote) with secure permissions
 create_backupdir() {
     echo "[INFO] Creating backup directories..."
     for dir in /home/backup /home/remote; do
-        [ -d "$dir" ] || $SUDO mkdir "$dir"
-        $SUDO chown $OWNER "$dir"
-        $SUDO chmod 0750 "$dir"
+        if [ ! -d "$dir" ]; then
+            if ! $SUDO mkdir "$dir"; then
+                echo "[ERROR] Failed to create $dir." >&2
+                exit 1
+            fi
+        fi
+        if ! $SUDO chown $OWNER "$dir"; then
+            echo "[ERROR] Failed to change owner of $dir." >&2
+            exit 1
+        fi
+        if ! $SUDO chmod 0750 "$dir"; then
+            echo "[ERROR] Failed to set permissions on $dir." >&2
+            exit 1
+        fi
     done
 }
 
@@ -324,7 +364,12 @@ uninstall() {
 
     TARGET="/opt/deferred-sync"
 
-    [ "$(id -u)" -ne 0 ] && SUDO="sudo"
+    if [ "$(id -u)" -ne 0 ]; then
+        SUDO="sudo"
+        check_sudo
+    else
+        SUDO=""
+    fi
 
     $SUDO rm -rvf "$TARGET" || {
         echo "[ERROR] Failed to remove $TARGET" >&2
@@ -336,14 +381,31 @@ uninstall() {
         exit 1
     }
 
-    $SUDO rm -vf /etc/cron.daily/deferred-sync
-    $SUDO rm -vf /etc/logrotate.d/deferred-sync
+    $SUDO rm -vf /etc/cron.daily/deferred-sync || {
+        echo "[ERROR] Failed to remove /etc/cron.daily/deferred-sync" >&2
+        exit 1
+    }
+
+    $SUDO rm -vf /etc/logrotate.d/deferred-sync || {
+        echo "[ERROR] Failed to remove /etc/logrotate.d/deferred-sync" >&2
+        exit 1
+    }
 
     for link in /etc/cron.config/sync.conf /etc/cron.config/exclude.conf; do
-        [ -L "$link" ] && $SUDO rm -vf "$link"
+        if [ -L "$link" ]; then
+            $SUDO rm -vf "$link" || {
+                echo "[ERROR] Failed to remove $link" >&2
+                exit 1
+            }
+        fi
     done
 
-    [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -vf /etc/cron.exec/deferred-sync
+    if [ -L /etc/cron.exec/deferred-sync ]; then
+        $SUDO rm -vf /etc/cron.exec/deferred-sync || {
+            echo "[ERROR] Failed to remove /etc/cron.exec/deferred-sync" >&2
+            exit 1
+        }
+    fi
 
     echo "[INFO] deferred-sync uninstalled successfully."
     exit 0

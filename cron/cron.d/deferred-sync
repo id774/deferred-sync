@@ -1,6 +1,7 @@
 # Scheduled execution of deferred-sync
 # Runs Monday through Saturday at 03:01
-# Logs will be sent to the root user via cron MAILTO
+# cron MAILTO receives only output not redirected by deferred-sync;
+# normal runtime output is written to JOBLOG, whose mail is controlled by ADMIN_MAIL_ADDRESS.
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 MAILTO=root

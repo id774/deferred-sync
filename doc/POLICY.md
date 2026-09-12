@@ -193,6 +193,11 @@ written in rather than to be run.
 - `exec/deferred-sync` runs `STARTSCRIPT`, then the plugin loader, then
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
   the next phase starts regardless.
+- A configured `STARTSCRIPT` or `ENDSCRIPT` that is not a readable regular
+  file is not sourced. `exec/deferred-sync` reports it as `[WARN]` with
+  local-prerequisite semantic status `3` and continues to the next phase. A
+  hook that cannot be sourced must never be executed with `.` in a way that
+  can terminate the parent shell.
 - `lib/load` sources each enabled plugin in turn, reports a non-zero status as
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
@@ -210,7 +215,7 @@ written in rather than to be run.
 |:----:|:---|:---|
 | **0** | Success | The operation completed |
 | **1** | Command failure or resource missing | A command failed, a database is absent, a permission is refused |
-| **2** | Network unreachable | A host does not answer, `ping` fails, SSH cannot connect |
+| **2** | Network unreachable | A host does not answer, SSH cannot connect |
 | **3** | Local prerequisite missing | A directory or configuration is absent, the environment is not initialized |
 
 - Codes `0` through `3` are the standard semantic status vocabulary used
@@ -225,6 +230,11 @@ written in rather than to be run.
   status of the target it runs.
 - The system-maintenance plugins may propagate the status of package
   commands they execute.
+- `80_backup_to_remote` and `85_get_remote_dir` do not perform a pre-flight
+  network reachability check, because whether a host or port is reachable
+  depends on network security requirements outside these plugins' control.
+  Each propagates rsync's own exit status for a host directly, instead of
+  normalizing an unreachable or refused connection to semantic status `2`.
 - A plugin that performs the same operation over a configured list
   continues through the list and returns a non-zero aggregate result
   rather than stopping at the first failed item.
@@ -249,6 +259,13 @@ written in rather than to be run.
   `PLUGINS` setting refers to that name, so a plugin is not renamed merely as
   a routine refactoring, and section 5.1 applies to the name as much as to a
   key.
+- A `PLUGINS` selector must resolve to exactly one readable regular plugin
+  file to be sourced. A selector matching no readable plugin, or matching
+  more than one, is a local configuration prerequisite failure: `lib/load`
+  reports it as `[WARN]`, sources none of the ambiguous candidates, keeps
+  semantic status `3` as the first non-zero status if none is already set,
+  and continues with the remaining selectors. Numeric-prefix omission in a
+  selector remains supported.
 
 ## 4. Safety
 
@@ -270,8 +287,15 @@ written in rather than to be run.
 ### 4.2 Destructive Operations
 
 - Every `rm` and every `--delete` is bounded by a pattern that cannot widen to
-  the whole filesystem. `purge_expires` iterates `"$BACKUPTO"/*_backup_*` and
-  compares a date parsed out of the name before removing anything.
+  the whole filesystem. `purge_expires` iterates directories directly below
+  `BACKUPTO` that match exactly `_backup_YYYYMMDD`, the pattern
+  `70_incremental_backup` itself generates, and compares a date parsed out of
+  the name before removing anything. A directory with any other prefix is
+  never a purge candidate.
+- A failure to delete an expired backup directory, or a failure to compute
+  the retention cutoff date, is not silently ignored: it is reported and
+  stops that plugin's run before it reaches the rsync backup, rather than
+  proceeding as if the retention step had succeeded.
 - Compute the target of a removal, then check it, then remove it. Do not let a
   glob that matched nothing, or an unset variable, reach `rm`.
 - `DRY_RUN=true` controls the dry-run behavior of the rsync-based
@@ -545,7 +569,17 @@ that reads them.
 - Required external commands are checked before the path that needs them
   proceeds.
 - Sudo is checked only when the selected operation requires privileged
-  execution.
+  execution. A root process already has the privilege a system-wide install
+  or uninstall needs, so it performs those operations directly and does not
+  invoke or require `sudo`. A non-root process performing the same
+  privileged operation uses `sudo` and checks it first.
+- The installer's file-copy option set matches the `cp(1)` implementation of
+  the platform it runs on: GNU-style options on Linux, and on Solaris only
+  the options Solaris `cp(1)` provides.
+- A required installer filesystem operation, such as a copy, directory
+  creation, ownership change, permission change, or removal, is checked. The
+  installer does not report installation or uninstallation as completed
+  successfully once such an operation has failed.
 - The established exit-status convention uses `0` for success, `1` for a
   general failure, `126` when a required command exists but is not
   executable, and `127` when a required command is unavailable.

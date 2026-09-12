@@ -8,12 +8,19 @@
 #   BACKUPDIRS  : List of directories to back up (space-separated).
 #                 Example: "/home /etc /var/www"
 #   EXCLUDEFILE : File containing patterns of files/directories to exclude.
+#                 Blank and comment-only lines are stripped, and the rest is
+#                 passed to rsync via --exclude-from=/dev/stdin.
 #                 Example: /etc/backup_exclude.conf
 #   DRY_RUN     : If set to "true", rsync runs in dry-run mode.
-#   EXPIREDAYS  : Number of days before old backups are purged.
+#   EXPIREDAYS  : Number of days before old backups are purged. Must be a
+#                 non-negative integer; any other value skips the backup.
 #
 # Note:
 #   - This script assumes that `rsync` is installed and available.
+#   - The version-preservation directory is named `_backup_YYYYMMDD`; only
+#     directories matching that exact pattern below BACKUPTO are purged.
+#   - An existing but unreadable EXCLUDEFILE is a local prerequisite failure:
+#     the backup is skipped with a warning rather than attempted without it.
 
 DATE=${DATE:-$(date +%Y%m%d)}
 
@@ -24,12 +31,22 @@ start_message() {
 
 purge_expire_dir() {
     while [ "$#" -gt 0 ]; do
-        BDATE=$(echo "$1" | sed "s/_backup_//")
+        BDATE=${1#_backup_}
         EXPIREDATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
+        if [ $? -ne 0 ]; then
+            printf -- "[WARN] Failed to calculate retention cutoff for EXPIREDAYS=%s\n" "$EXPIREDAYS" >&2
+            return 1
+        fi
 
         if [ "$BDATE" -le "$EXPIREDATE" ]; then
             printf -- "deleting %s/%s\n" "$BACKUPTO" "$1"
             rm -rf "$BACKUPTO/$1"
+            RC=$?
+            echo "[INFO] Return code is $RC"
+            if [ "$RC" -ne 0 ]; then
+                printf -- "[WARN] Failed to delete expired backup: %s/%s\n" "$BACKUPTO" "$1" >&2
+                return 1
+            fi
         fi
         shift
     done
@@ -40,9 +57,9 @@ purge_expires() {
     printf -- "[INFO] Deleting old backup directories at "
     date "+%Y/%m/%d %T"
 
-    for DIR in "$BACKUPTO"/*_backup_*; do
+    for DIR in "$BACKUPTO"/_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]; do
         [ -e "$DIR" ] || continue
-        purge_expire_dir "$(basename "$DIR")" || return $?
+        purge_expire_dir "${DIR##*/}" || return $?
     done
     return 0
 }
@@ -68,8 +85,14 @@ exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         if [ -f "$EXCLUDEFILE" ]; then
-            # Strip blank lines and pipe the rest to --exclude-from=/dev/stdin, which skips # lines
-            grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+            if [ ! -r "$EXCLUDEFILE" ]; then
+                printf -- "[WARN] Exclude file %s is not readable. Skipping backup.\n" \
+                    "$EXCLUDEFILE" >&2
+                return 3
+            fi
+
+            grep -v '^[# ]*$' "$EXCLUDEFILE" |
+                rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
         else
             rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
         fi
@@ -85,6 +108,13 @@ run_rsync() {
         printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
         return 3
     fi
+
+    case "$EXPIREDAYS" in
+        '' | *[!0-9]*)
+            printf -- "[WARN] EXPIREDAYS must be a non-negative integer. Skipping backup.\n" >&2
+            return 3
+            ;;
+    esac
 
     purge_expires || return $?
     rsync_options || return $?

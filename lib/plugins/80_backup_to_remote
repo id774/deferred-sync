@@ -15,6 +15,13 @@
 #
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
+#   - No pre-flight network reachability check (e.g. ping) is performed:
+#     whether ICMP or a given host/port is reachable depends on network
+#     security requirements (firewalls, security groups, filtering) outside
+#     this script's control, so a ping result would not reliably predict
+#     whether rsync/ssh can actually connect. This plugin instead attempts
+#     the transfer directly and propagates rsync's own exit status for that
+#     host, including an unreachable or refused connection, unnormalized.
 
 start_message() {
     printf -- "[INFO] Loading: backup_to_remote has been loaded at "
@@ -31,14 +38,9 @@ mirror_to_remote() {
 
     if [ -d "$BACKUPTO" ]; then
 
-        if ping -c 1 "$1" > /dev/null 2>&1; then
-            printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
-            rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
-            RC=$?
-        else
-            printf -- "[WARN] Skipping backup to %s: Host unreachable\n" "$1" >&2
-            RC=2
-        fi
+        printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
+        rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
+        RC=$?
 
         echo "[INFO] Return code is $RC"
         return $RC
