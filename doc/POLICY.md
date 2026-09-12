@@ -11,8 +11,10 @@ they are used.
   `lib/plugins/*`. These files form the unattended backup and synchronization
   job. The main executable may also be run manually.
 - The configuration: `config/sync.conf` and `config/exclude.conf`. The copies
-  in this repository are templates for a new installation. A deployed
-  configuration is persistent host-specific runtime state.
+  in this repository are templates for a new installation. A standard system
+  installation's configuration under `/etc/opt/deferred-sync` is persistent
+  host-specific runtime state; a custom installation target's `config/` is
+  redeployed by the installer and its persistence is not guaranteed.
 - The installer: `install.sh`. It is an executable POSIX shell program run
   interactively to install, update, link, or uninstall deferred-sync.
 
@@ -67,8 +69,8 @@ The documentation structure of this repository is:
 - A component header records the local interface and operational contract
   needed to understand or operate that component.
 - `config/sync.conf` is the configuration template used for a new
-  installation. A deployed configuration is persistent host-specific runtime
-  state.
+  installation. A standard system installation's deployed configuration under
+  `/etc/opt/deferred-sync` is persistent host-specific runtime state.
 
 The implementation is the primary evidence of what currently happens. It is
 not, by itself, proof that the current behavior is the intended specification.
@@ -117,6 +119,12 @@ Behavior that has operated reliably over time is evidence and has value of
 its own. Do not refactor backup, synchronization, scheduling, installation,
 or other infrastructure behavior merely because another design appears
 cleaner, more modern, or more defensive.
+
+Error handling should be proportional to the operational consequence of the
+failure. A possible failure mode alone does not justify additional control
+flow. Prefer the simplest implementation that preserves intended behavior and
+handles failures that can cause incorrect results, unsafe continuation, data
+loss, or a false success for the operation that matters.
 
 An implementation change is made only when that change has been explicitly
 chosen as part of the work being performed. Before deployment, validate it in
@@ -172,11 +180,14 @@ written in rather than to be run.
 - **Confine a change of the working directory to a subshell.** A bare `cd`
   leaks into every plugin sourced afterwards, which is why
   `31_dump_postgresql` wraps its dump in `( ... )`.
-- **Own your variable names.** POSIX `sh` has no `local`, so every name a
-  plugin sets is visible to the next one. A name that reads like a general
-  word is a collision waiting to happen: `20_system_upgrade` uses `YUM_FAILED`
-  precisely because `FAILED` belonged to its caller. Name a working variable
-  after the plugin that owns it, or unset it before returning.
+- **Do not depend on a scratch value another component left behind.** POSIX
+  `sh` has no `local`, so every name a plugin sets is visible to the next one.
+  A plugin does not read or rely on a working variable it did not itself set.
+  When a real collision with a caller's variable is identified, give the
+  affected name a component-specific name, as `20_system_upgrade` does with
+  `YUM_FAILED` because `FAILED` belonged to its caller. This does not require
+  renaming every short working variable across the repository merely because
+  a collision is theoretically possible.
 - **Depend only on the core.** `SCRIPT_HOME`, `JOBLOG`, `DATE`, and the keys
   of `sync.conf` are the interface. A variable another plugin happened to set
   is not, and a plugin must not be made to work by placing it after another
@@ -208,6 +219,10 @@ written in rather than to be run.
   execution as described in Section 2.
 - The first status is kept rather than the last because the first failure is
   usually the cause and the rest are its consequences.
+- Reporting and inspection work may be done on a best-effort basis: failing
+  to collect one piece of optional information does not stop collection of
+  the rest, and a component is not required to aggregate every auxiliary
+  command's status into its own return status.
 
 ### 3.3 Return Codes
 
@@ -346,14 +361,18 @@ written in rather than to be run.
 - The job runs as root, and that is not a licence to use it. A step that
   needs another identity asks for exactly that step, as `31_dump_postgresql`
   does with `sudo -u "$PG_USER"`.
-- Deployed configuration is `0640` and owned by root, because it holds
+- A standard system installation's deployed configuration under
+  `/etc/opt/deferred-sync` is `0640` and owned by root, because it holds
   credentials. A plugin does not loosen a mode it did not set.
 
 ## 5. Configuration
 
 The repository copies of `config/sync.conf` and `config/exclude.conf` are
-templates for a new installation. A deployed system configuration is
-persistent host-specific runtime state.
+templates for a new installation. A standard system installation's deployed
+configuration under `/etc/opt/deferred-sync` is persistent host-specific
+runtime state. An explicit custom installation target is a deployable tree
+that the installer redeploys on each install; persistence of an edited
+`config/` under a custom target is not guaranteed.
 
 A standard system installation preserves an existing deployed
 configuration instead of replacing it on upgrade. New code must therefore
@@ -427,8 +446,9 @@ It is sourced by a root shell. Whatever it contains, runs.
   form, and output emitted directly by an external command is not required
   to be rewritten with one of the three project prefixes.
 - `[WARN]` and `[ERROR]` go to stderr, which `exec/deferred-sync` redirects
-  into `JOBLOG` along with everything else. During a normal run nothing
-  escapes to the terminal.
+  into `JOBLOG` along with everything else during the main run phases.
+  A failure in a post-run notification step that is not itself part of those
+  phases may still reach stderr directly.
 - A plugin announces itself when sourced and stamps that line with the time,
   and stamps the start of each long operation the same way:
 
@@ -439,8 +459,11 @@ start_message() {
 }
 ```
 
-- After an external command, report the status: `echo "[INFO] Return code is
-  $RC"`. Reading a log that says only that a command ran tells you nothing.
+- When a plugin treats an external command's status as its own result, report
+  that status: `echo "[INFO] Return code is $RC"`. Reading a log that says
+  only that a command ran tells you nothing about whether it succeeded. A
+  best-effort reporting or diagnostic command is not required to log its
+  status this way.
 - Phase boundaries and long-running operations carry timestamps because
   deferred-sync normally runs unattended and the log is inspected later.
   The timestamp helps identify which operation was active when a host

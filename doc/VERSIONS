@@ -21,6 +21,9 @@ v26.09 (Release Date: TBD)
   installer filesystem failures explicitly.
 - Correct the cron MAILTO description and align affected documentation with
   the implemented runtime behavior.
+- Report a ClamAV service restart failure when freshclam itself succeeds.
+- Relax overbroad policy wording and align reporting, logging, return-status,
+  and custom-install documentation with the existing implementation.
 
 v26.08 (2026-08-29)
 -------------------

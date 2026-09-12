@@ -73,6 +73,12 @@ path, since a relative path is rejected as an unknown option.
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
+A custom target is a deployable tree: reinstalling to the same target redeploys
+its `exec`, `config`, and `lib` directories, so an edited `config/` under a custom
+target can be replaced as well. Standard operation that needs persistent system
+configuration should use the default installation, whose configuration lives
+under `/etc/opt/deferred-sync` and is not overwritten on upgrade.
+
 When run as root, the installer performs privileged operations directly and does not
 invoke `sudo`. When run as a non-root user without `nosudo`, `--no-sudo`, or `-n`, the
 installer uses `sudo` for those operations.
@@ -145,7 +151,7 @@ What matters before writing or enabling a plugin:
   reports a failing plugin as `[WARN]`, keeps the first nonzero status, and
   runs the rest. Required setup failures may stop the run as described in
   [Warn and Continue](doc/POLICY.md#32-warn-and-continue).
-- **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing, with the two documented wrappers propagating an external status. See [Return Codes](doc/POLICY.md#33-return-codes).
+- **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing; documented components may propagate an external command status where their component contract says so. See [Return Codes](doc/POLICY.md#33-return-codes).
 - **A missing prerequisite is skipped, never created**, so that a failed mount cannot become a backup written to the wrong disk. See [Safety](doc/POLICY.md#4-safety).
 - **Log output** uses `[INFO]`, `[WARN]`, and `[ERROR]`, and stamps each phase with the time, because the log is read hours after the run. See [Logging](doc/POLICY.md#6-logging).
 
