@@ -49,6 +49,15 @@ and avoiding unsafe continuation.
 network access, and resource consumption. Efficiency does not justify
 weakening Compatibility or Safety.
 
+Error handling is proportional to the consequence of the failure. A possible
+failure mode does not by itself justify additional control flow. Checks are
+required where failure can widen a destructive operation, hide a required
+prerequisite, invalidate the next operation, or falsely report completion of
+the operation whose result matters. Best-effort reporting, diagnostics, and
+notification helpers may remain simple when their failure does not create
+those consequences. Turning existing code more complex than this is itself a
+compatibility and maintainability risk, not a neutral improvement.
+
 Changes to supported environments, support floors, repository release
 versions, deliberate retirement of an established interface, and
 repository-wide design policy are maintainer decisions.
@@ -118,6 +127,13 @@ its own. Do not refactor backup, synchronization, scheduling, installation,
 or other infrastructure behavior merely because another design appears
 cleaner, more modern, or more defensive.
 
+Do not turn a small shell function into a defensive state machine merely to
+enumerate every theoretical failure. Prefer the shortest control flow that
+preserves the intended operation and handles failures with material
+consequences. A low-probability auxiliary failure, theoretical variable
+collision, or cleanup edge case is not enough by itself to justify new state,
+temporary files, retry logic, save/restore logic, or a new abstraction.
+
 An implementation change is made only when that change has been explicitly
 chosen as part of the work being performed. Before deployment, validate it in
 the supported and representative operating systems, shells, utilities, and
@@ -172,11 +188,18 @@ written in rather than to be run.
 - **Confine a change of the working directory to a subshell.** A bare `cd`
   leaks into every plugin sourced afterwards, which is why
   `31_dump_postgresql` wraps its dump in `( ... )`.
-- **Own your variable names.** POSIX `sh` has no `local`, so every name a
-  plugin sets is visible to the next one. A name that reads like a general
-  word is a collision waiting to happen: `20_system_upgrade` uses `YUM_FAILED`
-  precisely because `FAILED` belonged to its caller. Name a working variable
-  after the plugin that owns it, or unset it before returning.
+- **Do not depend on a scratch variable left by another component.** POSIX
+  `sh` has no `local`, so every name a plugin sets is visible to the next
+  one. Because sourced components share one shell, a plugin must not be made
+  to work by intentionally reading a value another sourced component
+  happened to leave behind. A working variable needs a component-specific
+  name when a real caller/callee collision exists or when its value must
+  survive another sourced component: `20_system_upgrade` uses `YUM_FAILED`
+  because a concrete collision with its caller's `FAILED` existed. Short
+  conventional scratch names such as `RC`, `FAILED`, `OPTS`, `CMD`, or
+  `DEVICE` are otherwise acceptable inside small, straightforward functions.
+  Do not rename them repository-wide merely to eliminate a theoretical
+  collision.
 - **Depend only on the core.** `SCRIPT_HOME`, `JOBLOG`, `DATE`, and the keys
   of `sync.conf` are the interface. A variable another plugin happened to set
   is not, and a plugin must not be made to work by placing it after another
@@ -230,9 +253,24 @@ written in rather than to be run.
   status of the target it runs.
 - The system-maintenance plugins may propagate the status of package
   commands they execute.
+- Auxiliary setup or cleanup around a primary maintenance command may remain
+  best-effort when the repository has not defined that auxiliary step as the
+  operation's result. `20_system_upgrade` keeps the existing simple
+  stop -> freshclam -> start sequence when systemctl is available; the
+  plugin does not promise to preserve the service's pre-run active/inactive
+  state or to turn every service-control status into a separate state
+  machine. This does not extend to a destructive or data-safety failure,
+  which remains subject to Section 4.
 - A plugin that performs the same operation over a configured list
   continues through the list and returns a non-zero aggregate result
   rather than stopping at the first failed item.
+- Reporting and inspection plugins may be best-effort. If their purpose is to
+  collect as much information as is conveniently available, an individual
+  reporting command may fail without changing the plugin's final status, and
+  the plugin is not required to capture and aggregate every command status.
+  Missing optional reporting tools remain normal skips. Add status handling
+  only when the failed command makes the plugin's meaningful result
+  misleading or prevents required later work.
 
 ### 3.4 Order
 
@@ -347,17 +385,29 @@ written in rather than to be run.
   needs another identity asks for exactly that step, as `31_dump_postgresql`
   does with `sudo -u "$PG_USER"`.
 - Deployed configuration is `0640` and owned by root, because it holds
-  credentials. A plugin does not loosen a mode it did not set.
+  credentials. A plugin does not loosen a mode it did not set. This
+  `0640`/root ownership requirement applies to the standard deployed
+  configuration under `/etc/opt/deferred-sync`. A no-sudo or explicit custom
+  installation is governed by the permissions and ownership produced by that
+  deployment path.
 
 ## 5. Configuration
 
 The repository copies of `config/sync.conf` and `config/exclude.conf` are
-templates for a new installation. A deployed system configuration is
-persistent host-specific runtime state.
+templates for a new installation. Persistent deployed system configuration
+means the standard `/etc/opt/deferred-sync` configuration used by the
+system installation path; it is persistent host-specific runtime state.
 
 A standard system installation preserves an existing deployed
 configuration instead of replacing it on upgrade. New code must therefore
 remain compatible with established configuration keys and value semantics.
+
+An explicitly supplied custom installation target is a deployable tree:
+`install.sh` may replace that target, including its `config/` directory, on
+a reinstall. The repository does not promise in-place preservation of
+edited configuration inside an explicit custom target. Do not add
+privileged preservation machinery merely to make a custom tree behave like
+the system installation.
 
 ### 5.1 A Key Is a Promise
 
@@ -439,8 +489,10 @@ start_message() {
 }
 ```
 
-- After an external command, report the status: `echo "[INFO] Return code is
-  $RC"`. Reading a log that says only that a command ran tells you nothing.
+- Report an external command's status when that status is part of the
+  operation being diagnosed or returned: `echo "[INFO] Return code is $RC"`.
+  Pure reporting commands and incidental helper commands do not need a
+  separate return-code line merely for completeness.
 - Phase boundaries and long-running operations carry timestamps because
   deferred-sync normally runs unattended and the log is inspected later.
   The timestamp helps identify which operation was active when a host
@@ -449,6 +501,17 @@ start_message() {
   printed.
 - Name the plugin in its own messages, not the file's number. The number is an
   ordering device and may change; the name is what the operator configured.
+- Normal job execution is written to `JOBLOG`. Administrator mail is a
+  best-effort notification path after the main work has completed. Failure
+  of the notification path may be reported to stderr so cron or an
+  interactive caller can observe that the notification itself failed. The
+  implementation is not required to make `JOBLOG` a recursive log of its own
+  mail-delivery failure.
+- When an optional presentation filter such as `nkf` feeds mail through a
+  simple POSIX pipeline, the pipeline may use the shell's normal
+  last-command status. Do not introduce `pipefail`, temporary snapshots, or
+  multi-stage error aggregation solely to distinguish every helper failure
+  unless a concrete delivery defect requires it.
 
 ## 7. File Headers
 
@@ -669,6 +732,11 @@ Validation is selected according to the files and behavior changed.
 - A documentation-only change does not require an unrelated runtime
   execution merely to satisfy a checklist.
 - No new test framework is required merely because a change is made.
+- Validation should match the consequence of the change. Do not create
+  failure injection for every shell command merely because it can fail.
+  Validate the normal path and the material failure paths changed by the
+  patch. A documentation or policy clarification does not require synthetic
+  runtime failure tests for behavior that the patch does not change.
 
 Before it is proposed, a change answers these:
 

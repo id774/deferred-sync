@@ -131,6 +131,12 @@ The current plugin catalog is shown below.
 
 ## 6. Reporting and System Inspection
 
+Plugins in this section are best-effort reporting: each collects the
+available information it conveniently can, an optional command that is
+absent is a normal skip, and an individual reporting command's failure is
+not guaranteed to be captured and aggregated into the plugin's final
+status. These plugins are not a monitoring or transaction engine.
+
 ### 6.1 `09_show_version`
 
 `09_show_version` reports versions of major software installed under expected `/opt/<software>/current/bin/` paths.
@@ -215,7 +221,7 @@ On Red Hat and CentOS systems it runs:
 
 If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`.
 
-If `freshclam` is available, the plugin also performs a ClamAV definition update.
+If `freshclam` is available, the plugin also performs a ClamAV definition update. When `systemctl` is available, this uses the current implementation's simple sequence of stopping the service, running `freshclam`, and starting the service again. Preserving the service's pre-run active/inactive state and aggregating every individual service-control command status are not part of this plugin's feature contract.
 
 ### 7.2 `25_ubuntu_kernel_upgrade`
 
@@ -489,7 +495,7 @@ If `nkf` is available, it is used in the mail pipeline.
 
 If `nkf` is unavailable, the log is passed directly to `mail`.
 
-Mail delivery failure is reported as an error.
+Administrator mail is a best-effort notification path that runs after the main work has completed; its failure does not roll back the backup or synchronization work already done. Mail delivery failure may be reported to stderr so cron or an interactive caller can observe that the notification itself failed. `nkf` is an optional presentation helper feeding a normal POSIX pipeline, and the pipeline may use the shell's usual last-command status rather than a separate multi-stage error aggregation.
 
 ## 20. Installation Modes
 
@@ -511,6 +517,14 @@ Existing:
     /etc/opt/deferred-sync/exclude.conf
 
 are not overwritten during installation.
+
+An explicit custom target is a deployable tree rather than a persisted
+system installation. Reinstalling to the same custom target can replace
+files under that target, including its `config/` directory, so editing
+configuration inside a custom target should not be relied on as persistent
+system state. A standard operation that needs persistent configuration
+uses the default system installation and its `/etc/opt/deferred-sync`
+configuration.
 
 ## 21. Optional System Integration Links
 

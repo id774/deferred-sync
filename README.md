@@ -73,6 +73,12 @@ path, since a relative path is rejected as an unknown option.
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
+An explicit custom target is treated as a deployable installation tree.
+Reinstalling to the same custom target can replace files under that target,
+including `config/`. Do not rely on edited configuration inside a custom
+target as persistent system state. The standard installation keeps its
+persistent configuration under `/etc/opt/deferred-sync`.
+
 When run as root, the installer performs privileged operations directly and does not
 invoke `sudo`. When run as a non-root user without `nosudo`, `--no-sudo`, or `-n`, the
 installer uses `sudo` for those operations.
@@ -84,6 +90,9 @@ directory, run:
 ```sh
 ./install.sh ~/local/deferred-sync nosudo
 ```
+
+A no-sudo home directory target is a custom installation target and follows
+the same deployable-tree contract described above.
 
 You can optionally add the `--link` flag to create symlinks in `/etc/cron.config/` and `/etc/cron.exec/`:
 
