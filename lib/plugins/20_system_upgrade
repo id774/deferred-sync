@@ -12,6 +12,11 @@
 #
 # Note:
 #   - This script assumes that the system is connected to the internet and package managers are configured correctly.
+#
+# Behavior:
+#   - Package maintenance keeps the existing command order.
+#   - If freshclam succeeds but restarting clamav-freshclam fails, the restart
+#     failure is returned.
 
 start_message() {
     printf -- "[INFO] Loading: system_upgrade has been loaded at "
@@ -79,6 +84,8 @@ freshclam_manually(){
 
     if command -v systemctl >/dev/null 2>&1; then
         systemctl start clamav-freshclam.service
+        START_RC=$?
+        [ "$RC" -eq 0 ] && RC=$START_RC
     fi
 
     return $RC

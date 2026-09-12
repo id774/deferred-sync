@@ -131,6 +131,12 @@ The current plugin catalog is shown below.
 
 ## 6. Reporting and System Inspection
 
+Reporting and inspection plugins collect whatever information is available
+on a best-effort basis. If an optional tool is missing, the corresponding
+piece of information is skipped and the rest of the collection continues.
+Collecting every individual reporting command's status into the plugin's
+final return status is not part of the feature contract.
+
 ### 6.1 `09_show_version`
 
 `09_show_version` reports versions of major software installed under expected `/opt/<software>/current/bin/` paths.
@@ -215,7 +221,7 @@ On Red Hat and CentOS systems it runs:
 
 If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`.
 
-If `freshclam` is available, the plugin also performs a ClamAV definition update.
+If `freshclam` is available, the plugin also performs a ClamAV definition update. When `systemctl` is available, it stops `clamav-freshclam.service` before running `freshclam` and restarts it afterward regardless of whether `freshclam` succeeded. If `freshclam` succeeds but the restart fails, the restart failure is returned as the plugin's result.
 
 ### 7.2 `25_ubuntu_kernel_upgrade`
 
@@ -474,7 +480,7 @@ The main log prefixes are:
 
 Because deferred-sync is designed for unattended execution, major phases and long-running operations record timestamps.
 
-External commands also record their return status after execution.
+A command whose status a plugin treats as its own operation result also records that status in the log. Recording the status of every auxiliary reporting or diagnostic command is not guaranteed.
 
 ## 19. Administrator Notification
 
@@ -489,7 +495,11 @@ If `nkf` is available, it is used in the mail pipeline.
 
 If `nkf` is unavailable, the log is passed directly to `mail`.
 
-Mail delivery failure is reported as an error.
+This notification is an optional step that runs after the job has completed; a
+mail delivery failure does not change the recorded result of the backup or
+synchronization work itself. A mail delivery failure is reported as an error,
+and because this happens after the job's main phases, that error may reach
+stderr directly rather than being captured in `JOBLOG`.
 
 ## 20. Installation Modes
 
@@ -511,6 +521,12 @@ Existing:
     /etc/opt/deferred-sync/exclude.conf
 
 are not overwritten during installation.
+
+An explicit custom installation target is a deployable tree: reinstalling to
+the same target redeploys `exec`, `config`, and `lib` under it, including its
+`config/` directory. A custom target's `config/` is not preserved as
+persistent system configuration the way `/etc/opt/deferred-sync` is for the
+standard system-wide installation.
 
 ## 21. Optional System Integration Links
 
