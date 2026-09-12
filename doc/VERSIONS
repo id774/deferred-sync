@@ -17,8 +17,18 @@ v26.09 (Release Date: TBD)
   does not block otherwise valid SSH transfers.
 - Resolve the default installation correctly through the installer-created
   /etc/cron.exec/deferred-sync symlink.
-- Avoid sudo for root installs, support Solaris cp options, and report required
-  installer filesystem failures explicitly.
+- Avoid sudo for root installs, support Solaris cp options, report required
+  installer filesystem failures, and preserve custom-target configuration.
+- Preserve the pre-update ClamAV service state and surface stop, update, and
+  restart failures from manual freshclam execution.
+- Make reporting plugins surface executed-command failures while continuing
+  independent information collection.
+- Isolate sourced-component working variables and MongoDB locale state between
+  plugins without changing their operational order.
+- Document external-command status propagation in the affected component
+  headers instead of implying every nonzero result is a semantic 1.
+- Prepare administrator mail from a protected JOBLOG snapshot so conversion
+  and send failures are captured in JOBLOG without pipeline-status loss.
 - Correct the cron MAILTO description and align affected documentation with
   the implemented runtime behavior.
 

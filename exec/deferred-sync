@@ -56,17 +56,48 @@ setup() {
 }
 
 send_mail_to_admin() {
-    # Send job log to administrator (fall back if nkf is absent, report mail failures)
+    # Send job log to administrator from a protected snapshot (fall back if nkf
+    # is absent, report conversion and mail failures). All diagnostics stay in
+    # JOBLOG so nothing leaks to the terminal or cron output during normal runs.
     SUBJ="[cron][$(hostname)] Deferred Sync Log"
+    MAIL_BODY="${JOBLOG}.mail.$$"
+
+    if [ -e "$MAIL_BODY" ] || [ -L "$MAIL_BODY" ]; then
+        echo "[ERROR] Mail body temp path already exists: $MAIL_BODY" >>"$JOBLOG" 2>&1
+        return 1
+    fi
+
+    if ! (umask 077 && : >"$MAIL_BODY") 2>>"$JOBLOG"; then
+        echo "[ERROR] Failed to create mail body temp file: $MAIL_BODY" >>"$JOBLOG" 2>&1
+        return 1
+    fi
+
     if command -v nkf >/dev/null 2>&1; then
-        nkf -w <"$JOBLOG" | mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS"
+        nkf -w <"$JOBLOG" >"$MAIL_BODY" 2>>"$JOBLOG"
     else
-        mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS" <"$JOBLOG"
+        cat <"$JOBLOG" >"$MAIL_BODY" 2>>"$JOBLOG"
     fi
     st=$?
+    echo "[INFO] Return code is $st" >>"$JOBLOG" 2>&1
     if [ "$st" -ne 0 ]; then
-        echo "[ERROR] Failed to send mail to $ADMIN_MAIL_ADDRESS" >&2
+        echo "[ERROR] Failed to convert job log for mail" >>"$JOBLOG" 2>&1
+        rm -f "$MAIL_BODY"
+        return 1
     fi
+
+    mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS" <"$MAIL_BODY" >>"$JOBLOG" 2>&1
+    st=$?
+    echo "[INFO] Return code is $st" >>"$JOBLOG" 2>&1
+    if [ "$st" -ne 0 ]; then
+        echo "[ERROR] Failed to send mail to $ADMIN_MAIL_ADDRESS" >>"$JOBLOG" 2>&1
+    fi
+
+    if ! rm -f "$MAIL_BODY"; then
+        echo "[ERROR] Failed to remove mail body temp file: $MAIL_BODY (may still contain job log data)" >>"$JOBLOG" 2>&1
+        return 1
+    fi
+
+    [ "$st" -eq 0 ]
 }
 
 deferred_sync() {

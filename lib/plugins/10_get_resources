@@ -16,6 +16,11 @@
 #   - This script assumes it is running on a POSIX-compliant system.
 #   - `lsblk`, `lvs`, and `ip` must be installed to retrieve respective information.
 #   - `lsb_release` is optional and used when available.
+#
+# Behavior:
+#   - Missing optional reporting tools keep their existing skip behavior.
+#   - A reporting command that is executed but fails contributes semantic
+#     status 1; the remaining resource collection still runs.
 
 start_message() {
     printf -- "[INFO] Loading: get_resources has been loaded at "
@@ -23,38 +28,65 @@ start_message() {
 }
 
 get_resources() {
+    GET_RESOURCES_FAILED=0
+
     # Print kernel and system details
     echo "[INFO] Retrieving kernel and system information"
     uname -a
+    GET_RESOURCES_RC=$?
+    echo "[INFO] Return code is $GET_RESOURCES_RC"
+    [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
 
     # Prefer lsb_release output when available
     if command -v lsb_release >/dev/null 2>&1; then
         echo "[INFO] Retrieving distribution information using lsb_release"
         lsb_release -a
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
     fi
 
     # Always log /etc/debian_version if it exists (for minor version etc.)
     if [ -f /etc/debian_version ]; then
         echo "[INFO] Retrieving distribution version from /etc/debian_version"
         cat /etc/debian_version
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
     fi
 
     # Print system uptime and resource usage
     echo "[INFO] Retrieving system uptime"
     uptime
+    GET_RESOURCES_RC=$?
+    echo "[INFO] Return code is $GET_RESOURCES_RC"
+    [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
 
     echo "[INFO] Retrieving memory usage"
     free -t
+    GET_RESOURCES_RC=$?
+    echo "[INFO] Return code is $GET_RESOURCES_RC"
+    [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
 
     echo "[INFO] Retrieving disk usage"
     df -P -T
+    GET_RESOURCES_RC=$?
+    echo "[INFO] Return code is $GET_RESOURCES_RC"
+    [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
 
     # Retrieve block device and filesystem mapping
     if command -v lsblk > /dev/null 2>&1; then
         echo "[INFO] Retrieving block device mapping using lsblk"
         lsblk
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
+
         echo "[INFO] Retrieving filesystem information using lsblk -f"
         lsblk -f
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
     else
         echo "[WARN] lsblk command not found" >&2
     fi
@@ -63,6 +95,9 @@ get_resources() {
     if command -v lvs > /dev/null 2>&1; then
         echo "[INFO] Retrieving LVM logical volume mapping using lvs"
         lvs -o lv_name,vg_name,lv_size,devices
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
     else
         echo "[WARN] lvs command not found" >&2
     fi
@@ -71,11 +106,14 @@ get_resources() {
     if command -v ip > /dev/null 2>&1; then
         echo "[INFO] Retrieving network interface information using ip addr show"
         ip addr show
+        GET_RESOURCES_RC=$?
+        echo "[INFO] Return code is $GET_RESOURCES_RC"
+        [ "$GET_RESOURCES_RC" -ne 0 ] && GET_RESOURCES_FAILED=1
     else
         echo "[WARN] ip command not found" >&2
     fi
 
-    return 0
+    return $GET_RESOURCES_FAILED
 }
 
 main() {

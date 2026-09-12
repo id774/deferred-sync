@@ -73,6 +73,13 @@ path, since a relative path is rejected as an unknown option.
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
 
+`$TARGET/config/sync.conf` and `$TARGET/config/exclude.conf` under an explicit custom
+target are deployed configuration, the same as the standard installation's
+`/etc/opt/deferred-sync` files. Reinstalling to the same explicit target preserves their
+existing content instead of replacing it with the repository template. Regular
+(non-symlink) config files are deployed with mode `0640`; with `nosudo`, `--no-sudo`, or
+`-n`, they are owned by the current user and group instead of being recursively chowned.
+
 When run as root, the installer performs privileged operations directly and does not
 invoke `sudo`. When run as a non-root user without `nosudo`, `--no-sudo`, or `-n`, the
 installer uses `sudo` for those operations.
@@ -96,7 +103,9 @@ so `--link` is intended for the default installation path.
 
 If you want to specify an exact execution time, instead of relying on `cron.daily`, you can manually configure `cron.d` using the sample file provided in `cron/cron.d/deferred-sync`.
 
-After installation, edit the configuration file to customize its behavior.
+After installation, edit the configuration file to customize its behavior:
+`/etc/opt/deferred-sync/sync.conf` for a standard installation, or `$TARGET/config/sync.conf`
+for an explicit custom install target.
 
 ### Uninstallation
 
@@ -145,7 +154,7 @@ What matters before writing or enabling a plugin:
   reports a failing plugin as `[WARN]`, keeps the first nonzero status, and
   runs the rest. Required setup failures may stop the run as described in
   [Warn and Continue](doc/POLICY.md#32-warn-and-continue).
-- **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing, with the two documented wrappers propagating an external status. See [Return Codes](doc/POLICY.md#33-return-codes).
+- **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing; documented wrapper components may propagate an external command status as stated in their component headers. See [Return Codes](doc/POLICY.md#33-return-codes).
 - **A missing prerequisite is skipped, never created**, so that a failed mount cannot become a backup written to the wrong disk. See [Safety](doc/POLICY.md#4-safety).
 - **Log output** uses `[INFO]`, `[WARN]`, and `[ERROR]`, and stamps each phase with the time, because the log is read hours after the run. See [Logging](doc/POLICY.md#6-logging).
 

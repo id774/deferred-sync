@@ -12,6 +12,11 @@
 #
 # Note:
 #   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`.
+#
+# Behavior:
+#   - Missing optional software paths are skipped as before.
+#   - A version command that is executed but fails contributes semantic status 1;
+#     the remaining version checks still run.
 
 start_message() {
     printf -- "[INFO] Loading: show_version has been loaded at "
@@ -19,37 +24,57 @@ start_message() {
 }
 
 show_version() {
-    [ -x /opt/ruby/current/bin/ruby ] && {
+    SHOW_VERSION_FAILED=0
+
+    if [ -x /opt/ruby/current/bin/ruby ]; then
         echo "[INFO] Retrieving Ruby version"
         /opt/ruby/current/bin/ruby -v
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    [ -x /opt/python/current/bin/python ] && {
+    if [ -x /opt/python/current/bin/python ]; then
         echo "[INFO] Retrieving Python version"
         /opt/python/current/bin/python -V 2>&1
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    [ -x /opt/java/jdk/current/bin/java ] && {
+    if [ -x /opt/java/jdk/current/bin/java ]; then
         echo "[INFO] Retrieving Java version"
         /opt/java/jdk/current/bin/java -version
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    [ -x /opt/go/current/bin/go ] && {
+    if [ -x /opt/go/current/bin/go ]; then
         echo "[INFO] Retrieving Go version"
         /opt/go/current/bin/go version
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    [ -x /opt/mongo/current/bin/mongo ] && {
+    if [ -x /opt/mongo/current/bin/mongo ]; then
         echo "[INFO] Retrieving MongoDB version"
         /opt/mongo/current/bin/mongo --version
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    [ -x /opt/protobuf/current/bin/protoc ] && {
+    if [ -x /opt/protobuf/current/bin/protoc ]; then
         echo "[INFO] Retrieving Protocol Buffers version"
         /opt/protobuf/current/bin/protoc --version
-    }
+        SHOW_VERSION_RC=$?
+        echo "[INFO] Return code is $SHOW_VERSION_RC"
+        [ "$SHOW_VERSION_RC" -ne 0 ] && SHOW_VERSION_FAILED=1
+    fi
 
-    return 0
+    return $SHOW_VERSION_FAILED
 }
 
 main() {

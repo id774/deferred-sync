@@ -144,7 +144,9 @@ The current targets are:
 - MongoDB
 - Protocol Buffers
 
-If the corresponding executable does not exist, that software is skipped.
+If the corresponding executable does not exist, that software is skipped. If it exists and
+the version command that is executed fails, that failure contributes semantic status `1`
+and the remaining version checks still run.
 
 ### 6.2 `10_get_resources`
 
@@ -164,6 +166,10 @@ Its output can include:
 - Network-interface status
 
 Additional information is collected when commands such as `lsb_release`, `lsblk`, `lvs`, and `ip` are available.
+
+A missing optional reporting tool keeps its existing skip behavior. A reporting command that
+is executed but fails contributes semantic status `1`; the remaining resource collection
+still runs.
 
 ### 6.3 `11_server_alive_check`
 
@@ -195,6 +201,10 @@ Depending on which commands are available, it can report:
 - NVMe SMART information
 - Disk serial numbers
 
+A missing optional reporting tool keeps its existing skip behavior. A reporting command that
+is executed and ultimately fails (after any documented fallback) contributes semantic status
+`1`; the remaining hardware reporting still runs.
+
 ## 7. System Maintenance
 
 ### 7.1 `20_system_upgrade`
@@ -215,7 +225,11 @@ On Red Hat and CentOS systems it runs:
 
 If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`.
 
-If `freshclam` is available, the plugin also performs a ClamAV definition update.
+If `freshclam` is available, the plugin also performs a ClamAV definition update. When
+`systemctl` is available and the `clamav-freshclam` service is active, the service is
+stopped only for the duration of the manual update and restarted afterward; a service that
+was already inactive is left inactive. A failure to stop the service, the `freshclam` run
+itself, or the restart afterward is reflected in the plugin's return status.
 
 ### 7.2 `25_ubuntu_kernel_upgrade`
 
@@ -451,7 +465,11 @@ The standard return-status convention is:
 | 2 | Network unreachable | A remote host or network operation could not be reached |
 | 3 | Local prerequisite missing | A required directory, configuration value, or local environment is absent |
 
-Some wrapper plugins propagate external command statuses directly.
+Some wrapper components propagate external command statuses directly instead of remapping
+every failure to semantic status `1`; each affected component's header documents that local
+contract. The reporting plugins (`09_show_version`, `10_get_resources`,
+`15_get_hardware_info`) are not among them: they aggregate executed-command failures into
+semantic status `1` while continuing independent information collection.
 
 `11_server_alive_check` also uses the POSIX conventions:
 
@@ -485,11 +503,16 @@ The subject contains:
     [cron]
     hostname
 
-If `nkf` is available, it is used in the mail pipeline.
+The mail body is prepared from a protected snapshot of `JOBLOG` taken before conversion and
+sending begin, rather than reading `JOBLOG` again while those steps are in progress.
 
-If `nkf` is unavailable, the log is passed directly to `mail`.
+If `nkf` is available, it is used to convert the snapshot for the mail body.
 
-Mail delivery failure is reported as an error.
+If `nkf` is unavailable, the snapshot is passed directly to `mail`.
+
+A snapshot conversion failure or mail delivery failure is reported as an error in `JOBLOG`;
+neither is allowed to leak diagnostic output to the terminal or cron output during a normal
+run.
 
 ## 20. Installation Modes
 
@@ -511,6 +534,15 @@ Existing:
     /etc/opt/deferred-sync/exclude.conf
 
 are not overwritten during installation.
+
+A custom installation target also treats its own `config/sync.conf` and
+`config/exclude.conf` as deployed, host-specific configuration: reinstalling to the same
+explicit target preserves their existing content instead of replacing it with the
+repository template. A regular (non-symlink) deployed config file is mode `0640`; a
+preserved symlink is restored as a symlink without changing its external target. With
+`nosudo`, `--no-sudo`, or `-n`, these files are owned by the current user and group instead
+of being recursively chowned. Arbitrary other files placed under a custom target are not
+covered by this preservation.
 
 ## 21. Optional System Integration Links
 

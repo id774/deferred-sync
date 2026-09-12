@@ -174,9 +174,17 @@ written in rather than to be run.
   `31_dump_postgresql` wraps its dump in `( ... )`.
 - **Own your variable names.** POSIX `sh` has no `local`, so every name a
   plugin sets is visible to the next one. A name that reads like a general
-  word is a collision waiting to happen: `20_system_upgrade` uses `YUM_FAILED`
-  precisely because `FAILED` belonged to its caller. Name a working variable
-  after the plugin that owns it, or unset it before returning.
+  word is a collision waiting to happen. `lib/load` prefixes its own working
+  names with `LOAD_` (`LOAD_FAILED_STATUS`, `LOAD_PLUGIN`, `LOAD_STATUS`), and
+  each plugin prefixes its working names with a name specific to that plugin:
+  `20_system_upgrade` uses `SYSTEM_UPGRADE_FAILED` for its own aggregate and
+  the dedicated `SYSTEM_UPGRADE_YUM_FAILED` for the Red Hat/CentOS path so
+  that one does not overwrite the other. Name a working variable after the
+  plugin that owns it, or unset it before returning. When state genuinely
+  must stay temporary and not leak into later sourced components at all
+  (`32_dump_mongodb`'s `LANG`/`LC_ALL` override for the MongoDB dump), confine
+  the operation that sets it to a subshell instead of relying on naming and
+  cleanup alone.
 - **Depend only on the core.** `SCRIPT_HOME`, `JOBLOG`, `DATE`, and the keys
   of `sync.conf` are the interface. A variable another plugin happened to set
   is not, and a plugin must not be made to work by placing it after another
@@ -229,7 +237,19 @@ written in rather than to be run.
   when it exists but is not executable, and otherwise propagates the
   status of the target it runs.
 - The system-maintenance plugins may propagate the status of package
-  commands they execute.
+  commands they execute. Where a system-maintenance plugin stops a service
+  to run a manual updater against it, it restores the service's pre-update
+  active or inactive state afterward: a service that was active before the
+  update is restarted once the updater finishes, whether or not the update
+  itself succeeded, and a service found already inactive is left inactive.
+  A failure to stop the service is not followed by running the updater and
+  the daemon concurrently.
+- The reporting plugins (`09_show_version`, `10_get_resources`,
+  `15_get_hardware_info`) do not propagate a raw external status. A missing
+  optional tool is skipped as before, but a reporting command that is
+  actually executed and fails contributes semantic status `1` to that
+  plugin's aggregate result while the remaining independent information
+  collection continues.
 - A plugin that performs the same operation over a configured list
   continues through the list and returns a non-zero aggregate result
   rather than stopping at the first failed item.
@@ -346,8 +366,12 @@ written in rather than to be run.
 - The job runs as root, and that is not a licence to use it. A step that
   needs another identity asks for exactly that step, as `31_dump_postgresql`
   does with `sudo -u "$PG_USER"`.
-- Deployed configuration is `0640` and owned by root, because it holds
-  credentials. A plugin does not loosen a mode it did not set.
+- A regular (non-symlink) deployed configuration file is `0640`, because it
+  can hold credentials. A plugin does not loosen a mode it did not set. A
+  standard system installation's deployed configuration is owned by root; an
+  explicit custom target installed with `nosudo`, `--no-sudo`, or `-n` is
+  owned by the installing user and group instead, since that mode does not
+  invoke a privileged ownership change.
 
 ## 5. Configuration
 
@@ -356,8 +380,11 @@ templates for a new installation. A deployed system configuration is
 persistent host-specific runtime state.
 
 A standard system installation preserves an existing deployed
-configuration instead of replacing it on upgrade. New code must therefore
-remain compatible with established configuration keys and value semantics.
+configuration instead of replacing it on upgrade, and reinstalling to the
+same explicit custom target preserves that target's own deployed
+`config/sync.conf` and `config/exclude.conf` the same way. New code must
+therefore remain compatible with established configuration keys and value
+semantics.
 
 ### 5.1 A Key Is a Promise
 
@@ -392,9 +419,12 @@ It is sourced by a root shell. Whatever it contains, runs.
 ### 5.3 Host-Specific Logic Does Not Live in `lib/`
 
 - `install.sh` removes the target directory and redeploys `exec`, `config`,
-  and `lib` on every install. Only `/etc/opt/deferred-sync` survives an
-  upgrade. Anything edited under `lib/` is lost the next time the installer
-  runs.
+  and `lib` on every install. `/etc/opt/deferred-sync` survives an upgrade
+  for a standard installation, and an explicit custom target's own
+  `config/sync.conf` and `config/exclude.conf` are preserved and restored
+  around the same redeploy. Arbitrary other files placed under a custom
+  target are not covered by this preservation. Anything edited under `lib/`
+  is lost the next time the installer runs.
 - `lib/before` and `lib/after` are therefore examples of the shape a hook
   takes, not a place to keep one. A host that needs its own pre- or post-run
   logic keeps that script outside the installation target and points
@@ -449,6 +479,14 @@ start_message() {
   printed.
 - Name the plugin in its own messages, not the file's number. The number is an
   ordering device and may change; the name is what the operator configured.
+- Administrator mail preparation and sending are diagnosed the same way as
+  everything else: their `[INFO]`/`[ERROR]` status lines go to `JOBLOG`, not
+  to the terminal or cron output, during a normal run. A POSIX pipeline's
+  status reflects only its last command, so a mail step that both converts
+  and sends the log must not hide a conversion failure behind pipeline
+  status; check and log each step's own status. The mailed body may be a
+  stable snapshot of `JOBLOG` taken before the send begins, rather than
+  `JOBLOG` re-read at send time.
 
 ## 7. File Headers
 

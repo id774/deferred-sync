@@ -15,6 +15,11 @@
 #   - MYSQL_USER and MYSQL_PASS are passed to `mysqldump` on the command line,
 #     so the password may be visible in the process list to other local users.
 #     Use a MySQL option file (e.g. ~/.my.cnf) if that is a concern.
+#
+# Behavior:
+#   - A missing dump directory returns semantic status 3.
+#   - An executed dump/compression chain propagates its external command status;
+#     processing continues with the remaining configured databases.
 
 start_message() {
     printf -- "[INFO] Loading: dump_mysql has been loaded at "
@@ -40,17 +45,17 @@ get_mysqldump() {
       "$1" > "$MYSQLDUMP/$1.sql" \
       && gzip -f "$MYSQLDUMP/$1.sql"
 
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    MYSQL_DUMP_RC=$?
+    echo "[INFO] Return code is $MYSQL_DUMP_RC"
+    return $MYSQL_DUMP_RC
 }
 
 dump_mysql() {
-    FAILED=0
+    MYSQL_DUMP_FAILED=0
     for MYSQL_DB in $MYSQL_DBS; do
-        get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS" || FAILED=$?
+        get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS" || MYSQL_DUMP_FAILED=$?
     done
-    return $FAILED
+    return $MYSQL_DUMP_FAILED
 }
 
 main() {

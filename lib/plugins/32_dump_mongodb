@@ -12,6 +12,12 @@
 #
 # Note:
 #   - This script assumes that MongoDB authentication is handled via configuration.
+#
+# Behavior:
+#   - Missing local prerequisites return semantic status 3.
+#   - The dump/archive/cleanup chain propagates its external command status.
+#   - LANG and LC_ALL are set to C only inside this plugin's subshell, so that
+#     setting does not leak into plugins sourced afterward.
 
 start_message() {
     printf -- "[INFO] Loading: dump_mongodb has been loaded at "
@@ -23,9 +29,9 @@ get_mongodbdump() {
         printf -- "[WARN] Temp directory %s does not exist. Skipping.\n" "$MONGODBDUMP_PATH" >&2
         return 3
     fi
-    PARENT_DIR=$(dirname "$MONGODBDUMP")
-    if [ ! -d "$PARENT_DIR" ]; then
-        printf -- "[WARN] Parent directory %s does not exist. Skipping.\n" "$PARENT_DIR" >&2
+    MONGODB_DUMP_PARENT_DIR=$(dirname "$MONGODBDUMP")
+    if [ ! -d "$MONGODB_DUMP_PARENT_DIR" ]; then
+        printf -- "[WARN] Parent directory %s does not exist. Skipping.\n" "$MONGODB_DUMP_PARENT_DIR" >&2
         return 3
     fi
 
@@ -40,18 +46,19 @@ get_mongodbdump() {
       && zip -r "$MONGODBDUMP" "$MONGODBDUMP_PATH/" \
       && rm -rf "$MONGODBDUMP_PATH"/*
 
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    MONGODB_DUMP_RC=$?
+    echo "[INFO] Return code is $MONGODB_DUMP_RC"
+    return $MONGODB_DUMP_RC
 }
 
-dump_mongodb() {
+# Confine the MongoDB dump operation, including its LANG/LC_ALL override, to a
+# subshell so neither leaks into plugins sourced after this one.
+dump_mongodb() (
     LANG=C
     LC_ALL=C
 
     get_mongodbdump
-    return $?
-}
+)
 
 main() {
     start_message

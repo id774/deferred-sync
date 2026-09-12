@@ -17,6 +17,11 @@
 #   - This script assumes that SSH authentication is configured via SSH keys.
 #   - No ping or other independent network/security probe gates the transfer;
 #     rsync/SSH is attempted directly and its own status is returned.
+#
+# Behavior:
+#   - A missing local backup directory returns semantic status 3.
+#   - Each attempted rsync propagates its external status; remaining configured
+#     remote hosts are still processed.
 
 start_message() {
     printf -- "[INFO] Loading: backup_to_remote has been loaded at "
@@ -24,22 +29,22 @@ start_message() {
 }
 
 mirror_to_remote() {
-    OPTS="-avz --delete -e ssh"
+    BACKUP_TO_REMOTE_OPTS="-avz --delete -e ssh"
 
-    [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
+    [ "$DRY_RUN" = "true" ] && BACKUP_TO_REMOTE_OPTS="$BACKUP_TO_REMOTE_OPTS --dry-run"
 
     printf -- "[INFO] Executing: backup to remote at "
     date "+%Y/%m/%d %T"
 
     if [ -d "$BACKUPTO" ]; then
-        printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
+        printf -- "[INFO] rsync %s %s %s@%s:%s\n" "$BACKUP_TO_REMOTE_OPTS" "$BACKUPTO" "$BACKUPUSER" "$1" "$2"
         # Do not gate rsync on ping or other independent network/security probes.
         # Network policy must not block an otherwise valid rsync/SSH transfer.
-        rsync $OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
-        RC=$?
+        rsync $BACKUP_TO_REMOTE_OPTS "$BACKUPTO" "$BACKUPUSER@$1:$2"
+        BACKUP_TO_REMOTE_RC=$?
 
-        echo "[INFO] Return code is $RC"
-        return $RC
+        echo "[INFO] Return code is $BACKUP_TO_REMOTE_RC"
+        return $BACKUP_TO_REMOTE_RC
     else
         printf -- "[WARN] Backup directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
         return 3
@@ -47,11 +52,11 @@ mirror_to_remote() {
 }
 
 backup_to_remote() {
-    FAILED=0
-    for REMOTE_HOST in $REMOTE_HOSTS; do
-        mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR" || FAILED=$?
+    BACKUP_TO_REMOTE_FAILED=0
+    for BACKUP_TO_REMOTE_HOST in $REMOTE_HOSTS; do
+        mirror_to_remote "$BACKUP_TO_REMOTE_HOST" "$REMOTE_DIR" || BACKUP_TO_REMOTE_FAILED=$?
     done
-    return $FAILED
+    return $BACKUP_TO_REMOTE_FAILED
 }
 
 main() {

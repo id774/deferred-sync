@@ -12,6 +12,12 @@
 #
 # Note:
 #   - This script assumes that the system is connected to the internet and package managers are configured correctly.
+#
+# Behavior:
+#   - Package-manager and freshclam operations can propagate external command
+#     statuses instead of remapping every failure to semantic status 1.
+#   - An active clamav-freshclam service is stopped only for the manual update
+#     and is restarted afterward; an initially inactive service stays inactive.
 
 start_message() {
     printf -- "[INFO] Loading: system_upgrade has been loaded at "
@@ -30,30 +36,30 @@ update_debian_or_ubuntu() {
       apt-get autoclean && \
       apt-get -y autoremove
 
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    SYSTEM_UPGRADE_RC=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+    return $SYSTEM_UPGRADE_RC
 }
 
 update_redhat_or_centos() {
-    # Use a dedicated name so the caller's FAILED is not overwritten
-    YUM_FAILED=0
+    # Use a dedicated name so the caller's SYSTEM_UPGRADE_FAILED is not overwritten
+    SYSTEM_UPGRADE_YUM_FAILED=0
     [ -f /etc/yum.conf ] && cat /etc/yum.conf
 
     printf -- "[INFO] Executing: yum update at "
     date "+%Y/%m/%d %T"
 
     yum -y update && yum clean all
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    [ "$RC" -ne 0 ] && YUM_FAILED=$RC
+    SYSTEM_UPGRADE_RC=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+    [ "$SYSTEM_UPGRADE_RC" -ne 0 ] && SYSTEM_UPGRADE_YUM_FAILED=$SYSTEM_UPGRADE_RC
 
     if command -v package-cleanup >/dev/null 2>&1; then
         if [ -n "${OLDKERNELS_COUNT:-}" ]; then
             package-cleanup -y --oldkernels --count "$OLDKERNELS_COUNT"
-            RC=$?
-            echo "[INFO] Return code is $RC"
-            [ "$RC" -ne 0 ] && [ "$YUM_FAILED" -eq 0 ] && YUM_FAILED=$RC
+            SYSTEM_UPGRADE_RC=$?
+            echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+            [ "$SYSTEM_UPGRADE_RC" -ne 0 ] && [ "$SYSTEM_UPGRADE_YUM_FAILED" -eq 0 ] && SYSTEM_UPGRADE_YUM_FAILED=$SYSTEM_UPGRADE_RC
         else
             echo "[WARN] OLDKERNELS_COUNT is not set skipping old kernel cleanup" >&2
         fi
@@ -61,43 +67,74 @@ update_redhat_or_centos() {
         echo "[WARN] package-cleanup command not found skipping old kernel cleanup" >&2
     fi
 
-    return $YUM_FAILED
+    return $SYSTEM_UPGRADE_YUM_FAILED
 }
 
-freshclam_manually(){
-    if command -v systemctl >/dev/null 2>&1; then
-        systemctl stop clamav-freshclam.service
-    else
+# Stop an active clamav-freshclam service for the manual update only, run
+# freshclam, and restart the service afterward so its pre-update active or
+# inactive state is preserved either way.
+freshclam_manually() {
+    if ! command -v systemctl >/dev/null 2>&1; then
         echo "[WARN] systemctl not found skipping service stop start around freshclam" >&2
+
+        printf -- "[INFO] Executing: freshclam at "
+        date "+%Y/%m/%d %T"
+        freshclam
+        SYSTEM_UPGRADE_RC=$?
+        echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+        return $SYSTEM_UPGRADE_RC
+    fi
+
+    systemctl is-active --quiet clamav-freshclam.service
+    SYSTEM_UPGRADE_FRESHCLAM_ACTIVE=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_FRESHCLAM_ACTIVE"
+
+    if [ "$SYSTEM_UPGRADE_FRESHCLAM_ACTIVE" -ne 0 ]; then
+        printf -- "[INFO] Executing: freshclam at "
+        date "+%Y/%m/%d %T"
+        freshclam
+        SYSTEM_UPGRADE_RC=$?
+        echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+        return $SYSTEM_UPGRADE_RC
+    fi
+
+    systemctl stop clamav-freshclam.service
+    SYSTEM_UPGRADE_RC=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_RC"
+    if [ "$SYSTEM_UPGRADE_RC" -ne 0 ]; then
+        return $SYSTEM_UPGRADE_RC
     fi
 
     printf -- "[INFO] Executing: freshclam at "
     date "+%Y/%m/%d %T"
     freshclam
-    RC=$?
-    echo "[INFO] Return code is $RC"
+    SYSTEM_UPGRADE_FRESHCLAM_RC=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_FRESHCLAM_RC"
 
-    if command -v systemctl >/dev/null 2>&1; then
-        systemctl start clamav-freshclam.service
+    systemctl start clamav-freshclam.service
+    SYSTEM_UPGRADE_FRESHCLAM_START_RC=$?
+    echo "[INFO] Return code is $SYSTEM_UPGRADE_FRESHCLAM_START_RC"
+
+    if [ "$SYSTEM_UPGRADE_FRESHCLAM_RC" -ne 0 ]; then
+        return $SYSTEM_UPGRADE_FRESHCLAM_RC
     fi
-
-    return $RC
+    return $SYSTEM_UPGRADE_FRESHCLAM_START_RC
 }
 
 system_upgrade() {
-    FAILED=0
+    SYSTEM_UPGRADE_FAILED=0
     if [ -f /etc/debian_version ]; then
-        update_debian_or_ubuntu || FAILED=$?
+        update_debian_or_ubuntu || SYSTEM_UPGRADE_FAILED=$?
     fi
     if [ -f /etc/redhat-release ]; then
-        update_redhat_or_centos || FAILED=$?
+        update_redhat_or_centos || SYSTEM_UPGRADE_FAILED=$?
     fi
 
     if command -v freshclam > /dev/null 2>&1; then
-        freshclam_manually || FAILED=$?
+        freshclam_manually || SYSTEM_UPGRADE_FAILED=$?
     fi
 
-    return $FAILED
+    return $SYSTEM_UPGRADE_FAILED
 }
 
 main() {

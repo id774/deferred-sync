@@ -10,6 +10,10 @@
 #
 # Note:
 #   - This script assumes that authentication is handled via ~/.pgpass
+#
+# Behavior:
+#   - Missing local prerequisites return semantic status 3.
+#   - The dump subshell propagates its external command status.
 
 start_message() {
     printf -- "[INFO] Loading: dump_postgresql has been loaded at "
@@ -44,9 +48,9 @@ dump_postgresql() {
         sudo -u "$PG_USER" sh -c "pg_dumpall -c > 'all.dump' && gzip -f 'all.dump'"
     )
 
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    POSTGRESQL_DUMP_RC=$?
+    echo "[INFO] Return code is $POSTGRESQL_DUMP_RC"
+    return $POSTGRESQL_DUMP_RC
 }
 
 main() {

@@ -12,6 +12,11 @@
 #
 # Note:
 #   - This script assumes that the `svnadmin dump` command is available and has the necessary permissions.
+#
+# Behavior:
+#   - Missing local prerequisites return semantic status 3.
+#   - An executed dump/archive/cleanup chain propagates its external command
+#     status; processing continues with the remaining configured repositories.
 
 start_message() {
     printf -- "[INFO] Loading: dump_svn has been loaded at "
@@ -41,17 +46,17 @@ get_svndump() {
       && zip "$SVNDUMP/$1.zip" "$SVNDUMP/$1.dump" \
       && rm "$SVNDUMP/$1.dump"
 
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    SVN_DUMP_RC=$?
+    echo "[INFO] Return code is $SVN_DUMP_RC"
+    return $SVN_DUMP_RC
 }
 
 dump_svn() {
-    FAILED=0
+    SVN_DUMP_FAILED=0
     for SVN_REPO in $SVN_REPOS; do
-        get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO" || FAILED=$?
+        get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO" || SVN_DUMP_FAILED=$?
     done
-    return $FAILED
+    return $SVN_DUMP_FAILED
 }
 
 main() {

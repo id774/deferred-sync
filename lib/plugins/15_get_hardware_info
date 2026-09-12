@@ -13,6 +13,11 @@
 #   - This script assumes it is running on a POSIX-compliant system.
 #   - `dmidecode`, `acpi`, `smartctl`, `udevadm`, `resolvectl`,
 #     and `nmcli` are used when available.
+#
+# Behavior:
+#   - Missing optional reporting tools keep their existing skip behavior.
+#   - A reporting command that is executed and ultimately fails contributes
+#     semantic status 1; remaining hardware reporting still runs.
 
 start_message() {
     printf -- "[INFO] Loading: get_hardware_info has been loaded at "
@@ -26,13 +31,16 @@ has_command() {
 
 # Execute command with info log
 exec_with_info() {
-    CMD="$1"
-    MESSAGE="$2"
+    HARDWARE_INFO_CMD="$1"
+    HARDWARE_INFO_MESSAGE="$2"
     shift 2
 
-    if has_command "$CMD"; then
-        echo "[INFO] $MESSAGE"
-        "$CMD" "$@" 2>/dev/null
+    if has_command "$HARDWARE_INFO_CMD"; then
+        echo "[INFO] $HARDWARE_INFO_MESSAGE"
+        "$HARDWARE_INFO_CMD" "$@" 2>/dev/null
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
     fi
 }
 
@@ -43,9 +51,15 @@ show_dns_info() {
     if has_command nmcli; then
         echo "[INFO] Showing NetworkManager device status using nmcli"
         nmcli device show 2>/dev/null
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
 
         echo "[INFO] Showing NetworkManager connection profiles using nmcli"
         nmcli connection show 2>/dev/null
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
     fi
 
     exec_with_info resolvectl \
@@ -56,10 +70,60 @@ show_dns_info() {
         if has_command readlink; then
             echo "[INFO] Showing /etc/resolv.conf target"
             readlink -f /etc/resolv.conf 2>/dev/null
+            HARDWARE_INFO_RC=$?
+            echo "[INFO] Return code is $HARDWARE_INFO_RC"
+            [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
         fi
 
         echo "[INFO] Showing /etc/resolv.conf contents"
         cat /etc/resolv.conf 2>/dev/null
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
+    fi
+}
+
+# Resolve the serial number of a device via udevadm, tracking failures
+resolve_device_serial() {
+    if has_command udevadm; then
+        HARDWARE_INFO_UDEV_OUTPUT=$(
+            udevadm info --query=all --name="$HARDWARE_INFO_DEVICE" 2>/dev/null
+        )
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        if [ "$HARDWARE_INFO_RC" -ne 0 ]; then
+            HARDWARE_INFO_FAILED=1
+            HARDWARE_INFO_SERIAL=
+        else
+            HARDWARE_INFO_SERIAL=$(
+                printf '%s\n' "$HARDWARE_INFO_UDEV_OUTPUT" |
+                    sed -n 's/^E: ID_SERIAL_SHORT=//p'
+            )
+            HARDWARE_INFO_RC=$?
+            echo "[INFO] Return code is $HARDWARE_INFO_RC"
+            [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
+        fi
+    else
+        HARDWARE_INFO_SERIAL=
+    fi
+}
+
+# Run smartctl with the given mode option, falling back to the default mode
+# on failure. The first attempt's failure alone does not count as a final
+# reporting failure; only an also-failing fallback does.
+probe_smart_device() {
+    HARDWARE_INFO_SMART_MODE="$1"
+
+    echo "[INFO] Attempting smartctl -a -d $HARDWARE_INFO_SMART_MODE $HARDWARE_INFO_DEVICE"
+    smartctl -a -d "$HARDWARE_INFO_SMART_MODE" "$HARDWARE_INFO_DEVICE"
+    HARDWARE_INFO_RC=$?
+    echo "[INFO] Return code is $HARDWARE_INFO_RC"
+    if [ "$HARDWARE_INFO_RC" -ne 0 ]; then
+        echo "[INFO] -d $HARDWARE_INFO_SMART_MODE failed for $HARDWARE_INFO_DEVICE, falling back to default"
+        smartctl -a "$HARDWARE_INFO_DEVICE"
+        HARDWARE_INFO_RC=$?
+        echo "[INFO] Return code is $HARDWARE_INFO_RC"
+        [ "$HARDWARE_INFO_RC" -ne 0 ] && HARDWARE_INFO_FAILED=1
     fi
 }
 
@@ -72,49 +136,27 @@ show_smart_info() {
     echo "[INFO] Checking SMART status for available disks"
 
     # Check SATA and SCSI devices
-    for DEVICE in /dev/sd[a-f]; do
-        if [ -b "$DEVICE" ]; then
-            if has_command udevadm; then
-                SERIAL=$(
-                    udevadm info --query=all --name="$DEVICE" 2>/dev/null |
-                        sed -n 's/^E: ID_SERIAL_SHORT=//p'
-                )
-            else
-                SERIAL=
-            fi
-
-            echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
-            echo "[INFO] Attempting smartctl -a -d sat $DEVICE"
-            if ! smartctl -a -d sat "$DEVICE"; then
-                echo "[INFO] -d sat failed for $DEVICE, falling back to default"
-                smartctl -a "$DEVICE"
-            fi
+    for HARDWARE_INFO_DEVICE in /dev/sd[a-f]; do
+        if [ -b "$HARDWARE_INFO_DEVICE" ]; then
+            resolve_device_serial
+            echo "[INFO] Device: $HARDWARE_INFO_DEVICE Serial: ${HARDWARE_INFO_SERIAL:-N/A}"
+            probe_smart_device sat
         fi
     done
 
     # Check NVMe devices
-    for DEVICE in /dev/nvme[0-9]n[0-9]; do
-        if [ -b "$DEVICE" ]; then
-            if has_command udevadm; then
-                SERIAL=$(
-                    udevadm info --query=all --name="$DEVICE" 2>/dev/null |
-                        sed -n 's/^E: ID_SERIAL_SHORT=//p'
-                )
-            else
-                SERIAL=
-            fi
-
-            echo "[INFO] Device: $DEVICE Serial: ${SERIAL:-N/A}"
-            echo "[INFO] Attempting smartctl -a -d nvme $DEVICE"
-            if ! smartctl -a -d nvme "$DEVICE"; then
-                echo "[INFO] -d nvme failed for $DEVICE, falling back to default"
-                smartctl -a "$DEVICE"
-            fi
+    for HARDWARE_INFO_DEVICE in /dev/nvme[0-9]n[0-9]; do
+        if [ -b "$HARDWARE_INFO_DEVICE" ]; then
+            resolve_device_serial
+            echo "[INFO] Device: $HARDWARE_INFO_DEVICE Serial: ${HARDWARE_INFO_SERIAL:-N/A}"
+            probe_smart_device nvme
         fi
     done
 }
 
 get_hardware_info() {
+    HARDWARE_INFO_FAILED=0
+
     exec_with_info dmidecode \
         "Retrieving system information using dmidecode" \
         --type system
@@ -129,7 +171,7 @@ get_hardware_info() {
     show_dns_info
     show_smart_info
 
-    return 0
+    return $HARDWARE_INFO_FAILED
 }
 
 main() {

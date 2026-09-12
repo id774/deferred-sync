@@ -25,7 +25,7 @@
 #   2 - Network unreachable
 #   3 - Local prerequisite missing (directory, config)
 
-FAILED_STATUS=0  # keep first non-zero plugin status
+LOAD_FAILED_STATUS=0  # keep first non-zero plugin status
 
 # Load a specific plugin by name
 load_plugin() {
@@ -43,17 +43,17 @@ load_plugin() {
 
         if [ "$LOAD_MATCH_COUNT" -eq 0 ]; then
             echo "[WARN] Plugin selector '$LOAD_SELECTOR' matched no readable plugin" >&2
-            [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=3
+            [ "$LOAD_FAILED_STATUS" -eq 0 ] && LOAD_FAILED_STATUS=3
         elif [ "$LOAD_MATCH_COUNT" -eq 1 ]; then
             . "$LOAD_MATCHED_PLUGIN"
             LOAD_STATUS=$?
             [ "$LOAD_STATUS" -ne 0 ] && {
                 echo "[WARN] Plugin: $LOAD_MATCHED_PLUGIN exited with status $LOAD_STATUS" >&2
-                [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$LOAD_STATUS
+                [ "$LOAD_FAILED_STATUS" -eq 0 ] && LOAD_FAILED_STATUS=$LOAD_STATUS
             }
         else
             echo "[WARN] Plugin selector '$LOAD_SELECTOR' matched multiple readable plugins" >&2
-            [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=3
+            [ "$LOAD_FAILED_STATUS" -eq 0 ] && LOAD_FAILED_STATUS=3
         fi
 
         unset LOAD_SELECTOR LOAD_MATCH_COUNT LOAD_MATCHED_PLUGIN LOAD_CANDIDATE LOAD_STATUS
@@ -68,16 +68,17 @@ load_plugins_by_config() {
 
 # Load all available plugins
 load_plugins_all() {
-    for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
-        if [ -r "$PLUGIN" ] && [ -f "$PLUGIN" ]; then
-            . "$PLUGIN"
-            st=$?
-            [ "$st" -ne 0 ] && {
-                echo "[WARN] Plugin: $PLUGIN exited with status $st" >&2
-                [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
+    for LOAD_PLUGIN in "$SCRIPT_HOME/lib/plugins/"*; do
+        if [ -r "$LOAD_PLUGIN" ] && [ -f "$LOAD_PLUGIN" ]; then
+            . "$LOAD_PLUGIN"
+            LOAD_STATUS=$?
+            [ "$LOAD_STATUS" -ne 0 ] && {
+                echo "[WARN] Plugin: $LOAD_PLUGIN exited with status $LOAD_STATUS" >&2
+                [ "$LOAD_FAILED_STATUS" -eq 0 ] && LOAD_FAILED_STATUS=$LOAD_STATUS
             }
         fi
     done
+    unset LOAD_PLUGIN LOAD_STATUS
 }
 
 # Determine which plugins to load based on configuration
@@ -87,7 +88,7 @@ load_plugins() {
     else
         load_plugins_by_config
     fi
-    return ${FAILED_STATUS:-0}
+    return ${LOAD_FAILED_STATUS:-0}
 }
 
 # Execute plugin loading

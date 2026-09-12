@@ -33,7 +33,8 @@
 #
 #  Version History:
 #  v3.4 2026-09-12
-#       Avoid sudo for root, support Solaris cp, and report filesystem failures.
+#       Avoid sudo for root, support Solaris cp, report filesystem failures,
+#       and preserve explicit-target configuration across reinstalls.
 #  v3.3 2026-08-23
 #       Improve installer portability and prerequisite command validation.
 #  v3.2 2026-07-28
@@ -171,6 +172,94 @@ deploy_to_target() {
         exit 1
     fi
     deploy exec config lib
+}
+
+# For an explicit custom target, save the deployed sync.conf/exclude.conf
+# (host-specific runtime configuration) before deploy_to_target removes and
+# recreates $TARGET, so a reinstall to the same target does not lose them.
+preserve_custom_config() {
+    [ "$CUSTOM_TARGET" -eq 1 ] || return 0
+    [ -d "$TARGET/config" ] || return 0
+
+    CONFIG_PRESERVE_DIR="${TARGET}.config-preserve.$$"
+
+    if [ -e "$CONFIG_PRESERVE_DIR" ] || [ -L "$CONFIG_PRESERVE_DIR" ]; then
+        echo "[ERROR] Configuration preserve path already exists: $CONFIG_PRESERVE_DIR" >&2
+        exit 1
+    fi
+
+    if ! $SUDO mkdir -m 0700 "$CONFIG_PRESERVE_DIR"; then
+        echo "[ERROR] Failed to create configuration preserve directory: $CONFIG_PRESERVE_DIR" >&2
+        exit 1
+    fi
+
+    for conf in sync.conf exclude.conf; do
+        src="$TARGET/config/$conf"
+
+        if [ -L "$src" ]; then
+            if ! $SUDO cp -P "$src" "$CONFIG_PRESERVE_DIR/$conf"; then
+                echo "[ERROR] Failed to preserve symlink $src." >&2
+                exit 1
+            fi
+        elif [ -f "$src" ]; then
+            if ! $SUDO cp -p "$src" "$CONFIG_PRESERVE_DIR/$conf"; then
+                echo "[ERROR] Failed to preserve configuration file $src." >&2
+                exit 1
+            fi
+        elif [ -e "$src" ]; then
+            echo "[ERROR] $src is neither a regular file nor a symlink; refusing to reinstall." >&2
+            exit 1
+        fi
+    done
+}
+
+# Restore configuration preserved by preserve_custom_config() into the freshly
+# deployed $TARGET/config, then secure regular config files with mode 0640.
+# A preserved symlink is restored as a symlink; its external target is not
+# chmod'd or chown'd.
+restore_custom_config() {
+    [ "$CUSTOM_TARGET" -eq 1 ] || return 0
+
+    for conf in sync.conf exclude.conf; do
+        deployed="$TARGET/config/$conf"
+        preserved="${CONFIG_PRESERVE_DIR:-}/$conf"
+
+        if [ -n "$CONFIG_PRESERVE_DIR" ] && { [ -e "$preserved" ] || [ -L "$preserved" ]; }; then
+            if [ -L "$preserved" ]; then
+                if ! $SUDO rm -f "$deployed" || ! $SUDO cp -P "$preserved" "$deployed"; then
+                    echo "[ERROR] Failed to restore symlink $deployed." >&2
+                    echo "[ERROR] Preserved configuration remains at $CONFIG_PRESERVE_DIR for manual recovery." >&2
+                    exit 1
+                fi
+                continue
+            fi
+            if ! $SUDO cp -p "$preserved" "$deployed"; then
+                echo "[ERROR] Failed to restore configuration file $deployed." >&2
+                echo "[ERROR] Preserved configuration remains at $CONFIG_PRESERVE_DIR for manual recovery." >&2
+                exit 1
+            fi
+        fi
+
+        if [ -f "$deployed" ] && [ ! -L "$deployed" ]; then
+            if ! $SUDO chmod 0640 "$deployed"; then
+                echo "[ERROR] Failed to set permissions on $deployed." >&2
+                echo "[ERROR] Preserved configuration remains at $CONFIG_PRESERVE_DIR for manual recovery." >&2
+                exit 1
+            fi
+        fi
+    done
+}
+
+# Remove the configuration preserve directory once restore has fully
+# succeeded. Left in place on any earlier failure so the host is recoverable.
+cleanup_custom_config_preserve() {
+    [ -n "$CONFIG_PRESERVE_DIR" ] || return 0
+    [ -d "$CONFIG_PRESERVE_DIR" ] || return 0
+
+    if ! $SUDO rm -rf "$CONFIG_PRESERVE_DIR"; then
+        echo "[ERROR] Failed to remove configuration preserve directory: $CONFIG_PRESERVE_DIR" >&2
+        exit 1
+    fi
 }
 
 # Install cron job and copy configuration files to /etc/opt/deferred-sync with proper permissions
@@ -350,10 +439,21 @@ set_permission() {
 install() {
     check_commands cp mkdir chmod chown ln rm id dirname uname touch
     set_environment "$1" "$2"
+
+    if [ -n "$1" ]; then
+        CUSTOM_TARGET=1
+    else
+        CUSTOM_TARGET=0
+    fi
+    CONFIG_PRESERVE_DIR=""
+
+    preserve_custom_config
     deploy_to_target
+    restore_custom_config
     [ -n "$1" ] || setup_cron
     [ -n "$2" ] || set_permission
     [ "$3" = "1" ] && link_configs_to_etc
+    cleanup_custom_config_preserve
     echo "[INFO] deferred-sync installation completed successfully."
 }
 

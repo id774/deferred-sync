@@ -17,6 +17,11 @@
 #   - This script assumes that `rsync` is installed and available.
 #   - An existing but unreadable EXCLUDEFILE skips the backup with a warning
 #     rather than running rsync without the intended exclusions.
+#
+# Behavior:
+#   - Local prerequisite failures return semantic status 3.
+#   - Retention removal and rsync failures propagate the external command
+#     status; rsync processing continues across configured backup sources.
 
 DATE=${DATE:-$(date +%Y%m%d)}
 
@@ -27,10 +32,10 @@ start_message() {
 
 purge_expire_dir() {
     while [ "$#" -gt 0 ]; do
-        BDATE=${1##*_backup_}
-        EXPIREDATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
+        INCREMENTAL_BACKUP_ENTRY_DATE=${1##*_backup_}
+        INCREMENTAL_BACKUP_EXPIRE_DATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
 
-        if [ "$BDATE" -le "$EXPIREDATE" ]; then
+        if [ "$INCREMENTAL_BACKUP_ENTRY_DATE" -le "$INCREMENTAL_BACKUP_EXPIRE_DATE" ]; then
             printf -- "deleting %s/%s\n" "$BACKUPTO" "$1"
             rm -rf "$BACKUPTO/$1" || return $?
         fi
@@ -43,23 +48,23 @@ purge_expires() {
     printf -- "[INFO] Deleting old backup directories at "
     date "+%Y/%m/%d %T"
 
-    for DIR in "$BACKUPTO"/*_backup_*; do
-        [ -e "$DIR" ] || continue
-        purge_expire_dir "$(basename "$DIR")" || return $?
+    for INCREMENTAL_BACKUP_DIR in "$BACKUPTO"/*_backup_*; do
+        [ -e "$INCREMENTAL_BACKUP_DIR" ] || continue
+        purge_expire_dir "$(basename "$INCREMENTAL_BACKUP_DIR")" || return $?
     done
     return 0
 }
 
 rsync_options() {
-    OPTS="--force --delete-excluded \
+    INCREMENTAL_BACKUP_OPTS="--force --delete-excluded \
       --delete --backup \
       --backup-dir=$BACKUPTO/_backup_$DATE \
       -av"
 
     if [ -f "$EXCLUDEFILE" ]; then
-        OPTS="$OPTS --exclude-from=/dev/stdin"
+        INCREMENTAL_BACKUP_OPTS="$INCREMENTAL_BACKUP_OPTS --exclude-from=/dev/stdin"
     fi
-    [ "$DRY_RUN" = "true" ] && OPTS="$OPTS --dry-run"
+    [ "$DRY_RUN" = "true" ] && INCREMENTAL_BACKUP_OPTS="$INCREMENTAL_BACKUP_OPTS --dry-run"
     return 0
 }
 
@@ -73,20 +78,20 @@ exec_rsync() {
         return 3
     fi
 
-    FAILED=0
-    for BACKUPDIR in $BACKUPDIRS; do
-        printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
+    INCREMENTAL_BACKUP_FAILED=0
+    for INCREMENTAL_BACKUP_SOURCE in $BACKUPDIRS; do
+        printf -- "[INFO] rsync %s %s %s\n" "$INCREMENTAL_BACKUP_OPTS" "$INCREMENTAL_BACKUP_SOURCE" "$BACKUPTO"
         if [ -f "$EXCLUDEFILE" ]; then
             # Strip blank lines and pipe the rest to --exclude-from=/dev/stdin, which skips # lines
-            grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+            grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $INCREMENTAL_BACKUP_OPTS "$INCREMENTAL_BACKUP_SOURCE" "$BACKUPTO"
         else
-            rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
+            rsync $INCREMENTAL_BACKUP_OPTS "$INCREMENTAL_BACKUP_SOURCE" "$BACKUPTO"
         fi
-        RC=$?
-        echo "[INFO] Return code is $RC"
-        [ $RC -ne 0 ] && FAILED=$RC
+        INCREMENTAL_BACKUP_RC=$?
+        echo "[INFO] Return code is $INCREMENTAL_BACKUP_RC"
+        [ "$INCREMENTAL_BACKUP_RC" -ne 0 ] && INCREMENTAL_BACKUP_FAILED=$INCREMENTAL_BACKUP_RC
     done
-    return $FAILED
+    return $INCREMENTAL_BACKUP_FAILED
 }
 
 run_rsync() {

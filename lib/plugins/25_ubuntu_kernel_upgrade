@@ -8,6 +8,10 @@
 #
 # Note:
 #   - This script assumes that the system is running Ubuntu and has internet access.
+#
+# Behavior:
+#   - Missing local prerequisites return semantic status 3.
+#   - Executed apt-get operations propagate their external command status.
 
 start_message() {
     printf -- "[INFO] Loading: ubuntu_kernel_upgrade has been loaded at "
@@ -16,20 +20,20 @@ start_message() {
 
 # Return last command status
 purge_old_kernels() {
-    CURKERNEL=$(uname -r | sed 's/-*[a-z]//g' | sed 's/-386//g')
-    LINUXPKG="linux-(image|headers|ubuntu-modules|restricted-modules)"
-    METALINUXPKG="linux-(image|headers|restricted-modules)-(generic|i386|server|common|rt|xen)"
+    UBUNTU_KERNEL_CURRENT=$(uname -r | sed 's/-*[a-z]//g' | sed 's/-386//g')
+    UBUNTU_KERNEL_PACKAGE_PATTERN="linux-(image|headers|ubuntu-modules|restricted-modules)"
+    UBUNTU_KERNEL_META_PATTERN="linux-(image|headers|restricted-modules)-(generic|i386|server|common|rt|xen)"
 
-    OLDKERNELS=$(dpkg -l | awk '{print $2}' | grep -E "$LINUXPKG" | grep -vE "$METALINUXPKG" | grep -v "$CURKERNEL")
+    UBUNTU_KERNEL_OLD_PACKAGES=$(dpkg -l | awk '{print $2}' | grep -E "$UBUNTU_KERNEL_PACKAGE_PATTERN" | grep -vE "$UBUNTU_KERNEL_META_PATTERN" | grep -v "$UBUNTU_KERNEL_CURRENT")
 
-    if [ -n "$OLDKERNELS" ]; then
+    if [ -n "$UBUNTU_KERNEL_OLD_PACKAGES" ]; then
         printf -- "[INFO] Executing: apt-get purge at "
         date "+%Y/%m/%d %T"
 
-        apt-get -y purge $OLDKERNELS
-        RC=$?
-        echo "[INFO] Return code is $RC"
-        return $RC
+        apt-get -y purge $UBUNTU_KERNEL_OLD_PACKAGES
+        UBUNTU_KERNEL_RC=$?
+        echo "[INFO] Return code is $UBUNTU_KERNEL_RC"
+        return $UBUNTU_KERNEL_RC
     else
         echo "[INFO] No old kernels to remove."
         return 0
@@ -47,24 +51,24 @@ ubuntu_kernel_upgrade() {
     else
         apt-get update
     fi
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    [ "$RC" -ne 0 ] && return $RC
+    UBUNTU_KERNEL_RC=$?
+    echo "[INFO] Return code is $UBUNTU_KERNEL_RC"
+    [ "$UBUNTU_KERNEL_RC" -ne 0 ] && return $UBUNTU_KERNEL_RC
 
     apt-get -y install "linux-image-$UBUNTU_ARCHITECTURE" \
                        "linux-headers-$UBUNTU_ARCHITECTURE" \
                        "linux-$UBUNTU_ARCHITECTURE"
-    RC=$?
-    echo "[INFO] Return code is $RC"
-    return $RC
+    UBUNTU_KERNEL_RC=$?
+    echo "[INFO] Return code is $UBUNTU_KERNEL_RC"
+    return $UBUNTU_KERNEL_RC
 }
 
 system_upgrade() {
     if [ -n "$UBUNTU_ARCHITECTURE" ] && [ -f /etc/debian_version ] && [ -f /etc/lsb-release ]; then
         ubuntu_kernel_upgrade
-        RC=$?
-        echo "[INFO] Return code is $RC"
-        return $RC
+        UBUNTU_KERNEL_RC=$?
+        echo "[INFO] Return code is $UBUNTU_KERNEL_RC"
+        return $UBUNTU_KERNEL_RC
     else
         printf -- "[WARN] Skipping upgrade: System does not meet requirements\n" >&2
         return 3
