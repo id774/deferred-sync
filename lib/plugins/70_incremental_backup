@@ -10,10 +10,13 @@
 #   EXCLUDEFILE : File containing patterns of files/directories to exclude.
 #                 Example: /etc/backup_exclude.conf
 #   DRY_RUN     : If set to "true", rsync runs in dry-run mode.
-#   EXPIREDAYS  : Number of days before old backups are purged.
+#   EXPIREDAYS  : Number of days before old backups are purged. Required;
+#                 the backup is skipped if it is unset or empty.
 #
 # Note:
 #   - This script assumes that `rsync` is installed and available.
+#   - An existing but unreadable EXCLUDEFILE skips the backup with a warning
+#     rather than running rsync without the intended exclusions.
 
 DATE=${DATE:-$(date +%Y%m%d)}
 
@@ -24,12 +27,12 @@ start_message() {
 
 purge_expire_dir() {
     while [ "$#" -gt 0 ]; do
-        BDATE=$(echo "$1" | sed "s/_backup_//")
+        BDATE=${1##*_backup_}
         EXPIREDATE=$(date -d "$EXPIREDAYS days ago" +%Y%m%d)
 
         if [ "$BDATE" -le "$EXPIREDATE" ]; then
             printf -- "deleting %s/%s\n" "$BACKUPTO" "$1"
-            rm -rf "$BACKUPTO/$1"
+            rm -rf "$BACKUPTO/$1" || return $?
         fi
         shift
     done
@@ -64,6 +67,12 @@ exec_rsync() {
     printf -- "[INFO] Executing: backup with rsync at "
     date "+%Y/%m/%d %T"
 
+    if [ -f "$EXCLUDEFILE" ] && [ ! -r "$EXCLUDEFILE" ]; then
+        printf -- "[WARN] Exclude file %s is not readable. Skipping backup.\n" \
+            "$EXCLUDEFILE" >&2
+        return 3
+    fi
+
     FAILED=0
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
@@ -83,6 +92,11 @@ exec_rsync() {
 run_rsync() {
     if [ ! -d "$BACKUPTO" ]; then
         printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
+        return 3
+    fi
+
+    if [ -z "$EXPIREDAYS" ]; then
+        printf -- "[WARN] EXPIREDAYS is not set. Skipping backup.\n" >&2
         return 3
     fi
 

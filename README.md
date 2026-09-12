@@ -26,7 +26,7 @@ The tool is implemented as a shell script framework with plugin support, allowin
 ## Features
 
 - **Incremental backup with versioning**
-- **Remote synchronization via `rsync` and `ssh`**
+- **Remote synchronization via `rsync` and `ssh`**, without gating the transfer on a separate connectivity probe
 - **Highly extensible plugin system**
 - **Support for automatic execution via `cron`**
 - **Configurable exclusion of files and directories**
@@ -72,6 +72,10 @@ path, since a relative path is rejected as an unknown option.
 ```sh
 ./install.sh /opt/deferred-sync   # deploys components only, no cron or logrotate setup
 ```
+
+When run as root, the installer performs privileged operations directly and does not
+invoke `sudo`. When run as a non-root user without `nosudo`, `--no-sudo`, or `-n`, the
+installer uses `sudo` for those operations.
 
 Specifying `nosudo`, `--no-sudo`, or `-n` runs the installer without `sudo` and skips the
 recursive ownership change of the target directory. If you wish to install in your home
@@ -137,7 +141,10 @@ deferred-sync maintains a self-contained implementation and maintenance policy c
 What matters before writing or enabling a plugin:
 
 - **A plugin is sourced, not executed.** It returns instead of exiting, keeps a `cd` inside a subshell, and owns the variable names it sets. See [The Contract Between the Core and a Plugin](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
-- **Nothing aborts the job.** `lib/load` reports a failing plugin as `[WARN]`, keeps the first nonzero status, and runs the rest. See [Warn and Continue](doc/POLICY.md#32-warn-and-continue).
+- **Independent task failures do not abort an established run.** `lib/load`
+  reports a failing plugin as `[WARN]`, keeps the first nonzero status, and
+  runs the rest. Required setup failures may stop the run as described in
+  [Warn and Continue](doc/POLICY.md#32-warn-and-continue).
 - **Return codes** are `0` success, `1` command failure or resource missing, `2` network unreachable, `3` local prerequisite missing, with the two documented wrappers propagating an external status. See [Return Codes](doc/POLICY.md#33-return-codes).
 - **A missing prerequisite is skipped, never created**, so that a failed mount cannot become a backup written to the wrong disk. See [Safety](doc/POLICY.md#4-safety).
 - **Log output** uses `[INFO]`, `[WARN]`, and `[ERROR]`, and stamps each phase with the time, because the log is read hours after the run. See [Logging](doc/POLICY.md#6-logging).

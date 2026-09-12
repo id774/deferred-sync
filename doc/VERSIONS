@@ -3,12 +3,24 @@ deferred-sync Repository Version History
 
 v26.09 (Release Date: TBD)
 --------------------------
-- Stop the local rsync backup when retention cleanup fails instead of
-  continuing after an unsuccessful purge.
+- Stop the local rsync backup when retention cleanup fails and correctly parse
+  documented *_backup_YYYYMMDD retention names.
+- Reject a missing EXPIREDAYS before retention cleanup without changing
+  existing non-empty value semantics.
 - Skip an unavailable STARTSCRIPT or ENDSCRIPT with a warning and continue the
   remaining run phases.
 - Require each selective PLUGINS entry to resolve to exactly one readable
   plugin before sourcing it.
+- Preserve exclusion preprocessing while rejecting an unreadable exclusion
+  file before local rsync.
+- Remove ping preflights from remote rsync paths so independent network policy
+  does not block otherwise valid SSH transfers.
+- Resolve the default installation correctly through the installer-created
+  /etc/cron.exec/deferred-sync symlink.
+- Avoid sudo for root installs, support Solaris cp options, and report required
+  installer filesystem failures explicitly.
+- Correct the cron MAILTO description and align affected documentation with
+  the implemented runtime behavior.
 
 v26.08 (2026-08-29)
 -------------------
