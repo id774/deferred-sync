@@ -30,7 +30,14 @@ setup() {
     CONFIG=${1:-config/sync.conf}
 
     # Determine script home directory
-    SCRIPT_HOME=$(cd "$(dirname "$0")" && pwd)/..
+    case "$0" in
+        /etc/cron.exec/deferred-sync)
+            SCRIPT_HOME=/opt/deferred-sync
+            ;;
+        *)
+            SCRIPT_HOME=$(CDPATH= cd "$(dirname "$0")" && pwd)/..
+            ;;
+    esac
 
     # Check if config file is readable
     if [ ! -r "${SCRIPT_HOME}/${CONFIG}" ]; then
@@ -72,12 +79,16 @@ deferred_sync() {
     # STARTSCRIPT
     if [ -n "$STARTSCRIPT" ]; then
         echo "[INFO] STARTSCRIPT started" >>"$JOBLOG" 2>&1
-        . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
-        st=$?
-        if [ "$st" -eq 0 ]; then
-            echo "[INFO] STARTSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+        if [ -f "$STARTSCRIPT" ] && [ -r "$STARTSCRIPT" ]; then
+            . "$STARTSCRIPT" >>"$JOBLOG" 2>&1
+            st=$?
+            if [ "$st" -eq 0 ]; then
+                echo "[INFO] STARTSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+            else
+                echo "[WARN] STARTSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+            fi
         else
-            echo "[WARN] STARTSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+            echo "[WARN] STARTSCRIPT is not a readable regular file: $STARTSCRIPT" >>"$JOBLOG" 2>&1
         fi
     fi
 
@@ -94,12 +105,16 @@ deferred_sync() {
     # ENDSCRIPT
     if [ -n "$ENDSCRIPT" ]; then
         echo "[INFO] ENDSCRIPT started" >>"$JOBLOG" 2>&1
-        . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
-        st=$?
-        if [ "$st" -eq 0 ]; then
-            echo "[INFO] ENDSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+        if [ -f "$ENDSCRIPT" ] && [ -r "$ENDSCRIPT" ]; then
+            . "$ENDSCRIPT" >>"$JOBLOG" 2>&1
+            st=$?
+            if [ "$st" -eq 0 ]; then
+                echo "[INFO] ENDSCRIPT completed successfully" >>"$JOBLOG" 2>&1
+            else
+                echo "[WARN] ENDSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+            fi
         else
-            echo "[WARN] ENDSCRIPT exited with status $st" >>"$JOBLOG" 2>&1
+            echo "[WARN] ENDSCRIPT is not a readable regular file: $ENDSCRIPT" >>"$JOBLOG" 2>&1
         fi
     fi
 

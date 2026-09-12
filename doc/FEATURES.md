@@ -59,6 +59,8 @@ The basic execution sequence is:
 
 If one of these phases returns a nonzero status, deferred-sync records a warning and continues to the next phase instead of aborting the whole job immediately.
 
+If `STARTSCRIPT` or `ENDSCRIPT` is configured but is not a readable regular file, deferred-sync records a warning and continues to the next phase without sourcing it. This is not unconditional continuation: a setup prerequisite failure that prevents the run from being established, such as an unreadable configuration file, can stop execution before this sequence begins.
+
 This behavior is intended for unattended backup jobs, where failure of one auxiliary task should not automatically prevent all remaining backup work from running.
 
 ## 3. Plugin Execution
@@ -84,6 +86,8 @@ and the default `PLUGINS` list is:
 Therefore, the presence of a plugin in the repository does not by itself mean that the feature runs automatically.
 
 System upgrades, database dumps, remote synchronization, and other optional capabilities run only when selected by configuration.
+
+When `LOAD_PLUGINS_ALL=false`, each `PLUGINS` entry is matched against the end of a plugin filename, and the numeric prefix may be omitted (for example, `get_resources` matches `10_get_resources`). A selector must resolve to exactly one readable plugin file to be sourced. If a selector matches no readable plugin, or matches more than one, the loader reports a `[WARN]` and treats it as a local prerequisite failure (status `3`) instead of running any of the ambiguous candidates. Processing continues with the remaining selectors either way.
 
 ## 4. Plugin Order
 
@@ -301,17 +305,28 @@ Backup directories matching:
 
     *_backup_YYYYMMDD
 
-become purge candidates when they are older than `EXPIREDAYS`.
+become purge candidates when they are older than `EXPIREDAYS`. The retention date is parsed from
+the end of the directory name, so a prefixed name such as `foo_backup_YYYYMMDD` is still handled
+correctly.
 
 Deletion is restricted to matching directories below `BACKUPTO`.
 
 If no matching backup directories exist, nothing is removed.
+
+`EXPIREDAYS` is required; if it is unset or empty, the local backup plugin returns status `3` and
+skips both retention cleanup and the rsync backup.
+
+If deleting an expired backup directory fails, the local backup plugin returns that failure status
+and does not proceed to the rsync backup for that run.
 
 ## 11. Exclusions
 
 If `EXCLUDEFILE` exists, its contents are supplied to rsync as exclusion rules.
 
 Blank lines and comment-only lines are removed before the patterns are passed to rsync.
+
+If `EXCLUDEFILE` exists but is not readable, the local backup plugin returns status `3` and skips
+the backup instead of running rsync without the intended exclusions.
 
 This keeps backup exclusions in configuration data instead of hard-coding them into the backup implementation.
 
@@ -340,6 +355,10 @@ deferred-sync supports synchronization in both directions.
 | Local → Remote | `80_backup_to_remote` | Sends the local backup tree to remote hosts |
 | Remote → Local | `85_get_remote_dir` | Retrieves remote directories into local storage |
 
+Neither plugin gates the transfer on `ping` or another independent network/security probe:
+network policy for a protocol other than the transfer itself must not block an otherwise valid
+rsync/SSH transfer. Each plugin attempts rsync directly and returns its actual status.
+
 ### 13.1 `80_backup_to_remote`
 
 `80_backup_to_remote` synchronizes `BACKUPTO` to:
@@ -348,7 +367,8 @@ deferred-sync supports synchronization in both directions.
 
 Multiple hosts can be listed in `REMOTE_HOSTS`.
 
-If one remote host is unreachable, that host produces status `2`, while processing continues for the remaining hosts.
+If rsync fails for one remote host, that host's rsync status is kept while processing continues
+for the remaining hosts.
 
 The rsync invocation uses `--delete`, so files absent from the local source can be removed from the remote destination.
 
@@ -362,7 +382,7 @@ Retrieved data is synchronized below:
 
 This plugin also uses rsync `--delete`.
 
-An unreachable host produces status `2`.
+If rsync fails for one host, that host's rsync status is kept.
 
 A missing local target directory produces status `3`.
 
@@ -477,10 +497,10 @@ Mail delivery failure is reported as an error.
 
 | Mode | Target | Cron / logrotate | sudo | Notes |
 | --- | --- | --- | --- | --- |
-| Default | `/opt/deferred-sync` | Configured | Used | Standard system-wide installation |
-| Custom target | Explicit absolute path | Skipped | Normally used | Deploys components only |
+| Default | `/opt/deferred-sync` | Configured | Used unless run as root | Standard system-wide installation |
+| Custom target | Explicit absolute path | Skipped | Used unless run as root | Deploys components only |
 | `--no-sudo` / `-n` / `nosudo` | Default or custom | Depends on installation mode | Not used | Suitable for user-controlled targets |
-| `--link` | Default installation model | Adds optional integration links | Normally used | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
+| `--link` | Default installation model | Adds optional integration links | Used unless run as root | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
 | `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used | Does not automatically remove custom targets |
 
 A standard system-wide installation deploys the core components and can also configure cron, logrotate, configuration directories, and backup directories.

@@ -30,16 +30,33 @@ FAILED_STATUS=0  # keep first non-zero plugin status
 # Load a specific plugin by name
 load_plugin() {
     while [ "$#" -gt 0 ]; do
-        for PLUGIN in "$SCRIPT_HOME/lib/plugins/"*"$1"; do
-            if [ -r "$PLUGIN" ] && [ -f "$PLUGIN" ]; then
-                . "$PLUGIN"
-                st=$?
-                [ "$st" -ne 0 ] && {
-                    echo "[WARN] Plugin: $PLUGIN exited with status $st" >&2
-                    [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$st
-                }
+        LOAD_SELECTOR=$1
+        LOAD_MATCH_COUNT=0
+        LOAD_MATCHED_PLUGIN=""
+
+        for LOAD_CANDIDATE in "$SCRIPT_HOME/lib/plugins/"*"$LOAD_SELECTOR"; do
+            if [ -r "$LOAD_CANDIDATE" ] && [ -f "$LOAD_CANDIDATE" ]; then
+                LOAD_MATCH_COUNT=$((LOAD_MATCH_COUNT + 1))
+                LOAD_MATCHED_PLUGIN=$LOAD_CANDIDATE
             fi
         done
+
+        if [ "$LOAD_MATCH_COUNT" -eq 0 ]; then
+            echo "[WARN] Plugin selector '$LOAD_SELECTOR' matched no readable plugin" >&2
+            [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=3
+        elif [ "$LOAD_MATCH_COUNT" -eq 1 ]; then
+            . "$LOAD_MATCHED_PLUGIN"
+            LOAD_STATUS=$?
+            [ "$LOAD_STATUS" -ne 0 ] && {
+                echo "[WARN] Plugin: $LOAD_MATCHED_PLUGIN exited with status $LOAD_STATUS" >&2
+                [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=$LOAD_STATUS
+            }
+        else
+            echo "[WARN] Plugin selector '$LOAD_SELECTOR' matched multiple readable plugins" >&2
+            [ "$FAILED_STATUS" -eq 0 ] && FAILED_STATUS=3
+        fi
+
+        unset LOAD_SELECTOR LOAD_MATCH_COUNT LOAD_MATCHED_PLUGIN LOAD_CANDIDATE LOAD_STATUS
         shift
     done
 }

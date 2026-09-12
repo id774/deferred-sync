@@ -193,6 +193,11 @@ written in rather than to be run.
 - `exec/deferred-sync` runs `STARTSCRIPT`, then the plugin loader, then
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
   the next phase starts regardless.
+- A configured `STARTSCRIPT` or `ENDSCRIPT` that is not a readable regular
+  file is not sourced. `exec/deferred-sync` reports it as `[WARN]` with
+  local-prerequisite semantic status `3` and continues to the next phase. A
+  hook that cannot be sourced must never be executed with `.` in a way that
+  can terminate the parent shell.
 - `lib/load` sources each enabled plugin in turn, reports a non-zero status as
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
@@ -249,6 +254,25 @@ written in rather than to be run.
   `PLUGINS` setting refers to that name, so a plugin is not renamed merely as
   a routine refactoring, and section 5.1 applies to the name as much as to a
   key.
+- A `PLUGINS` selector must resolve to exactly one readable regular plugin
+  file to be sourced. A selector matching no readable plugin, or matching
+  more than one, is a local configuration prerequisite failure: `lib/load`
+  reports it as `[WARN]`, sources none of the ambiguous candidates, keeps
+  semantic status `3` as the first non-zero status if none is already set,
+  and continues with the remaining selectors. Numeric-prefix omission in a
+  selector remains supported.
+
+### 3.5 Remote Transfer Preflight
+
+- A remote synchronization plugin does not gate an rsync/SSH transfer on
+  `ping` or another independent network/security probe. Network policy that
+  governs a different protocol (such as ICMP) is not a condition for the
+  transfer itself, and must not be used to block an otherwise valid
+  rsync/SSH transfer.
+- The transfer command itself is the authoritative result. A component that
+  propagates an external command's status does not remap that status to a
+  different semantic code merely because the underlying cause might be a
+  network condition.
 
 ## 4. Safety
 
@@ -271,9 +295,21 @@ written in rather than to be run.
 
 - Every `rm` and every `--delete` is bounded by a pattern that cannot widen to
   the whole filesystem. `purge_expires` iterates `"$BACKUPTO"/*_backup_*` and
-  compares a date parsed out of the name before removing anything.
+  compares a date parsed out of the name before removing anything. This
+  documented candidate scope is not narrowed to a fixed-prefix pattern.
 - Compute the target of a removal, then check it, then remove it. Do not let a
   glob that matched nothing, or an unset variable, reach `rm`.
+- A failure to delete an expired backup directory is not converted into
+  success: it is reported and stops that plugin's run before it reaches the
+  rsync backup. `EXPIREDAYS` is a required value; an unset or empty value is
+  a local prerequisite failure (status `3`) that skips both retention
+  cleanup and the rsync backup, without redefining the value's accepted
+  range for a non-empty configuration.
+- An existing exclusion file is used through the established preprocessing
+  path (stripping blank and comment-only lines before passing the rest to
+  rsync) only when it is a readable regular file. An existing but unreadable
+  exclusion file is a local prerequisite failure that skips the backup
+  rather than running rsync without the intended exclusions.
 - `DRY_RUN=true` controls the dry-run behavior of the rsync-based
   synchronization paths that explicitly add rsync's `--dry-run` option.
   It is not a repository-wide no-op switch and must not be described as a
@@ -545,7 +581,17 @@ that reads them.
 - Required external commands are checked before the path that needs them
   proceeds.
 - Sudo is checked only when the selected operation requires privileged
-  execution.
+  execution. A root process already has the privilege the standard
+  installation path needs, so it performs those operations directly and
+  does not invoke or require `sudo`. A non-root process performing the same
+  privileged operation uses `sudo` and checks it first.
+- The installer's file-copy option set matches the `cp(1)` implementation of
+  the platform it runs on: GNU-style options on Linux, and on Solaris only
+  the options Solaris `cp(1)` provides.
+- A critical filesystem operation on the standard installation path (a
+  copy, directory creation, ownership change, or permission change) is
+  checked. The installer does not report installation as completed
+  successfully once such an operation has failed.
 - The established exit-status convention uses `0` for success, `1` for a
   general failure, `126` when a required command exists but is not
   executable, and `127` when a required command is unavailable.
