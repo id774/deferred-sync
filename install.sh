@@ -65,7 +65,6 @@
 ########################################################################
 
 # Display full script header information extracted from the top comment block
-# Exit with the status given as $1, or 0 when omitted
 usage() {
     check_commands awk
     awk '
@@ -73,7 +72,7 @@ usage() {
         /^#+$/ && length($0) >= 10 { if (!in_header) { in_header = 1; next } else exit }
         in_header && /^# ?/ { print substr($0, 3) }
     ' "$0"
-    exit "${1:-0}"
+    exit 0
 }
 
 # Check if required commands are available and executable
@@ -414,7 +413,8 @@ main() {
                 ;;
             *)
                 echo "[ERROR] Unknown option: $arg" >&2
-                usage 1
+                (usage) || return $?
+                return 1
                 ;;
         esac
     done
