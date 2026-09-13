@@ -547,6 +547,16 @@ significant structural change may form a new installer release.
 Documentation-only, comment-only, and formatting-only changes do not
 require an installer version increment.
 
+The installer version represents one coherent release unit, not an edit,
+commit, pull request, or calendar day. Follow-up work that completes, corrects,
+or hardens the same newest release unit remains in that version even when it
+is made later; update that entry's date to the date the unit reached its
+current form and summarize the completed whole.
+
+Do not merge independent release units merely because they were made on the
+same day or close together. If an independent installer version has intervened,
+a later fix to an older change is a new release unit.
+
 Each entry's description is at most two lines, and a single line at or
 under 80 columns is preferred whenever practical.
 
