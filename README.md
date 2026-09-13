@@ -11,7 +11,8 @@
 7. [Usage Example](#usage-example)
 8. [Directory Structure](#directory-structure)
 9. [Contribution](#contribution)
-10. [License](#license)
+10. [Branch Naming](#branch-naming)
+11. [License](#license)
 
 ## Overview
 
@@ -246,13 +247,15 @@ shell that cron starts unattended, so that document asks new code there to
 destroy nothing it was not asked to touch, to let the job continue when it
 fails, and to leave a log that answers the question the next morning.
 
+## Branch Naming
+
+This repository uses `master` as its primary branch name.
+
+The name is used solely as a technical identifier, following the long-standing convention historically used by Git. It does not express or imply any association with racism, slavery, discrimination, or any political or social ideology.
+
 ## License
 
 This repository is dual licensed under the [GPL version 3](https://www.gnu.org/licenses/gpl-3.0.html) or the [LGPL version 3](https://www.gnu.org/licenses/lgpl-3.0.html), at your option.
 For full details, please refer to the [LICENSE](doc/LICENSE.md) file.  See also [COPYING](doc/COPYING) and [COPYING.LESSER](doc/COPYING.LESSER) for the complete license texts.
 
 Thank you for using and contributing to this repository!
-
-This repository uses `master` as its primary branch name.
-
-The name is used solely as a technical identifier, following the long-standing convention historically used by Git. It does not express or imply any association with racism, slavery, discrimination, or any political or social ideology.
