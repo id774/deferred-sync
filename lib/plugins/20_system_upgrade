@@ -15,8 +15,6 @@
 #
 # Behavior:
 #   - Package maintenance keeps the existing command order.
-#   - If freshclam succeeds but restarting clamav-freshclam fails, the restart
-#     failure is returned.
 
 start_message() {
     printf -- "[INFO] Loading: system_upgrade has been loaded at "
@@ -69,28 +67,6 @@ update_redhat_or_centos() {
     return $YUM_FAILED
 }
 
-freshclam_manually(){
-    if command -v systemctl >/dev/null 2>&1; then
-        systemctl stop clamav-freshclam.service
-    else
-        echo "[WARN] systemctl not found skipping service stop start around freshclam" >&2
-    fi
-
-    printf -- "[INFO] Executing: freshclam at "
-    date "+%Y/%m/%d %T"
-    freshclam
-    RC=$?
-    echo "[INFO] Return code is $RC"
-
-    if command -v systemctl >/dev/null 2>&1; then
-        systemctl start clamav-freshclam.service
-        START_RC=$?
-        [ "$RC" -eq 0 ] && RC=$START_RC
-    fi
-
-    return $RC
-}
-
 system_upgrade() {
     FAILED=0
     if [ -f /etc/debian_version ]; then
@@ -98,10 +74,6 @@ system_upgrade() {
     fi
     if [ -f /etc/redhat-release ]; then
         update_redhat_or_centos || FAILED=$?
-    fi
-
-    if command -v freshclam > /dev/null 2>&1; then
-        freshclam_manually || FAILED=$?
     fi
 
     return $FAILED

@@ -24,6 +24,8 @@ v26.09 (Release Date: TBD)
 - Report a ClamAV service restart failure when freshclam itself succeeds.
 - Relax overbroad policy wording and align reporting, logging, return-status,
   and custom-install documentation with the existing implementation.
+- Split ClamAV updates from 20_system_upgrade into a new 21_clamav_update
+  plugin; select both plugins to keep the previous combined behavior.
 
 v26.08 (2026-08-29)
 -------------------

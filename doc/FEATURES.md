@@ -98,7 +98,7 @@ The current ordering bands are:
 | Number range | Category | Purpose |
 | --- | --- | --- |
 | 09–15 | Reporting and inspection | Collect software, system resource, server availability, and hardware information |
-| 20–25 | System maintenance | Update operating-system packages and kernels |
+| 20–25 | System maintenance | Update operating-system packages, ClamAV definitions, and kernels |
 | 30–35 | Data dumps | Create MySQL, PostgreSQL, MongoDB, and SVN dumps |
 | 70 | Local backup | Create the local incremental backup |
 | 80–85 | Remote synchronization | Push backups to remote hosts or retrieve remote backup data |
@@ -119,7 +119,8 @@ The current plugin catalog is shown below.
 | `10_get_resources` | Reporting | Retrieve system resources | Logs kernel, distribution, uptime, memory, disk, block-device, LVM, and network information |
 | `11_server_alive_check` | Monitoring | Run an external server-alive check | Executes the configured check script and propagates its status |
 | `15_get_hardware_info` | Reporting | Retrieve hardware, DNS, and SMART information | Logs DMI, PCI, power, DNS, and disk SMART information when corresponding tools are available |
-| `20_system_upgrade` | Maintenance | Upgrade operating-system packages | Runs APT or YUM maintenance, optional old-kernel cleanup, and `freshclam` when available |
+| `20_system_upgrade` | Maintenance | Upgrade operating-system packages | Runs APT or YUM maintenance and optional old-kernel cleanup |
+| `21_clamav_update` | Maintenance | Update ClamAV virus definitions | Runs `freshclam` with the existing `clamav-freshclam.service` stop/start handling when available |
 | `25_ubuntu_kernel_upgrade` | Maintenance | Upgrade Ubuntu kernels | Purges old kernel packages and installs the configured Ubuntu kernel packages |
 | `30_dump_mysql` | Dump | Dump MySQL databases | Creates one compressed `.sql.gz` file per configured database |
 | `31_dump_postgresql` | Dump | Dump a PostgreSQL cluster | Creates `all.dump.gz` |
@@ -221,9 +222,17 @@ On Red Hat and CentOS systems it runs:
 
 If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`.
 
-If `freshclam` is available, the plugin also performs a ClamAV definition update. When `systemctl` is available, it stops `clamav-freshclam.service` before running `freshclam` and restarts it afterward regardless of whether `freshclam` succeeded. If `freshclam` succeeds but the restart fails, the restart failure is returned as the plugin's result.
+### 7.2 `21_clamav_update`
 
-### 7.2 `25_ubuntu_kernel_upgrade`
+`21_clamav_update` updates ClamAV virus definitions when `freshclam` is available.
+
+When `systemctl` is available, it stops `clamav-freshclam.service` before running `freshclam` and starts the service afterward regardless of whether `freshclam` succeeded. If `freshclam` succeeds but restarting the service fails, the restart failure is returned as the plugin result. If `freshclam` fails, that failure remains the plugin result even if the service restart also fails.
+
+If `freshclam` is not available, the plugin performs no update and returns success.
+
+Deployments that use selective plugin loading and previously selected `system_upgrade` to obtain both package and ClamAV updates must add `clamav_update` explicitly. To preserve the previous relative order, list `clamav_update` immediately after `system_upgrade`.
+
+### 7.3 `25_ubuntu_kernel_upgrade`
 
 `25_ubuntu_kernel_upgrade` updates Ubuntu kernel packages.
 
