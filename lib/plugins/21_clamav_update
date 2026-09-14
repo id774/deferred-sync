@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# 21_clamav_update - A script to update ClamAV virus definitions.
+#
+# Note:
+#   - This script assumes that the system is connected to the internet.
+#
+# Behavior:
+#   - If freshclam is not available, the plugin performs no update and
+#     returns success.
+#   - If freshclam succeeds but restarting clamav-freshclam fails, the restart
+#     failure is returned.
+
+start_message() {
+    printf -- "[INFO] Loading: clamav_update has been loaded at "
+    date "+%Y/%m/%d %T"
+}
+
+freshclam_manually(){
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl stop clamav-freshclam.service
+    else
+        echo "[WARN] systemctl not found skipping service stop start around freshclam" >&2
+    fi
+
+    printf -- "[INFO] Executing: freshclam at "
+    date "+%Y/%m/%d %T"
+    freshclam
+    RC=$?
+    echo "[INFO] Return code is $RC"
+
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl start clamav-freshclam.service
+        START_RC=$?
+        [ "$RC" -eq 0 ] && RC=$START_RC
+    fi
+
+    return $RC
+}
+
+clamav_update() {
+    if command -v freshclam > /dev/null 2>&1; then
+        freshclam_manually
+        return $?
+    fi
+
+    return 0
+}
+
+main() {
+    start_message
+    clamav_update
+    return $?
+}
+
+main "$@"
