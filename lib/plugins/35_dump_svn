@@ -53,6 +53,11 @@ dump_svn() {
         return 3
     fi
 
+    if [ -z "${SVN_PATH:-}" ]; then
+        printf -- "[WARN] SVN_PATH is empty. Skipping dump.\n" >&2
+        return 3
+    fi
+
     FAILED=0
     for SVN_REPO in $SVN_REPOS; do
         get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO" || FAILED=$?

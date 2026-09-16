@@ -3,16 +3,23 @@
 # 70_incremental_backup - A script to perform incremental backups with rsync.
 #
 # Required environment variables:
-#   BACKUPTO    : Target backup directory.
-#                 Example: /var/backups
-#   BACKUPDIRS  : List of directories to back up (space-separated). Required;
-#                 the backup is skipped if it is unset or empty.
-#                 Example: "/home /etc /var/www"
+#   BACKUPTO   : Target backup directory.
+#                Example: /var/backups
+#   BACKUPDIRS : List of directories to back up (space-separated). Required;
+#                the backup is skipped if it is unset or empty.
+#                Example: "/home /etc /var/www"
+#   EXPIREDAYS : Number of days before old backups are purged. Required;
+#                unset or empty skips both retention cleanup and the rsync
+#                backup.
+#
+# Optional environment variables:
 #   EXCLUDEFILE : File containing patterns of files/directories to exclude.
+#                 If unset, or the file does not exist, the existing rsync
+#                 path runs without exclusions. If the file exists but is
+#                 not readable, the backup is skipped with status 3.
 #                 Example: /etc/backup_exclude.conf
-#   DRY_RUN     : If set to "true", rsync runs in dry-run mode.
-#   EXPIREDAYS  : Number of days before old backups are purged. Required;
-#                 the backup is skipped if it is unset or empty.
+#   DRY_RUN     : If set to "true", rsync runs in dry-run mode. Unset, empty,
+#                 or any other value uses normal rsync behavior.
 #
 # Note:
 #   - This script assumes that `rsync` is installed and available.

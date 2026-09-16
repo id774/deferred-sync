@@ -19,6 +19,16 @@ start_message() {
 }
 
 get_mongodbdump() {
+    if [ -z "${MONGODBDUMP:-}" ]; then
+        printf -- "[WARN] MONGODBDUMP is empty. Skipping dump.\n" >&2
+        return 3
+    fi
+
+    if [ -z "${MONGODUMP_BIN:-}" ]; then
+        printf -- "[WARN] MONGODUMP_BIN is empty. Skipping dump.\n" >&2
+        return 3
+    fi
+
     if [ ! -d "$MONGODBDUMP_PATH" ]; then
         printf -- "[WARN] Temp directory %s does not exist. Skipping.\n" "$MONGODBDUMP_PATH" >&2
         return 3

@@ -23,6 +23,11 @@ dump_postgresql() {
         return 3
     fi
 
+    if [ -z "${PG_USER:-}" ]; then
+        printf -- "[WARN] PG_USER is empty. Skipping dump.\n" >&2
+        return 3
+    fi
+
     # Check if the PGDUMP directory exists before running the dump
     if [ ! -d "$PGDUMP" ]; then
         printf -- "[WARN] Target directory %s does not exist. Skipping dump.\n" "$PGDUMP" >&2
