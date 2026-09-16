@@ -5,7 +5,8 @@
 # Required environment variables:
 #   BACKUPTO    : Target backup directory.
 #                 Example: /var/backups
-#   BACKUPDIRS  : List of directories to back up (space-separated).
+#   BACKUPDIRS  : List of directories to back up (space-separated). Required;
+#                 the backup is skipped if it is unset or empty.
 #                 Example: "/home /etc /var/www"
 #   EXCLUDEFILE : File containing patterns of files/directories to exclude.
 #                 Example: /etc/backup_exclude.conf
@@ -92,6 +93,11 @@ exec_rsync() {
 run_rsync() {
     if [ ! -d "$BACKUPTO" ]; then
         printf -- "[WARN] Target directory %s does not exist. Skipping.\n" "$BACKUPTO" >&2
+        return 3
+    fi
+
+    if [ -z "${BACKUPDIRS:-}" ]; then
+        printf -- "[WARN] BACKUPDIRS is not set. Skipping backup.\n" >&2
         return 3
     fi
 

@@ -113,7 +113,10 @@ To uninstall a system-wide installation (default `/opt/deferred-sync`), run:
 sudo ./install.sh --uninstall
 ```
 
-This will remove all files installed by deferred-sync **except** the log directory (`/var/log/deferred-sync`).
+This removes the default installation's program tree, system configuration, and
+installed cron, logrotate, and optional integration symlinks. It preserves the
+log directory (`/var/log/deferred-sync`), backup data directories
+(`/home/backup`, `/home/remote`), and any custom installation target.
 
 For safety, `--uninstall` removes only `/opt/deferred-sync` as the installation target.
 Custom installation targets are not removed automatically.
@@ -225,13 +228,15 @@ side effects, is maintained in
 [doc/FEATURES.md](doc/FEATURES.md#5-plugin-catalog).
 The README deliberately does not duplicate that inventory.
 
-Plugins run in filename order; the numeric prefix controls that order and may be
-omitted in `PLUGINS`, since each entry is matched against the end of the plugin
-filename (for example, `get_resources` matches `10_get_resources`). Each plugin
-file has one clear operational responsibility. A change that belongs to an
-existing responsibility stays in that plugin. An independent new operational
-task uses a new plugin file, with its numeric prefix chosen from the
-operational and data-flow order in which the task must run, following the
+When all plugins are loaded, filename order and the numeric prefixes provide
+the standard execution order. With selective loading, plugins run in the
+order written in `PLUGINS`; the numeric prefix may still be omitted from a
+selector because matching is by filename suffix (for example, `get_resources`
+matches `10_get_resources`). Each plugin file has one clear operational
+responsibility. A change that belongs to an existing responsibility stays in
+that plugin. An independent new operational task uses a new plugin file, with
+its numeric prefix chosen from the operational and data-flow order in which
+the task must run, following the
 [plugin contract](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
 
 ## Contribution

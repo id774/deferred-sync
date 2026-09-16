@@ -226,10 +226,10 @@ written in rather than to be run.
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
   the next phase starts regardless.
 - A configured `STARTSCRIPT` or `ENDSCRIPT` that is not a readable regular
-  file is not sourced. `exec/deferred-sync` reports it as `[WARN]` with
-  local-prerequisite semantic status `3` and continues to the next phase. A
-  hook that cannot be sourced must never be executed with `.` in a way that
-  can terminate the parent shell.
+  file is not sourced. `exec/deferred-sync` reports a `[WARN]` and continues
+  to the next phase. Because no hook was invoked, no hook return status is
+  synthesized. A hook that cannot be sourced must never be executed with `.`
+  in a way that can terminate the parent shell.
 - `lib/load` sources each enabled plugin in turn, reports a non-zero status as
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
@@ -272,14 +272,21 @@ written in rather than to be run.
 
 ### 3.4 Order
 
-- A plugin file is named `NN_name`, and the numeric prefix is the order in
-  which `lib/load` sources it. The order encodes operational and data-flow
-  sequencing, not an inter-plugin API dependency:
-  information is gathered before the system is changed, dumps are written
-  before the backup that copies them, and the local backup completes before it
-  is pushed to a remote host. `BACKUPDIRS` in `config/sync.conf` lists
-  `/home/mysqldump` and `/home/svndump`, so `30_dump_mysql` and `35_dump_svn`
-  running after `70_incremental_backup` would back up yesterday's dump.
+- A plugin file is named `NN_name`, and the numeric prefix defines the
+  standard operational and data-flow order of the full plugin catalog, not an
+  inter-plugin API dependency: information is gathered before the system is
+  changed, dumps are written before the backup that copies them, and the
+  local backup completes before it is pushed to a remote host. `BACKUPDIRS`
+  in `config/sync.conf` lists `/home/mysqldump` and `/home/svndump`, so
+  `30_dump_mysql` and `35_dump_svn` running after `70_incremental_backup`
+  would back up yesterday's dump.
+- When `LOAD_PLUGINS_ALL=true`, `lib/load` sources every plugin in filename
+  order, so the numeric prefix is the order in which plugins run. When
+  `LOAD_PLUGINS_ALL=false`, `lib/load` sources the plugins selected by
+  `PLUGINS` in the order they are written there; the numeric prefix is not
+  used to reorder that list. A selective deployed configuration lists its
+  `PLUGINS` entries in the order that preserves the operational dependency
+  the numeric prefix documents.
 - A new plugin takes the number required by its operational and data-flow
   sequencing relative to the existing plugins. The existing bands
   are 09-15 for reporting, 20-25 for system upgrades, 30-35 for dumps, 70 for
@@ -356,6 +363,9 @@ written in rather than to be run.
   undone: `install.sh --uninstall` removes `/opt/deferred-sync` and refuses to
   follow a custom target, and `safe_symlink` aborts rather than replace a
   directory.
+- `install.sh --uninstall` does not delete backup data. `/var/log/deferred-sync`,
+  `/home/backup`, `/home/remote`, and a custom installation target are
+  preserved; uninstall does not gain a backup-data cleanup option.
 - Do not claim atomic replacement or preservation of the previous
   successful artifact unless the implementation actually provides that
   guarantee. The current dump plugins do not provide a repository-wide
@@ -409,7 +419,14 @@ code must read it.
   means. The host that would break is not visible from here.
 - A new key is read as `${KEY:-default}`, with a default that keeps the
   existing behaviour for a host that has never heard of it.
-  `SERVER_ALIVE_CHECK` and `OLDKERNELS_COUNT` are the pattern.
+  `SERVER_ALIVE_CHECK` is the pattern for a new key with a safe
+  behavior-preserving default.
+- A key that controls an optional sub-operation does not need a code default
+  merely because one is possible: when the key's absence can safely disable
+  just that sub-operation, the component skips the sub-operation with a
+  `[WARN]` instead. `OLDKERNELS_COUNT` is this pattern: a new-host template
+  may set it to `2`, but an existing deployed configuration without the key
+  skips old-kernel cleanup rather than gaining an invented code default.
 - A key whose absence cannot be given a safe default makes the plugin return
   `3` and say which key is missing.
 - `config/sync.conf` in the repository is the template a new host starts from.

@@ -6,15 +6,16 @@
 #   - Debian/Ubuntu (via apt-get)
 #   - RedHat/CentOS (via yum)
 #
-# Required environment variables:
-#   OLDKERNELS_COUNT : Number of old kernels to keep (for RHEL/CentOS).
-#                      Example: 2
-#
 # Note:
 #   - This script assumes that the system is connected to the internet and package managers are configured correctly.
+#   - OLDKERNELS_COUNT (for RHEL/CentOS) controls optional old-kernel cleanup.
+#     Example: 2
 #
 # Behavior:
 #   - Package maintenance keeps the existing command order.
+#   - If package-cleanup is available but OLDKERNELS_COUNT is unset or empty,
+#     old-kernel cleanup is skipped with a warning; package maintenance itself
+#     remains governed by the APT/YUM command results.
 
 start_message() {
     printf -- "[INFO] Loading: system_upgrade has been loaded at "

@@ -20,7 +20,8 @@
 #  Options:
 #      -h, --help       Show this help message and exit.
 #      -v, --version    Show the same header information as --help and exit.
-#      -u, --uninstall  Remove deferred-sync and all related files except logs.
+#      -u, --uninstall  Remove the default installation components, preserving
+#                        logs and backup data.
 #      -l, --link       Create symlinks under /etc/cron.config and /etc/cron.exec.
 #      -n, --no-sudo    Run without sudo (also accepted as nosudo).
 #
@@ -30,8 +31,11 @@
 #  - [nosudo|--no-sudo|-n]: If specified, the script runs without sudo.
 #  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
 #  - Do not remove custom installation targets automatically.
+#  - --uninstall preserves /var/log/deferred-sync, /home/backup, and /home/remote.
 #
 #  Version History:
+#  v3.5 2026-09-16
+#       Validate uninstall privilege and removal failures with portable rm options.
 #  v3.4 2026-09-12
 #       Avoid sudo for root, support Solaris cp, and report filesystem failures.
 #  v3.3 2026-08-23
@@ -356,33 +360,48 @@ install() {
     echo "[INFO] deferred-sync installation completed successfully."
 }
 
-# Uninstall all deferred-sync components except logs
+# Uninstall the default installation components, preserving logs and backup data
 uninstall() {
     check_commands id rm dirname
     echo "[INFO] Uninstalling deferred-sync..."
 
     TARGET="/opt/deferred-sync"
 
-    [ "$(id -u)" -ne 0 ] && SUDO="sudo"
+    if [ "$(id -u)" -eq 0 ]; then
+        SUDO=""
+    else
+        SUDO="sudo"
+        check_sudo
+    fi
 
-    $SUDO rm -rvf "$TARGET" || {
+    $SUDO rm -rf "$TARGET" || {
         echo "[ERROR] Failed to remove $TARGET" >&2
         exit 1
     }
 
-    $SUDO rm -rvf /etc/opt/deferred-sync || {
+    $SUDO rm -rf /etc/opt/deferred-sync || {
         echo "[ERROR] Failed to remove /etc/opt/deferred-sync" >&2
         exit 1
     }
 
-    $SUDO rm -vf /etc/cron.daily/deferred-sync
-    $SUDO rm -vf /etc/logrotate.d/deferred-sync
+    $SUDO rm -f /etc/cron.daily/deferred-sync || {
+        echo "[ERROR] Failed to remove /etc/cron.daily/deferred-sync" >&2
+        exit 1
+    }
 
-    for link in /etc/cron.config/sync.conf /etc/cron.config/exclude.conf; do
-        [ -L "$link" ] && $SUDO rm -vf "$link"
+    $SUDO rm -f /etc/logrotate.d/deferred-sync || {
+        echo "[ERROR] Failed to remove /etc/logrotate.d/deferred-sync" >&2
+        exit 1
+    }
+
+    for link in /etc/cron.config/sync.conf /etc/cron.config/exclude.conf /etc/cron.exec/deferred-sync; do
+        if [ -L "$link" ]; then
+            $SUDO rm -f "$link" || {
+                echo "[ERROR] Failed to remove $link" >&2
+                exit 1
+            }
+        fi
     done
-
-    [ -L /etc/cron.exec/deferred-sync ] && $SUDO rm -vf /etc/cron.exec/deferred-sync
 
     echo "[INFO] deferred-sync uninstalled successfully."
     exit 0
