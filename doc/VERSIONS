@@ -32,6 +32,8 @@ v26.09 (Release Date: TBD)
   options while preserving logs, backup data, and custom targets.
 - Align plugin-order, hook, OLDKERNELS_COUNT, ClamAV index, and uninstall
   documentation with the implemented runtime contracts.
+- Validate required PostgreSQL, MongoDB, and SVN dump configuration before
+  dump side effects and align incremental-backup variable documentation.
 
 v26.08 (2026-08-29)
 -------------------
