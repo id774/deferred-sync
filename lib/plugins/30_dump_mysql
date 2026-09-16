@@ -8,7 +8,8 @@
 #   MYSQL_USER : MySQL username.
 #                Example: root
 #   MYSQL_PASS : MySQL password.
-#   MYSQL_DBS  : List of databases to back up (space-separated).
+#   MYSQL_DBS  : List of databases to back up (space-separated). Required;
+#                the dump is skipped if it is unset or empty.
 #                Example: "db1 db2 db3"
 #
 # Note:
@@ -46,6 +47,11 @@ get_mysqldump() {
 }
 
 dump_mysql() {
+    if [ -z "${MYSQL_DBS:-}" ]; then
+        printf -- "[WARN] MYSQL_DBS is not set. Skipping dump.\n" >&2
+        return 3
+    fi
+
     FAILED=0
     for MYSQL_DB in $MYSQL_DBS; do
         get_mysqldump "$MYSQL_DB" "$MYSQL_USER" "$MYSQL_PASS" || FAILED=$?

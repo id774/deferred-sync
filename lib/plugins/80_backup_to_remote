@@ -7,9 +7,11 @@
 #                  Example: /var/backups
 #   BACKUPUSER   : Username for remote SSH login.
 #                  Example: backupuser
-#   REMOTE_HOSTS : List of remote servers (space-separated).
+#   REMOTE_HOSTS : List of remote servers (space-separated). Required;
+#                  the remote backup is skipped if it is unset or empty.
 #                  Example: "server1.example.com server2.example.com"
-#   REMOTE_DIR   : Target directory on remote servers.
+#   REMOTE_DIR   : Target directory on remote servers. Required;
+#                  the remote backup is skipped if it is unset or empty.
 #                  Example: /remote/backup
 #   DRY_RUN      : If set to "true", rsync runs in dry-run mode.
 #
@@ -47,6 +49,16 @@ mirror_to_remote() {
 }
 
 backup_to_remote() {
+    if [ -z "${REMOTE_HOSTS:-}" ]; then
+        printf -- "[WARN] REMOTE_HOSTS is not set. Skipping remote backup.\n" >&2
+        return 3
+    fi
+
+    if [ -z "${REMOTE_DIR:-}" ]; then
+        printf -- "[WARN] REMOTE_DIR is not set. Skipping remote backup.\n" >&2
+        return 3
+    fi
+
     FAILED=0
     for REMOTE_HOST in $REMOTE_HOSTS; do
         mirror_to_remote "$REMOTE_HOST" "$REMOTE_DIR" || FAILED=$?

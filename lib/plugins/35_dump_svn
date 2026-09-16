@@ -8,6 +8,7 @@
 #   SVN_PATH  : Base path where SVN repositories are stored.
 #               Example: /var/lib/svn/repos
 #   SVN_REPOS : List of SVN repositories to back up (space-separated).
+#               Required; the dump is skipped if it is unset or empty.
 #               Example: "repo1 repo2 repo3"
 #
 # Note:
@@ -47,6 +48,11 @@ get_svndump() {
 }
 
 dump_svn() {
+    if [ -z "${SVN_REPOS:-}" ]; then
+        printf -- "[WARN] SVN_REPOS is not set. Skipping dump.\n" >&2
+        return 3
+    fi
+
     FAILED=0
     for SVN_REPO in $SVN_REPOS; do
         get_svndump "$SVN_REPO" "$SVN_PATH/$SVN_REPO" || FAILED=$?

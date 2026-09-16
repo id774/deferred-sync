@@ -26,6 +26,12 @@ v26.09 (Release Date: TBD)
   and custom-install documentation with the existing implementation.
 - Split ClamAV updates from 20_system_upgrade into a new 21_clamav_update
   plugin; select both plugins to keep the previous combined behavior.
+- Reject empty backup, dump, and remote-transfer list inputs before starting
+  their operations, including before local backup retention cleanup.
+- Harden uninstall privilege and removal failure handling with portable rm
+  options while preserving logs, backup data, and custom targets.
+- Align plugin-order, hook, OLDKERNELS_COUNT, ClamAV index, and uninstall
+  documentation with the implemented runtime contracts.
 
 v26.08 (2026-08-29)
 -------------------

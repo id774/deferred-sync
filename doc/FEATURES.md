@@ -87,11 +87,16 @@ Therefore, the presence of a plugin in the repository does not by itself mean th
 
 System upgrades, database dumps, remote synchronization, and other optional capabilities run only when selected by configuration.
 
-When `LOAD_PLUGINS_ALL=false`, each `PLUGINS` entry is matched against the end of a plugin filename, and the numeric prefix may be omitted (for example, `get_resources` matches `10_get_resources`). A selector must resolve to exactly one readable plugin file to be sourced. If a selector matches no readable plugin, or matches more than one, the loader reports a `[WARN]` and treats it as a local prerequisite failure (status `3`) instead of running any of the ambiguous candidates. Processing continues with the remaining selectors either way.
+When `LOAD_PLUGINS_ALL=false`, each `PLUGINS` entry is matched against the end of a plugin filename, and the numeric prefix may be omitted (for example, `get_resources` matches `10_get_resources`). Selected plugins are processed in the order written in `PLUGINS`. A selector must resolve to exactly one readable plugin file to be sourced. If a selector matches no readable plugin, or matches more than one, the loader reports a `[WARN]` and treats it as a local prerequisite failure (status `3`) instead of running any of the ambiguous candidates. Processing continues with the remaining selectors either way.
 
 ## 4. Plugin Order
 
-The numeric prefix in a plugin filename controls execution order.
+The numeric prefix in a plugin filename defines the standard full-catalog
+order. When `LOAD_PLUGINS_ALL=true`, plugins run in filename and numeric-prefix
+order. With selective loading (`LOAD_PLUGINS_ALL=false`), plugins run in the
+order written in `PLUGINS` instead; the numeric prefix still shows where each
+plugin sits in the standard catalog order, but it does not override the
+configured list order.
 
 The current ordering bands are:
 
@@ -220,7 +225,7 @@ On Red Hat and CentOS systems it runs:
     yum -y update
     yum clean all
 
-If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`.
+If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`. If `package-cleanup` is available but `OLDKERNELS_COUNT` is unset or empty, the old-kernel cleanup step is skipped with a warning; package maintenance is not rejected solely for that reason.
 
 ### 7.2 `21_clamav_update`
 
@@ -409,7 +414,7 @@ The main configuration groups are:
 | --- | --- | --- |
 | General | `DRY_RUN`, `EXCLUDEFILE`, `JOBLOG`, `STARTSCRIPT`, `ENDSCRIPT`, `ADMIN_MAIL_ADDRESS` | Controls the overall job |
 | Plugin selection | `LOAD_PLUGINS_ALL`, `PLUGINS` | Selects which plugins run |
-| System upgrade | `OLDKERNELS_COUNT` | Controls old-kernel retention on the relevant Red Hat path |
+| System upgrade | `OLDKERNELS_COUNT` | Controls optional old-kernel retention on the relevant Red Hat path |
 | Ubuntu kernel | `UBUNTU_ARCHITECTURE` | Selects the Ubuntu kernel flavor to install |
 | MySQL | `MYSQL_DBS`, `MYSQL_USER`, `MYSQL_PASS`, `MYSQLDUMP` | Configures MySQL dumps |
 | PostgreSQL | `PGDUMP`, `PG_USER` | Configures PostgreSQL dumps |
@@ -520,7 +525,7 @@ stderr directly rather than being captured in `JOBLOG`.
 | Custom target | Explicit absolute path | Skipped | Used unless run as root | Deploys components only |
 | `--no-sudo` / `-n` / `nosudo` | Default or custom | Depends on installation mode | Not used | Suitable for user-controlled targets |
 | `--link` | Default installation model | Adds optional integration links | Used unless run as root | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
-| `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used | Does not automatically remove custom targets |
+| `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used unless run as root | Removes the default installation integration while preserving logs, backup data, and custom targets |
 
 A standard system-wide installation deploys the core components and can also configure cron, logrotate, configuration directories, and backup directories.
 
@@ -584,7 +589,7 @@ Several features intentionally modify system state or stored data.
 | Remote mirroring | `80_backup_to_remote` | Uses rsync `--delete` on the remote destination |
 | Remote retrieval | `85_get_remote_dir` | Uses rsync `--delete` on the local retrieval destination |
 | Installation | `install.sh` | Changes the installation tree, cron, configuration, logrotate, and permissions |
-| Uninstallation | `install.sh --uninstall` | Removes installed components from the default installation |
+| Uninstallation | `install.sh --uninstall` | Removes default program, configuration, scheduling, and integration components; preserves logs and backup data |
 
 Configuration and target paths should therefore be reviewed before enabling state-changing plugins.
 
@@ -611,6 +616,7 @@ System-wide configuration files can contain credentials and are therefore deploy
 | Integrate an existing server-alive check | `11_server_alive_check` |
 | Record SMART, PCI, DNS, and related hardware information | `15_get_hardware_info` |
 | Upgrade operating-system packages | `20_system_upgrade` |
+| Update ClamAV virus definitions | `21_clamav_update` |
 | Upgrade Ubuntu kernels | `25_ubuntu_kernel_upgrade` |
 | Dump MySQL databases | `30_dump_mysql` |
 | Dump a PostgreSQL cluster | `31_dump_postgresql` |
