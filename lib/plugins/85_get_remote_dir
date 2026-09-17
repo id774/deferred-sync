@@ -14,7 +14,10 @@
 #                     Required; the remote retrieval is skipped if it is
 #                     unset or empty.
 #                     Example: "/remote/data /remote/logs"
-#   DRY_RUN         : If set to "true", rsync runs in dry-run mode.
+#
+# Optional environment variables:
+#   DRY_RUN : If set to "true", rsync runs in dry-run mode. Unset, empty,
+#             or any other value uses normal rsync behavior.
 #
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
