@@ -171,19 +171,26 @@ synchronization, and optional system maintenance.
 
 Three operational requirements follow.
 
-- **Do not destroy what the operation was not asked to touch.** Destructive
-  targets and prerequisites are checked before modification.
-- **Continue independent work after a task failure.** Once setup has
-  succeeded, failure of one independent phase, plugin, database, repository,
-  or remote host does not by itself cancel the remaining independent work.
+- **Establish the run before operational work starts.** `setup()` owns the
+  run-level hard-stop preconditions. If required configuration cannot be read
+  or `JOBLOG` cannot be made usable, the operational run does not start.
+- **Once established, run to completion.** After `setup()` returns
+  successfully, failure of a hook, phase, plugin, configured item, external
+  command, remote host, database, repository, backup operation, or reporting
+  operation must not deliberately terminate the parent run or suppress later
+  scheduled work merely because that unit failed.
 - **Leave enough information to diagnose the run later.** The job is normally
   unattended, so its log must identify phases, failures, return statuses, and
   useful timing information.
 
-The continue-after-failure rule does not require unsafe continuation.
-Execution may stop when required configuration cannot be read, the job log
-cannot be used safely, a prerequisite required for further execution is
-missing, or continuing would itself be destructive or unsafe.
+Safety does not create a second run-level fail-fast boundary after setup. If
+continuing the current logical operation would be invalid, inconsistent,
+destructive, or unsafe, stop the smallest affected logical unit, report the
+condition as required, and return a non-zero status to its caller. The caller
+then continues with later work according to the run contract. A local
+prerequisite failure may therefore stop a plugin or sub-operation, but it must
+not be promoted into deliberate termination of the already established parent
+run.
 
 ## 3. The Contract Between the Core and a Plugin
 
@@ -198,6 +205,10 @@ written in rather than to be run.
   Normal completion of a sourced plugin or hook returns to its caller.
   An `exit` used inside a subshell only to terminate that subshell is
   allowed because it does not terminate the parent job.
+  The same rule applies to configured `STARTSCRIPT` and `ENDSCRIPT` hook files,
+  including hooks kept outside this repository. A supported sourced hook
+  communicates failure by returning a status; it does not terminate the parent
+  shell with `exit`.
 - **Confine a change of the working directory to a subshell.** A bare `cd`
   leaks into every plugin sourced afterwards, which is why
   `31_dump_postgresql` wraps its dump in `( ... )`.
@@ -222,16 +233,20 @@ written in rather than to be run.
 
 ### 3.2 Warn and Continue
 
-The warn-and-continue contract applies to an actual failed or degraded unit of
-independent work. It does not mean that every branch which performs no work is
-a warning.
+The warn-and-continue contract is a run-level invariant once `setup()` has
+returned successfully. It is not merely a preference for individual plugins,
+and it does not mean that every branch which performs no work is a warning.
 
-The result of a unit of work, whether later independent work continues, and
-whether the condition is reported are separate decisions. Setup or prerequisite
-failure that prevents the run from being established, and any condition for
-which continuation would be destructive or unsafe, still stops the affected
-run as specified below. Independent work continues only where this repository's
-established contract says that it can still complete coherently.
+The result of a unit of work, whether that unit can continue, whether the
+parent run continues, and whether the condition is reported are separate
+decisions. After setup, a failed or unsafe unit may stop its own operation and
+return a non-zero status, but ordinary error handling must return control to
+the caller so that later scheduled work can still be attempted.
+
+There is no second run-level fail-fast boundary after setup. A previous failure
+is not by itself a reason to skip a later phase or plugin. Safety or a missing
+local prerequisite may stop the smallest affected logical unit; it must not be
+used as a generic reason to terminate the established parent run.
 
 - `exec/deferred-sync` runs `STARTSCRIPT`, then the plugin loader, then
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
@@ -245,10 +260,15 @@ established contract says that it can still complete coherently.
   `[WARN]`, keeps the **first** non-zero status in `FAILED_STATUS`, and
   returns it once every plugin has run.
 - A normal task failure does not abort the remaining independent work.
-  A component that detects a condition making its own operation unsafe
-  declines that operation and returns a non-zero status. A prerequisite
-  failure that prevents the run itself from being established may stop
-  execution as described in Section 2.
+  A component that detects a condition making its own operation invalid,
+  inconsistent, destructive, or unsafe stops that operation and returns a
+  non-zero status. That return ends the affected unit, not the parent run.
+  `lib/load` continues with later selected plugins, and `exec/deferred-sync`
+  continues with later phases.
+- A prior plugin failure does not become a prerequisite failure for later
+  plugins merely because the plugins have an operational order. Dump,
+  backup, transfer, reporting, and maintenance plugins are still attempted in
+  their configured order when their own prerequisites can be evaluated.
 - The first status is kept rather than the last because the first failure is
   usually the cause and the rest are its consequences.
 - Reporting and inspection work may be done on a best-effort basis: failing
@@ -360,6 +380,10 @@ established contract says that it can still complete coherently.
   a local prerequisite failure (status `3`) that skips both retention
   cleanup and the rsync backup, without redefining the value's accepted
   range for a non-empty configuration.
+- Stopping an unsafe path inside one plugin is local failure containment, not a
+  run-level abort. After the plugin returns its non-zero status, the loader
+  continues with later selected plugins. Do not generalize a safety stop inside
+  one plugin into termination of the parent run.
 - An existing exclusion file is used through the established preprocessing
   path (stripping blank and comment-only lines before passing the rest to
   rsync) only when it is a readable regular file. An existing but unreadable
@@ -494,6 +518,10 @@ It is sourced by a root shell. Whatever it contains, runs.
   records a condition that prevents the current logical operation from
   continuing. A normal no-op or intentionally inapplicable operation may be
   silent and is not `[WARN]` merely because it was skipped.
+- Log severity and execution control are separate. `[ERROR]` may mean that the
+  current logical operation cannot continue, but after setup it does not by
+  itself authorize termination of the parent run. The failed unit returns its
+  status and the continuation owner proceeds with later scheduled work.
 - Do not emit a status line merely to prove that a normal branch was taken.
   Keep routine unattended output quiet enough that actionable `[WARN]` and
   `[ERROR]` lines remain visible.
@@ -763,7 +791,11 @@ Before it is proposed, a change answers these:
 - Does it widen what the run can delete, overwrite, or send?
 - Does it create something whose absence was the signal that a disk, a mount,
   or a service is missing?
-- Does it still return rather than exit, and does the job survive its failure?
+- After `setup()` succeeds, can any changed failure path terminate the parent
+  shell, return from the core before later phases run, break the plugin loop,
+  or otherwise suppress later scheduled work? If so, the change violates the
+  run contract unless it stops only the smallest affected logical unit and
+  returns control to the continuation owner.
 - Does it leave a variable or a working directory behind for the next plugin?
 - Does it rename a configuration key, a plugin file, or a value's meaning that
   an installed host still uses?
