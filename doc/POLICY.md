@@ -222,6 +222,17 @@ written in rather than to be run.
 
 ### 3.2 Warn and Continue
 
+The warn-and-continue contract applies to an actual failed or degraded unit of
+independent work. It does not mean that every branch which performs no work is
+a warning.
+
+The result of a unit of work, whether later independent work continues, and
+whether the condition is reported are separate decisions. Setup or prerequisite
+failure that prevents the run from being established, and any condition for
+which continuation would be destructive or unsafe, still stops the affected
+run as specified below. Independent work continues only where this repository's
+established contract says that it can still complete coherently.
+
 - `exec/deferred-sync` runs `STARTSCRIPT`, then the plugin loader, then
   `ENDSCRIPT`. A non-zero status from any of them is reported as `[WARN]` and
   the next phase starts regardless.
@@ -330,9 +341,10 @@ written in rather than to be run.
   there; erasing that signal is worse than skipping the run.
 - The same holds for a configuration value that is empty. `31_dump_postgresql`
   returns `3` on an empty `PGDUMP` before it touches anything.
-- A skip is reported once, as `[WARN]`, naming what was missing. It is not
-  reported as an error: an unattended job that cries at every run trains its
-  reader to stop looking.
+- A skip caused by the missing local prerequisite described in this section is
+  reported once as `[WARN]`, naming what was missing. It is not reported as an
+  error. This rule does not make every normal no-op or intentionally
+  inapplicable operation warning-worthy.
 
 ### 4.2 Destructive Operations
 
@@ -476,10 +488,15 @@ It is sourced by a root shell. Whatever it contains, runs.
 ## 6. Logging
 
 - Project-generated diagnostic and status messages use `[INFO]`, `[WARN]`,
-  and `[ERROR]`: `[INFO]` records normal progress, `[WARN]` records a
-  skipped or failed operation that does not by itself stop independent
-  later work, and `[ERROR]` records a condition that prevents the current
-  phase or required setup from completing.
+  and `[ERROR]`: `[INFO]` records useful normal progress, `[WARN]` records a
+  failed or degraded operation that does not by itself stop independent later
+  work, including a skip caused by an unmet local prerequisite, and `[ERROR]`
+  records a condition that prevents the current logical operation from
+  continuing. A normal no-op or intentionally inapplicable operation may be
+  silent and is not `[WARN]` merely because it was skipped.
+- Do not emit a status line merely to prove that a normal branch was taken.
+  Keep routine unattended output quiet enough that actionable `[WARN]` and
+  `[ERROR]` lines remain visible.
 - Job start and end boundary records may retain their existing `*** ...`
   form, and output emitted directly by an external command is not required
   to be rewritten with one of the three project prefixes.
