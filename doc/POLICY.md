@@ -609,15 +609,26 @@ significant structural change may form a new installer release.
 Documentation-only, comment-only, and formatting-only changes do not
 require an installer version increment.
 
-The installer version represents one coherent release unit, not an edit,
-commit, pull request, or calendar day. Follow-up work that completes, corrects,
-or hardens the same newest release unit remains in that version even when it
-is made later; update that entry's date to the date the unit reached its
-current form and summarize the completed whole.
+The installer version moves on a version-worthy change, and the calendar date
+bounds how many versions may result: `install.sh` must not have more than one
+version number for the same calendar date. This rule has no exception.
 
-Do not merge independent release units merely because they were made on the
-same day or close together. If an independent installer version has intervened,
-a later fix to an older change is a new release unit.
+If another version-worthy change is made on a date already used by the newest
+entry, do not create another version. Keep one version for that date and
+rewrite the existing entry to describe the completed state, whether or not the
+new change is related to the one already recorded. Separate commits, pull
+requests, independent features, bug fixes, security fixes, compatibility
+changes, breaking changes, or release units do not permit another version
+number on the same date; independence may decide pull request scope or bullet
+grouping, but never overrides the one-version-per-calendar-day rule.
+
+On a later date, follow-up work that completes, corrects, or hardens the same
+newest release unit remains in that version even when it is made in another
+commit or pull request; update that entry's date to the date the unit reached
+its current form and summarize the completed whole. A later-date change that is
+independent of the newest entry starts a new version. If an independent
+installer version has intervened, a later fix to an older change is a new
+release unit.
 
 Each entry's description is at most two lines, and a single line at or
 under 80 columns is preferred whenever practical.
@@ -754,6 +765,9 @@ that reads them.
   [`VERSIONS`](VERSIONS) and used for the Git tag. The Version History
   Guidelines at the foot of that file govern the entries, including the
   two-line, 80-column bullet limit stated there and the first-version rule.
+- The repository never carries more than one version for the same calendar
+  date, whatever the independence of the changes released. A same-date
+  change joins that day's single entry.
 - Files of the run carry no version of their own. `doc/VERSIONS` is their
   history.
 - `install.sh` keeps its own `major.minor` version history under the
