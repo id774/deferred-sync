@@ -750,6 +750,16 @@ that reads them.
 ### 10.2 Pull Requests and History
 
 - A pull request has one coherent purpose.
+- "Purpose" means the higher-level reason for the pull request, not an
+  individual finding, issue, file, function, or review comment. Multiple
+  findings from one cross-cutting investigation, maintenance task, defect
+  class, migration, release preparation, or quality correction may belong
+  to the same purpose.
+- Do not split an approved work group mechanically by finding or file.
+  Consider semantic coherence, shared files, merge conflicts, duplicated
+  validation, branch and pull-request management cost, and whether
+  independent review, release, rollback, or acceptance is actually
+  required.
 - One coherent change is normally represented by one commit.
 - Independent changes may be separate commits.
 - Review corrections may amend and rewrite the branch so that the final
