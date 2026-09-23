@@ -76,33 +76,7 @@ Changes to supported environments, support floors, repository release
 versions, deliberate retirement of an established interface, and
 repository-wide design policy are maintainer decisions.
 
-### 1.2 Documentation Roles and Sources of Truth
-
-The documentation structure of this repository is:
-
-- `doc/POLICY.md` records the repository-wide implementation and maintenance
-  policy.
-- `doc/FEATURES.md` is the detailed user-facing behavior and capability
-  reference.
-- `README.md` provides the project overview, installation instructions, basic
-  configuration, supported environments, usage, and directory structure.
-- `doc/VERSIONS` records release-level history.
-- A component header records the local interface and operational contract
-  needed to understand or operate that component.
-- `config/sync.conf` is the configuration template used for a new
-  installation. A standard system installation's deployed configuration under
-  `/etc/opt/deferred-sync` is persistent host-specific runtime state.
-
-The implementation is the primary evidence of what currently happens. It is
-not, by itself, proof that the current behavior is the intended specification.
-
-When implementation and documentation disagree, compare the implementation,
-documented interface, component header, history, existing design, and
-maintenance intent. If the implementation contains a regression, do not adopt
-that regression as the specification merely because it is present in the
-current code.
-
-### 1.3 Wording Strength
+### 1.2 Wording Strength
 
 Reserve absolute wording such as `must`, `always`, and `never` for an
 invariant that admits no reasonable exception.
@@ -116,7 +90,7 @@ purpose conflict, the priorities and intended behavior defined above govern.
 
 This is not a formal MUST/SHOULD/MAY taxonomy.
 
-### 1.4 Change Discipline for Established Infrastructure
+### 1.3 Change Discipline for Established Infrastructure
 
 Finding a possible safety, compatibility, maintainability, cleanup, or
 refactoring improvement does not by itself authorize an implementation
@@ -153,6 +127,32 @@ the supported and representative operating systems, shells, utilities, and
 deployment conditions affected by the change. A successful check in one
 convenient environment is not sufficient evidence for a change whose
 compatibility or operational risk extends to other supported environments.
+
+### 1.4 Documentation Roles and Sources of Truth
+
+The documentation structure of this repository is:
+
+- `doc/POLICY.md` records the repository-wide implementation and maintenance
+  policy.
+- `doc/FEATURES.md` is the detailed user-facing behavior and capability
+  reference.
+- `README.md` provides the project overview, installation instructions, basic
+  configuration, supported environments, usage, and directory structure.
+- `doc/VERSIONS` records release-level history.
+- A component header records the local interface and operational contract
+  needed to understand or operate that component.
+- `config/sync.conf` is the configuration template used for a new
+  installation. A standard system installation's deployed configuration under
+  `/etc/opt/deferred-sync` is persistent host-specific runtime state.
+
+The implementation is the primary evidence of what currently happens. It is
+not, by itself, proof that the current behavior is the intended specification.
+
+When implementation and documentation disagree, compare the implementation,
+documented interface, component header, history, existing design, and
+maintenance intent. If the implementation contains a regression, do not adopt
+that regression as the specification merely because it is present in the
+current code.
 
 ## 2. What a Run Is
 
@@ -695,7 +695,7 @@ that reads them.
   a narrower set of systems when their required capability is
   platform-specific.
 
-## 10. Installer and Change Policy
+## 10. Installer Policy
 
 ### 10.1 Installer
 
@@ -747,7 +747,7 @@ that reads them.
   ownership normalization. By maintainer decision, that normalization alone
   does not increment the installer version or add a `Version History` entry.
 
-### 10.2 Pull Requests and History
+## 11. Pull Requests and History
 
 - A pull request has one coherent purpose.
 - "Purpose" means the higher-level reason for the pull request, not an
@@ -769,7 +769,7 @@ that reads them.
 - `doc/VERSIONS` records release-level changes, not a chronological list
   of every commit or review correction.
 
-## 11. Versions and Documents
+## 12. Versions and Documents
 
 - The repository version is `<year>.<month>`, recorded in
   [`VERSIONS`](VERSIONS) and used for the Git tag. The Version History
@@ -794,7 +794,7 @@ that reads them.
 - Plain text is wrapped near 80 columns where that is practical. A URL, a
   command, a table, or a line that is clearer whole may exceed it.
 
-## 12. Judging a Change
+## 13. Judging a Change
 
 Validation is selected according to the files and behavior changed.
 
@@ -835,7 +835,7 @@ Before it is proposed, a change answers these:
 - Which documents change with it: the file header, `doc/VERSIONS`, the
   README, `config/sync.conf`?
 
-## 13. License
+## 14. License
 
 This repository is dual licensed under the GPL version 3 or the LGPL version
 3, at the user's option. See [LICENSE](LICENSE.md), [COPYING](COPYING), and
