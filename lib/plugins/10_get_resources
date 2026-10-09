@@ -8,7 +8,8 @@
 #   - System uptime (`uptime`)
 #   - Memory usage (`free -t`)
 #   - Disk usage (`df -P -T`)
-#   - Block device mapping (`lsblk`, `lsblk -f`)
+#   - Block device mapping (`lsblk`)
+#   - Filesystem details (extended `lsblk -o`, with `lsblk -f` fallback)
 #   - LVM logical volume mapping (`lvs -o lv_name,vg_name,lv_size,devices`)
 #   - Network interface status (`ip addr show`)
 #
@@ -53,8 +54,11 @@ get_resources() {
     if command -v lsblk > /dev/null 2>&1; then
         echo "[INFO] Retrieving block device mapping using lsblk"
         lsblk
-        echo "[INFO] Retrieving filesystem information using lsblk -f"
-        lsblk -f
+        echo "[INFO] Retrieving extended block device and filesystem information using lsblk -o"
+        if ! lsblk -o NAME,SIZE,TYPE,MODEL,SERIAL,FSTYPE,FSVER,UUID,FSAVAIL,FSUSE%,MOUNTPOINTS; then
+            echo "[WARN] Extended lsblk output failed; falling back to lsblk -f" >&2
+            lsblk -f
+        fi
     else
         echo "[WARN] lsblk command not found" >&2
     fi
