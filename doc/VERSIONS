@@ -5,6 +5,8 @@ v26.10 (Release Date: TBD)
 --------------------------
 - Expand lsblk logging with device identity and filesystem details, retaining
   lsblk -f as a fallback when extended output fails.
+- Expand software version reporting to include language package managers,
+  Node.js, Conda, Mamba, MeCab, and side-effect-free Safe Chain detection.
 
 v26.09 (2026-09-23)
 -------------------
