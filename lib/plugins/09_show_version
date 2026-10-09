@@ -4,14 +4,26 @@
 #
 # Outputs:
 #   - Ruby version
+#   - RubyGems version
 #   - Python version
+#   - pip version
 #   - Java version
 #   - Go version
+#   - Node.js version
+#   - npm version
+#   - Conda version
+#   - Mamba version
 #   - MongoDB version
 #   - Protocol Buffers version
+#   - MeCab version
+#   - Aikido Safe Chain version
 #
 # Note:
-#   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`.
+#   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`,
+#     where `current` is managed manually. Java uses `/opt/java/jdk/current/bin/` and
+#     MeCab uses `/opt/mecab-stack/bin/`.
+#   - Aikido Safe Chain is never executed. Its version is the directory name that
+#     the `/opt/safe-chain/current` symlink points to, read with `readlink`.
 
 start_message() {
     printf -- "[INFO] Loading: show_version has been loaded at "
@@ -24,9 +36,19 @@ show_version() {
         /opt/ruby/current/bin/ruby -v
     }
 
+    [ -x /opt/ruby/current/bin/gem ] && {
+        echo "[INFO] Retrieving RubyGems version"
+        PATH="/opt/ruby/current/bin:$PATH" /opt/ruby/current/bin/gem --version
+    }
+
     [ -x /opt/python/current/bin/python ] && {
         echo "[INFO] Retrieving Python version"
         /opt/python/current/bin/python -V 2>&1
+    }
+
+    [ -x /opt/python/current/bin/python ] && {
+        echo "[INFO] Retrieving pip version"
+        /opt/python/current/bin/python -m pip --version
     }
 
     [ -x /opt/java/jdk/current/bin/java ] && {
@@ -39,6 +61,26 @@ show_version() {
         /opt/go/current/bin/go version
     }
 
+    [ -x /opt/node/current/bin/node ] && {
+        echo "[INFO] Retrieving Node.js version"
+        /opt/node/current/bin/node --version
+    }
+
+    [ -x /opt/node/current/bin/npm ] && {
+        echo "[INFO] Retrieving npm version"
+        PATH="/opt/node/current/bin:$PATH" /opt/node/current/bin/npm --version
+    }
+
+    [ -x /opt/conda/current/bin/conda ] && {
+        echo "[INFO] Retrieving Conda version"
+        /opt/conda/current/bin/conda --version
+    }
+
+    [ -x /opt/conda/current/bin/mamba ] && {
+        echo "[INFO] Retrieving Mamba version"
+        /opt/conda/current/bin/mamba --version
+    }
+
     [ -x /opt/mongo/current/bin/mongo ] && {
         echo "[INFO] Retrieving MongoDB version"
         /opt/mongo/current/bin/mongo --version
@@ -48,6 +90,22 @@ show_version() {
         echo "[INFO] Retrieving Protocol Buffers version"
         /opt/protobuf/current/bin/protoc --version
     }
+
+    [ -x /opt/mecab-stack/bin/mecab ] && {
+        echo "[INFO] Retrieving MeCab version"
+        /opt/mecab-stack/bin/mecab --version
+    }
+
+    [ -x /opt/safe-chain/current/bin/safe-chain ] &&
+    [ -L /opt/safe-chain/current ] &&
+    command -v readlink >/dev/null 2>&1 && (
+        SAFE_CHAIN_TARGET=$(readlink /opt/safe-chain/current 2>/dev/null) || exit 0
+        SAFE_CHAIN_VERSION=${SAFE_CHAIN_TARGET##*/}
+        if [ -n "$SAFE_CHAIN_VERSION" ]; then
+            echo "[INFO] Retrieving Aikido Safe Chain version"
+            printf 'Aikido Safe Chain %s\n' "$SAFE_CHAIN_VERSION"
+        fi
+    )
 
     return 0
 }

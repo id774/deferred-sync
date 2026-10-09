@@ -120,7 +120,7 @@ The current plugin catalog is shown below.
 
 | Plugin | Category | Main capability | Main output or side effect |
 | --- | --- | --- | --- |
-| `09_show_version` | Reporting | Retrieve software versions | Logs versions of Ruby, Python, Java, Go, MongoDB, and Protocol Buffers when present |
+| `09_show_version` | Reporting | Retrieve software versions | Logs versions of Ruby, RubyGems, Python, pip, Java, Go, Node.js, npm, Conda, Mamba, MongoDB, Protocol Buffers, MeCab, and Aikido Safe Chain when present; Safe Chain is not executed |
 | `10_get_resources` | Reporting | Retrieve system resources | Logs kernel, distribution, uptime, memory, disk, block-device, LVM, and network information |
 | `11_server_alive_check` | Monitoring | Run an external server-alive check | Executes the configured check script and propagates its status |
 | `15_get_hardware_info` | Reporting | Retrieve hardware, DNS, and SMART information | Logs DMI, PCI, power, DNS, and disk SMART information when corresponding tools are available |
@@ -145,18 +145,34 @@ final return status is not part of the feature contract.
 
 ### 6.1 `09_show_version`
 
-`09_show_version` reports versions of major software installed under expected `/opt/<software>/current/bin/` paths.
+`09_show_version` reports versions of installed software on a best-effort
+basis, using the following order:
 
-The current targets are:
+1. Ruby
+2. RubyGems
+3. Python
+4. pip
+5. Java
+6. Go
+7. Node.js
+8. npm
+9. Conda
+10. Mamba
+11. MongoDB
+12. Protocol Buffers
+13. MeCab
+14. Aikido Safe Chain
 
-- Ruby
-- Python
-- Java
-- Go
-- MongoDB
-- Protocol Buffers
-
-If the corresponding executable does not exist, that software is skipped.
+The usual installation paths are `/opt/<software>/current/bin/`, with
+Java at `/opt/java/jdk/current/bin/` and MeCab at
+`/opt/mecab-stack/bin/`. The `current` symbolic links are managed
+manually, not created by this plugin. Missing executables are silently
+skipped, and a failed version query does not prevent later queries.
+RubyGems and npm use the matching runtime's `bin` directory in the
+command-local `PATH`; pip is queried through the selected Python.
+Safe Chain is never executed for version reporting: its version is
+inferred from the final path component of `/opt/safe-chain/current`'s
+symbolic-link target, using `readlink`, and is skipped if unavailable.
 
 ### 6.2 `10_get_resources`
 
