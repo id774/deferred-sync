@@ -9,6 +9,8 @@ v26.10 (Release Date: TBD)
   Node.js, Conda, Mamba, MeCab, and side-effect-free Safe Chain detection.
 - Condense software version and resource logs into labeled single-line values
   while preserving multi-line diagnostic output and fallback behavior.
+- Reject a JOBLOG that cannot be opened for append during setup, returning
+  status 1 before starting the job.
 
 v26.09 (2026-09-23)
 -------------------
