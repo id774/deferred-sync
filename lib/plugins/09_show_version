@@ -24,77 +24,111 @@
 #     MeCab uses `/opt/mecab-stack/bin/`.
 #   - Aikido Safe Chain is never executed. Its version is the directory name that
 #     the `/opt/safe-chain/current` symlink points to, read with `readlink`.
+#   - A single-line version is logged as `[INFO] <name>: <version>`. Multi-line
+#     output (Java, MongoDB) follows a short `[INFO] <name>:` header in full.
 
 start_message() {
     printf -- "[INFO] Loading: show_version has been loaded at "
     date "+%Y/%m/%d %T"
 }
 
+log_version() {
+    [ -n "$4" ] || return 0
+    if [ "$3" -ne 0 ]; then
+        printf '%s\n' "$4"
+        return 0
+    fi
+    case $4 in
+        *'
+'*)
+            echo "[INFO] $1:"
+            printf '%s\n' "$4"
+            return 0
+            ;;
+    esac
+    if [ -n "$2" ]; then
+        case $4 in
+            "$2"?*)
+                set -- "$1" "$2" "$3" "${4#"$2"}"
+                echo "[INFO] $1: ${4%% *}"
+                return 0
+                ;;
+        esac
+    fi
+    echo "[INFO] $1: $4"
+}
+
+log_native() {
+    [ -n "$3" ] || return 0
+    [ "$2" -eq 0 ] && echo "[INFO] $1:"
+    printf '%s\n' "$3"
+}
+
 show_version() {
-    [ -x /opt/ruby/current/bin/ruby ] && {
-        echo "[INFO] Retrieving Ruby version"
-        /opt/ruby/current/bin/ruby -v
-    }
+    [ -x /opt/ruby/current/bin/ruby ] && (
+        VERSION_OUT=$(/opt/ruby/current/bin/ruby -v)
+        log_version "Ruby" "ruby " $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/ruby/current/bin/gem ] && {
-        echo "[INFO] Retrieving RubyGems version"
-        PATH="/opt/ruby/current/bin:$PATH" /opt/ruby/current/bin/gem --version
-    }
+    [ -x /opt/ruby/current/bin/gem ] && (
+        VERSION_OUT=$(PATH="/opt/ruby/current/bin:$PATH" /opt/ruby/current/bin/gem --version)
+        log_version "RubyGems" "" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/python/current/bin/python ] && {
-        echo "[INFO] Retrieving Python version"
-        /opt/python/current/bin/python -V 2>&1
-    }
+    [ -x /opt/python/current/bin/python ] && (
+        VERSION_OUT=$(/opt/python/current/bin/python -V 2>&1)
+        log_version "Python" "Python " $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/python/current/bin/python ] && {
-        echo "[INFO] Retrieving pip version"
-        /opt/python/current/bin/python -m pip --version
-    }
+    [ -x /opt/python/current/bin/python ] && (
+        VERSION_OUT=$(/opt/python/current/bin/python -m pip --version)
+        log_version "pip" "pip " $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/java/jdk/current/bin/java ] && {
-        echo "[INFO] Retrieving Java version"
-        /opt/java/jdk/current/bin/java -version
-    }
+    [ -x /opt/java/jdk/current/bin/java ] && (
+        VERSION_OUT=$(/opt/java/jdk/current/bin/java -version 2>&1)
+        log_native "Java" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/go/current/bin/go ] && {
-        echo "[INFO] Retrieving Go version"
-        /opt/go/current/bin/go version
-    }
+    [ -x /opt/go/current/bin/go ] && (
+        VERSION_OUT=$(/opt/go/current/bin/go version)
+        log_version "Go" "go version go" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/node/current/bin/node ] && {
-        echo "[INFO] Retrieving Node.js version"
-        /opt/node/current/bin/node --version
-    }
+    [ -x /opt/node/current/bin/node ] && (
+        VERSION_OUT=$(/opt/node/current/bin/node --version)
+        log_version "Node.js" "v" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/node/current/bin/npm ] && {
-        echo "[INFO] Retrieving npm version"
-        PATH="/opt/node/current/bin:$PATH" /opt/node/current/bin/npm --version
-    }
+    [ -x /opt/node/current/bin/npm ] && (
+        VERSION_OUT=$(PATH="/opt/node/current/bin:$PATH" /opt/node/current/bin/npm --version)
+        log_version "npm" "" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/conda/current/bin/conda ] && {
-        echo "[INFO] Retrieving Conda version"
-        /opt/conda/current/bin/conda --version
-    }
+    [ -x /opt/conda/current/bin/conda ] && (
+        VERSION_OUT=$(/opt/conda/current/bin/conda --version)
+        log_version "Conda" "conda " $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/conda/current/bin/mamba ] && {
-        echo "[INFO] Retrieving Mamba version"
-        /opt/conda/current/bin/mamba --version
-    }
+    [ -x /opt/conda/current/bin/mamba ] && (
+        VERSION_OUT=$(/opt/conda/current/bin/mamba --version)
+        log_version "Mamba" "" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/mongo/current/bin/mongo ] && {
-        echo "[INFO] Retrieving MongoDB version"
-        /opt/mongo/current/bin/mongo --version
-    }
+    [ -x /opt/mongo/current/bin/mongo ] && (
+        VERSION_OUT=$(/opt/mongo/current/bin/mongo --version)
+        log_native "MongoDB" $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/protobuf/current/bin/protoc ] && {
-        echo "[INFO] Retrieving Protocol Buffers version"
-        /opt/protobuf/current/bin/protoc --version
-    }
+    [ -x /opt/protobuf/current/bin/protoc ] && (
+        VERSION_OUT=$(/opt/protobuf/current/bin/protoc --version)
+        log_version "Protocol Buffers" "libprotoc " $? "$VERSION_OUT"
+    )
 
-    [ -x /opt/mecab-stack/bin/mecab ] && {
-        echo "[INFO] Retrieving MeCab version"
-        /opt/mecab-stack/bin/mecab --version
-    }
+    [ -x /opt/mecab-stack/bin/mecab ] && (
+        VERSION_OUT=$(/opt/mecab-stack/bin/mecab --version)
+        log_version "MeCab" "mecab of " $? "$VERSION_OUT"
+    )
 
     [ -x /opt/safe-chain/current/bin/safe-chain ] &&
     [ -L /opt/safe-chain/current ] &&
@@ -102,8 +136,7 @@ show_version() {
         SAFE_CHAIN_TARGET=$(readlink /opt/safe-chain/current 2>/dev/null) || exit 0
         SAFE_CHAIN_VERSION=${SAFE_CHAIN_TARGET##*/}
         if [ -n "$SAFE_CHAIN_VERSION" ]; then
-            echo "[INFO] Retrieving Aikido Safe Chain version"
-            printf 'Aikido Safe Chain %s\n' "$SAFE_CHAIN_VERSION"
+            echo "[INFO] Aikido Safe Chain: $SAFE_CHAIN_VERSION"
         fi
     )
 

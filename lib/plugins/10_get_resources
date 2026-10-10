@@ -17,44 +17,70 @@
 #   - This script assumes it is running on a POSIX-compliant system.
 #   - `lsblk`, `lvs`, and `ip` must be installed to retrieve respective information.
 #   - `lsb_release` is optional and used when available.
+#   - A single-line value is logged as `[INFO] <name>: <value>`. Multi-line
+#     output follows a short `[INFO] <name>:` heading in full.
 
 start_message() {
     printf -- "[INFO] Loading: get_resources has been loaded at "
     date "+%Y/%m/%d %T"
 }
 
+log_value() {
+    [ -n "$3" ] || return 0
+    if [ "$2" -ne 0 ]; then
+        printf '%s\n' "$3"
+        return 0
+    fi
+    case $3 in
+        *'
+'*)
+            echo "[INFO] $1:"
+            printf '%s\n' "$3"
+            ;;
+        *)
+            echo "[INFO] $1: $3"
+            ;;
+    esac
+}
+
 get_resources() {
     # Print kernel and system details
-    echo "[INFO] Retrieving kernel and system information"
-    uname -a
+    (
+        RESOURCE_OUT=$(uname -a)
+        log_value "Kernel" $? "$RESOURCE_OUT"
+    )
 
     # Prefer lsb_release output when available
     if command -v lsb_release >/dev/null 2>&1; then
-        echo "[INFO] Retrieving distribution information using lsb_release"
+        echo "[INFO] Distribution information:"
         lsb_release -a
     fi
 
     # Always log /etc/debian_version if it exists (for minor version etc.)
     if [ -f /etc/debian_version ]; then
-        echo "[INFO] Retrieving distribution version from /etc/debian_version"
-        cat /etc/debian_version
+        (
+            RESOURCE_OUT=$(cat /etc/debian_version)
+            log_value "Debian version" $? "$RESOURCE_OUT"
+        )
     fi
 
     # Print system uptime and resource usage
-    echo "[INFO] Retrieving system uptime"
-    uptime
+    (
+        RESOURCE_OUT=$(uptime)
+        log_value "Uptime" $? "$RESOURCE_OUT"
+    )
 
-    echo "[INFO] Retrieving memory usage"
+    echo "[INFO] Memory:"
     free -t
 
-    echo "[INFO] Retrieving disk usage"
+    echo "[INFO] Disk usage:"
     df -P -T
 
     # Retrieve block device and filesystem mapping
     if command -v lsblk > /dev/null 2>&1; then
-        echo "[INFO] Retrieving block device mapping using lsblk"
+        echo "[INFO] Block devices:"
         lsblk
-        echo "[INFO] Retrieving extended block device and filesystem information using lsblk -o"
+        echo "[INFO] Filesystems:"
         if ! lsblk -o NAME,SIZE,TYPE,MODEL,SERIAL,FSTYPE,FSVER,UUID,FSAVAIL,FSUSE%,MOUNTPOINTS; then
             echo "[WARN] Extended lsblk output failed; falling back to lsblk -f" >&2
             lsblk -f
@@ -65,7 +91,7 @@ get_resources() {
 
     # Retrieve LVM logical volume mapping (lv -> devices)
     if command -v lvs > /dev/null 2>&1; then
-        echo "[INFO] Retrieving LVM logical volume mapping using lvs"
+        echo "[INFO] LVM:"
         lvs -o lv_name,vg_name,lv_size,devices
     else
         echo "[WARN] lvs command not found" >&2
@@ -73,7 +99,7 @@ get_resources() {
 
     # Retrieve network interface detailed status
     if command -v ip > /dev/null 2>&1; then
-        echo "[INFO] Retrieving network interface information using ip addr show"
+        echo "[INFO] Network interfaces:"
         ip addr show
     else
         echo "[WARN] ip command not found" >&2
