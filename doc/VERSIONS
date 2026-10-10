@@ -7,6 +7,8 @@ v26.10 (Release Date: TBD)
   lsblk -f as a fallback when extended output fails.
 - Expand software version reporting to include language package managers,
   Node.js, Conda, Mamba, MeCab, and side-effect-free Safe Chain detection.
+- Condense software version and resource logs into labeled single-line values
+  while preserving multi-line diagnostic output and fallback behavior.
 
 v26.09 (2026-09-23)
 -------------------

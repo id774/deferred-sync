@@ -174,6 +174,8 @@ Safe Chain is never executed for version reporting: its version is
 inferred from the final path component of `/opt/safe-chain/current`'s
 symbolic-link target, using `readlink`, and is skipped if unavailable.
 
+Single-line version results are logged as one labeled [INFO] line. Ruby, Python, pip, Go, Node.js, Conda, Protocol Buffers, and MeCab display their version number without redundant command metadata; RubyGems, npm, and Mamba display their reported version string. Java and MongoDB retain their native multi-line output after a short labeled header. Failed queries do not stop subsequent targets.
+
 ### 6.2 `10_get_resources`
 
 `10_get_resources` records the current system state.
@@ -192,6 +194,8 @@ Its output can include:
 - Network-interface status
 
 Additional information is collected when commands such as `lsb_release`, `lsblk`, `lvs`, and `ip` are available.
+
+Single-line kernel, Debian-version, and uptime values are logged on one labeled [INFO] line. Multi-line output from lsb_release, free, df, lsblk, lvs, and ip is preserved in full after a concise heading; the extended lsblk query and its lsblk -f fallback remain unchanged.
 
 ### 6.3 `11_server_alive_check`
 
