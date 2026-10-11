@@ -134,6 +134,48 @@ The main configuration file is `config/sync.conf`. It defines all parameters req
 - `LOAD_PLUGINS_ALL` - If `true`, all plugins will be loaded automatically.
 - `PLUGINS` - List of plugins to load selectively.
 
+### Host-Specific STARTSCRIPT and ENDSCRIPT
+
+The default `STARTSCRIPT` and `ENDSCRIPT` settings refer to `lib/before` and
+`lib/after`. These files are examples and are replaced whenever `install.sh`
+redeploys the installation directory. Do not edit them to store host-specific
+logic.
+
+For a standard system-wide installation on Linux, use the following procedure:
+
+1. Run `./install.sh` to install deferred-sync.
+2. Copy `/opt/deferred-sync/lib/before` to `/etc/opt/deferred-sync/before` and
+   `/opt/deferred-sync/lib/after` to `/etc/opt/deferred-sync/after`.
+3. Edit the copied files to implement the host-specific pre- and post-execution
+   tasks. If the installed hooks already contain local changes, preserve those
+   changes outside the installation target before reinstalling.
+4. Set the following values in `/etc/opt/deferred-sync/sync.conf`:
+
+   ```sh
+   STARTSCRIPT=/etc/opt/deferred-sync/before
+   ENDSCRIPT=/etc/opt/deferred-sync/after
+   ```
+
+5. Ensure the scripts are readable by the account running deferred-sync and
+   protected against unauthorized modification.
+
+Both scripts are sourced into the running shell. They must return normally and
+must not use `exit` to terminate the parent job.
+
+The installer preserves existing configuration files under
+`/etc/opt/deferred-sync` during subsequent installations. As a result, the
+host-specific scripts and their configured paths remain unchanged when
+deferred-sync is reinstalled.
+
+If only one custom script is needed, configure only that script and leave the
+other setting unchanged.
+
+This procedure applies to standard system-wide installations on Linux. Custom
+installation targets do not have the same configuration persistence guarantee.
+
+**Note:** `install.sh --uninstall` removes `/etc/opt/deferred-sync`. The
+preservation guarantee applies to reinstallation, not uninstallation.
+
 ### Optional System-Wide Configuration Symlinks
 
 If you pass the `--link` option during installation, deferred-sync will automatically create symlinks:
