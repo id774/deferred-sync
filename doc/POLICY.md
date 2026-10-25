@@ -809,6 +809,7 @@ Validation is selected according to the files and behavior changed.
 - A documentation-only change does not require an unrelated runtime
   execution merely to satisfy a checklist.
 - No new test framework is required merely because a change is made.
+- This repository intentionally does not use GitHub Actions as its CI/CD platform.
 
 Before it is proposed, a change answers these:
 
