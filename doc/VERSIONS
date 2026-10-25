@@ -1,8 +1,8 @@
 deferred-sync Repository Version History
 ========================================
 
-v26.10 (Release Date: TBD)
---------------------------
+v26.10 (2026-10-25)
+-------------------
 - Extend resource reports with detailed lsblk output and compact scalar logs,
   preserving multi-line diagnostics and lsblk -f fallback.
 - Extend version checks to RubyGems, pip, Node.js, npm, Conda, Mamba, MeCab,
