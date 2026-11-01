@@ -777,6 +777,12 @@ that reads them.
 - Conflict resolution does not add unrelated history to the branch.
 - `doc/VERSIONS` records release-level changes, not a chronological list
   of every commit or review correction.
+- An automated agent must not commit or push directly to `master`. It must
+  commit authorized changes to a work branch and submit them through a pull
+  request targeting the approved base branch. Creating or updating a pull
+  request does not authorize the agent to merge it or enable auto-merge.
+  Either action requires an explicit instruction from the maintainer. This
+  paragraph does not change a human maintainer's authority.
 
 ## 12. Versions and Documents
 
