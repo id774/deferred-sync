@@ -1,7 +1,8 @@
 # Scheduled execution of deferred-sync
 # Runs Monday through Saturday at 03:01
-# MAILTO receives only output left to cron; normal deferred-sync runtime output
-# is written to JOBLOG, whose administrator mail is controlled by ADMIN_MAIL_ADDRESS.
+# MAILTO receives only output left to cron. Normal deferred-sync runtime
+# output is written to JOBLOG, whose administrator mail is controlled by
+# ADMIN_MAIL_ADDRESS.
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 MAILTO=root

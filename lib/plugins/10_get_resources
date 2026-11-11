@@ -14,7 +14,8 @@
 #
 # Note:
 #   - This script assumes it is running on a POSIX-compliant system.
-#   - `lsblk`, `lvs`, and `ip` must be installed to retrieve respective information.
+#   - `lsblk`, `lvs`, and `ip` must be installed to retrieve respective
+#     information.
 #   - `lsb_release` is optional and used when available.
 #   - A single-line value is logged as `[INFO] <name>: <value>`. Multi-line
 #     output follows a short `[INFO] <name>:` heading in full.

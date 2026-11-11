@@ -7,12 +7,12 @@
 #                     Example: /var/remotebackups
 #   REMOTE_USER     : Username for remote SSH login.
 #                     Example: backupuser
-#   GET_HOSTS       : List of remote hosts (space-separated). Required;
-#                     the remote retrieval is skipped if it is unset or empty.
+#   GET_HOSTS       : List of remote hosts (space-separated). It is required.
+#                     The remote retrieval is skipped if it is unset or empty.
 #                     Example: "server1.example.com server2.example.com"
 #   GET_REMOTE_DIRS : List of remote directories to sync (space-separated).
-#                     Required; the remote retrieval is skipped if it is
-#                     unset or empty.
+#                     It is required. The remote retrieval is skipped if it
+#                     is unset or empty.
 #                     Example: "/remote/data /remote/logs"
 #
 # Optional environment variables:
@@ -21,8 +21,9 @@
 #
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
-#   - No ping or other independent network/security probe gates the transfer;
-#     rsync/SSH is attempted directly and its own status is returned.
+#   - No ping or other independent network/security probe gates the transfer.
+#     The rsync/SSH transfer is attempted directly, and its own status is
+#     returned.
 
 start_message() {
     printf -- "[INFO] Loading: get_remote_dir has been loaded at "

@@ -8,10 +8,11 @@
 #   - Logging the end of the sync process
 #
 # Note:
-#   - This file is an example of the shape an ENDSCRIPT takes, not a place to keep one.
-#     install.sh redeploys lib/ on every install, so an edit made here is lost on upgrade.
-#     A host that needs its own post-execution logic keeps that script outside the
-#     installation target and points ENDSCRIPT in sync.conf at it.
+#   - This file is an example of the shape an ENDSCRIPT takes, not a place to
+#     keep one. install.sh redeploys lib/ on every install, so an edit made
+#     here is lost on upgrade. A host that needs its own post-execution logic
+#     keeps that script outside the installation target and points ENDSCRIPT
+#     in sync.conf at it.
 #   - This script is sourced by the job, so it returns instead of exiting.
 
 start_message() {

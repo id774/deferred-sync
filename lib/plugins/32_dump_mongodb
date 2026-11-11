@@ -11,7 +11,8 @@
 #                       Example: /usr/bin/mongodump
 #
 # Note:
-#   - This script assumes that MongoDB authentication is handled via configuration.
+#   - This script assumes that MongoDB authentication is handled via
+#     configuration.
 
 start_message() {
     printf -- "[INFO] Loading: dump_mongodb has been loaded at "

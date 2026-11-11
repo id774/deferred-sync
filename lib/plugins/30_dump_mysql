@@ -3,13 +3,14 @@
 # 30_dump_mysql - A script to dump MySQL databases and compress the dump.
 #
 # Required environment variables:
-#   MYSQLDUMP  : Directory where the dump files (SQL and compressed files) will be stored.
+#   MYSQLDUMP  : Directory where the dump files (SQL and compressed files) will
+#                be stored.
 #                Example: /var/lib/mysql/mysql_dump
 #   MYSQL_USER : MySQL username.
 #                Example: root
 #   MYSQL_PASS : MySQL password.
-#   MYSQL_DBS  : List of databases to back up (space-separated). Required;
-#                the dump is skipped if it is unset or empty.
+#   MYSQL_DBS  : List of databases to back up (space-separated). It is
+#                required. The dump is skipped if it is unset or empty.
 #                Example: "db1 db2 db3"
 #
 # Note:

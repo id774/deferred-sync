@@ -1,20 +1,32 @@
 # deferred-sync Feature Reference
 
-This document provides a user-facing reference for the features provided by deferred-sync and shows which component implements each capability.
+This document provides a user-facing reference for the features provided by
+deferred-sync and shows which component implements each capability.
 
 deferred-sync is not just an rsync wrapper.
 
-It is a backup and synchronization framework that runs multiple configured plugins in sequence and can perform system inspection, system upgrades, database dumps, SVN dumps, versioned local backups, remote backup, and remote directory retrieval as one unattended job.
+It is a backup and synchronization framework that runs multiple configured
+plugins in sequence and can perform system inspection, system upgrades,
+database dumps, SVN dumps, versioned local backups, remote backup, and remote
+directory retrieval as one unattended job.
 
-The README explains the project overview, installation, basic configuration, and directory layout.
+The README explains the project overview, installation, basic configuration,
+and directory layout.
 
-`doc/POLICY.md` defines the implementation policy, plugin contract, safety rules, return codes, and logging conventions.
+`doc/POLICY.md` defines the implementation policy, plugin contract, safety
+rules, return codes, and logging conventions.
 
-The implementation is the primary evidence of what each component currently does, while the component header records its local operational contract and this document records the intended user-facing behavior. A mismatch is resolved by comparing the implementation, documented interface, history, and maintenance intent rather than by treating an accidental implementation detail as the specification.
+The implementation is the primary evidence of what each component currently
+does, while the component header records its local operational contract and
+this document records the intended user-facing behavior. A mismatch is resolved
+by comparing the implementation, documented interface, history, and maintenance
+intent rather than by treating an accidental implementation detail as the
+specification.
 
 This `FEATURES.md` sits between those layers.
 
-Its purpose is to make it possible to answer the following questions without reading every source file individually:
+Its purpose is to make it possible to answer the following questions without
+reading every source file individually:
 
 - What can deferred-sync do?
 - Which plugin performs a particular task?
@@ -57,15 +69,24 @@ The basic execution sequence is:
 
 `STARTSCRIPT`, the plugin loader, and `ENDSCRIPT` run sequentially.
 
-If one of these phases returns a nonzero status, deferred-sync records a warning and continues to the next phase instead of aborting the whole job immediately.
+If one of these phases returns a nonzero status, deferred-sync records a
+warning and continues to the next phase instead of aborting the whole job
+immediately.
 
-If `STARTSCRIPT` or `ENDSCRIPT` is configured but is not a readable regular file, deferred-sync records a warning and continues to the next phase without sourcing it. This is not unconditional continuation: a setup prerequisite failure that prevents the run from being established, such as an unreadable configuration file, can stop execution before this sequence begins.
+If `STARTSCRIPT` or `ENDSCRIPT` is configured but is not a readable regular
+file, deferred-sync records a warning and continues to the next phase without
+sourcing it. This is not unconditional continuation: a setup prerequisite
+failure that prevents the run from being established, such as an unreadable
+configuration file, can stop execution before this sequence begins.
 
-This behavior is intended for unattended backup jobs, where failure of one auxiliary task should not automatically prevent all remaining backup work from running.
+This behavior is intended for unattended backup jobs, where failure of one
+auxiliary task should not automatically prevent all remaining backup work from
+running.
 
 ## 3. Plugin Execution
 
-Plugins are sourced into the current shell by `lib/load`; they are not executed as independent child processes.
+Plugins are sourced into the current shell by `lib/load`. They are not executed
+as independent child processes.
 
 Plugin selection has two modes.
 
@@ -83,18 +104,27 @@ and the default `PLUGINS` list is:
     get_resources
     incremental_backup
 
-Therefore, the presence of a plugin in the repository does not by itself mean that the feature runs automatically.
+Therefore, the presence of a plugin in the repository does not by itself mean
+that the feature runs automatically.
 
-System upgrades, database dumps, remote synchronization, and other optional capabilities run only when selected by configuration.
+System upgrades, database dumps, remote synchronization, and other optional
+capabilities run only when selected by configuration.
 
-When `LOAD_PLUGINS_ALL=false`, each `PLUGINS` entry is matched against the end of a plugin filename, and the numeric prefix may be omitted (for example, `get_resources` matches `10_get_resources`). Selected plugins are processed in the order written in `PLUGINS`. A selector must resolve to exactly one readable plugin file to be sourced. If a selector matches no readable plugin, or matches more than one, the loader reports a `[WARN]` and treats it as a local prerequisite failure (status `3`) instead of running any of the ambiguous candidates. Processing continues with the remaining selectors either way.
+When `LOAD_PLUGINS_ALL=false`, each `PLUGINS` entry is matched against the end
+of a plugin filename, and the numeric prefix may be omitted (for example,
+`get_resources` matches `10_get_resources`). Selected plugins are processed in
+the order written in `PLUGINS`. A selector must resolve to exactly one readable
+plugin file to be sourced. If a selector matches no readable plugin, or matches
+more than one, the loader reports a `[WARN]` and treats it as a local
+prerequisite failure (status `3`) instead of running any of the ambiguous
+candidates. Processing continues with the remaining selectors either way.
 
 ## 4. Plugin Order
 
 The numeric prefix in a plugin filename defines the standard full-catalog
 order. When `LOAD_PLUGINS_ALL=true`, plugins run in filename and numeric-prefix
 order. With selective loading (`LOAD_PLUGINS_ALL=false`), plugins run in the
-order written in `PLUGINS` instead; the numeric prefix still shows where each
+order written in `PLUGINS` instead. The numeric prefix still shows where each
 plugin sits in the standard catalog order, but it does not override the
 configured list order.
 
@@ -110,9 +140,11 @@ The current ordering bands are:
 
 This ordering is meaningful.
 
-Database and repository dumps run before the local incremental backup so that newly created dumps can be included in the same backup run.
+Database and repository dumps run before the local incremental backup so that
+newly created dumps can be included in the same backup run.
 
-The local backup runs before remote transfer so that remote synchronization uses the completed local backup state.
+The local backup runs before remote transfer so that remote synchronization
+uses the completed local backup state.
 
 ## 5. Plugin Catalog
 
@@ -169,12 +201,17 @@ Java at `/opt/java/jdk/current/bin/` and MeCab at
 manually, not created by this plugin. Missing executables are silently
 skipped, and a failed version query does not prevent later queries.
 RubyGems and npm use the matching runtime's `bin` directory in the
-command-local `PATH`; pip is queried through the selected Python.
+command-local `PATH`. The pip version is queried through the selected Python.
 Safe Chain is never executed for version reporting: its version is
 inferred from the final path component of `/opt/safe-chain/current`'s
 symbolic-link target, using `readlink`, and is skipped if unavailable.
 
-Single-line version results are logged as one labeled [INFO] line. Ruby, Python, pip, Go, Node.js, Conda, Protocol Buffers, and MeCab display their version number without redundant command metadata; RubyGems, npm, and Mamba display their reported version string. Java and MongoDB retain their native multi-line output after a short labeled header. Failed queries do not stop subsequent targets.
+Single-line version results are logged as one labeled [INFO] line. Ruby,
+Python, pip, Go, Node.js, Conda, Protocol Buffers, and MeCab display their
+version number without redundant command metadata. RubyGems, npm, and Mamba
+display their reported version string. Java and MongoDB retain their native
+multi-line output after a short labeled header. Failed queries do not stop
+subsequent targets.
 
 ### 6.2 `10_get_resources`
 
@@ -193,9 +230,13 @@ Its output can include:
 - LVM logical-volume mapping
 - Network-interface status
 
-Additional information is collected when commands such as `lsb_release`, `lsblk`, `lvs`, and `ip` are available.
+Additional information is collected when commands such as `lsb_release`,
+`lsblk`, `lvs`, and `ip` are available.
 
-Single-line kernel, Debian-version, and uptime values are logged on one labeled [INFO] line. Multi-line output from lsb_release, free, df, lsblk, lvs, and ip is preserved in full after a concise heading; the extended lsblk query and its lsblk -f fallback remain unchanged.
+Single-line kernel, Debian-version, and uptime values are logged on one labeled
+[INFO] line. Multi-line output from lsb_release, free, df, lsblk, lvs, and ip
+is preserved in full after a concise heading. The extended lsblk query and its
+lsblk -f fallback remain unchanged.
 
 ### 6.3 `11_server_alive_check`
 
@@ -245,29 +286,44 @@ On Red Hat and CentOS systems it runs:
     yum -y update
     yum clean all
 
-If `package-cleanup` is available, it can also remove old kernels according to `OLDKERNELS_COUNT`. If `package-cleanup` is available but `OLDKERNELS_COUNT` is unset or empty, the old-kernel cleanup step is skipped with a warning; package maintenance is not rejected solely for that reason.
+If `package-cleanup` is available, it can also remove old kernels according to
+`OLDKERNELS_COUNT`. If `package-cleanup` is available but `OLDKERNELS_COUNT` is
+unset or empty, the old-kernel cleanup step is skipped with a warning. Package
+maintenance is not rejected solely for that reason.
 
 ### 7.2 `21_clamav_update`
 
-`21_clamav_update` updates ClamAV virus definitions when `freshclam` is available.
+`21_clamav_update` updates ClamAV virus definitions when `freshclam` is
+available.
 
-When `systemctl` is available, it stops `clamav-freshclam.service` before running `freshclam` and starts the service afterward regardless of whether `freshclam` succeeded. If `freshclam` succeeds but restarting the service fails, the restart failure is returned as the plugin result. If `freshclam` fails, that failure remains the plugin result even if the service restart also fails.
+When `systemctl` is available, it stops `clamav-freshclam.service` before
+running `freshclam` and starts the service afterward regardless of whether
+`freshclam` succeeded. If `freshclam` succeeds but restarting the service
+fails, the restart failure is returned as the plugin result. If `freshclam`
+fails, that failure remains the plugin result even if the service restart also
+fails.
 
-If `freshclam` is not available, the plugin performs no update and returns success.
+If `freshclam` is not available, the plugin performs no update and returns
+success.
 
-Deployments that use selective plugin loading and previously selected `system_upgrade` to obtain both package and ClamAV updates must add `clamav_update` explicitly. To preserve the previous relative order, list `clamav_update` immediately after `system_upgrade`.
+Deployments that use selective plugin loading and previously selected
+`system_upgrade` to obtain both package and ClamAV updates must add
+`clamav_update` explicitly. To preserve the previous relative order, list
+`clamav_update` immediately after `system_upgrade`.
 
 ### 7.3 `25_ubuntu_kernel_upgrade`
 
 `25_ubuntu_kernel_upgrade` updates Ubuntu kernel packages.
 
-It first purges old kernel packages while excluding the currently running kernel, then installs:
+It first purges old kernel packages while excluding the currently running
+kernel, then installs:
 
     linux-image-$UBUNTU_ARCHITECTURE
     linux-headers-$UBUNTU_ARCHITECTURE
     linux-$UBUNTU_ARCHITECTURE
 
-This is a system-maintenance plugin that changes package state; it is not a reporting-only component.
+This is a system-maintenance plugin that changes package state. It is not a
+reporting-only component.
 
 ## 8. Database and Repository Dumps
 
@@ -286,11 +342,14 @@ This is a system-maintenance plugin that changes package state; it is not a repo
 
 Each database is dumped through `mysqldump` and compressed with gzip.
 
-Failure of one database does not stop processing of the remaining configured databases.
+Failure of one database does not stop processing of the remaining configured
+databases.
 
-The current implementation passes `MYSQL_PASS` to `mysqldump` on the command line.
+The current implementation passes `MYSQL_PASS` to `mysqldump` on the command
+line.
 
-This can expose the password in the local process list. Environments where that matters should use a MySQL option file such as `~/.my.cnf`.
+This can expose the password in the local process list. Environments where that
+matters should use a MySQL option file such as `~/.my.cnf`.
 
 ### 8.3 `31_dump_postgresql`
 
@@ -300,29 +359,37 @@ This can expose the password in the local process list. Environments where that 
 
 The database command runs under `PG_USER`.
 
-The change of directory into `PGDUMP` is confined to a subshell, so it does not affect plugins sourced afterward.
+The change of directory into `PGDUMP` is confined to a subshell, so it does not
+affect plugins sourced afterward.
 
 ### 8.4 `32_dump_mongodb`
 
-`32_dump_mongodb` uses the configured `mongodump` binary to create a temporary dump tree and then packages that tree into the configured ZIP archive.
+`32_dump_mongodb` uses the configured `mongodump` binary to create a temporary
+dump tree and then packages that tree into the configured ZIP archive.
 
-After the archive is created successfully, the contents of the temporary dump directory are removed.
+After the archive is created successfully, the contents of the temporary dump
+directory are removed.
 
-If the temporary dump directory or the parent directory of the archive does not exist, the plugin skips the operation instead of creating the missing directories.
+If the temporary dump directory or the parent directory of the archive does not
+exist, the plugin skips the operation instead of creating the missing
+directories.
 
 ### 8.5 `35_dump_svn`
 
 `35_dump_svn` processes every repository listed in `SVN_REPOS`.
 
-It runs `svnadmin dump` for each repository and creates a ZIP archive for each result.
+It runs `svnadmin dump` for each repository and creates a ZIP archive for each
+result.
 
-Failure of one repository does not stop processing of the remaining configured repositories.
+Failure of one repository does not stop processing of the remaining configured
+repositories.
 
 ## 9. Local Incremental Backup
 
 `70_incremental_backup` is the main local backup plugin.
 
-It synchronizes every directory listed in `BACKUPDIRS` into `BACKUPTO` through rsync.
+It synchronizes every directory listed in `BACKUPDIRS` into `BACKUPTO` through
+rsync.
 
 The configured rsync behavior includes:
 
@@ -337,7 +404,8 @@ The version-preservation directory is:
 
     $BACKUPTO/_backup_$DATE
 
-As a result, `BACKUPTO` can contain both the current mirror and dated copies of files replaced or deleted during synchronization.
+As a result, `BACKUPTO` can contain both the current mirror and dated copies of
+files replaced or deleted during synchronization.
 
 ## 10. Backup Retention
 
@@ -345,30 +413,33 @@ Backup directories matching:
 
     *_backup_YYYYMMDD
 
-become purge candidates when they are older than `EXPIREDAYS`. The retention date is parsed from
-the end of the directory name, so a prefixed name such as `foo_backup_YYYYMMDD` is still handled
-correctly.
+become purge candidates when they are older than `EXPIREDAYS`. The retention
+date is parsed from the end of the directory name, so a prefixed name such as
+`foo_backup_YYYYMMDD` is still handled correctly.
 
 Deletion is restricted to matching directories below `BACKUPTO`.
 
 If no matching backup directories exist, nothing is removed.
 
-`EXPIREDAYS` is required; if it is unset or empty, the local backup plugin returns status `3` and
-skips both retention cleanup and the rsync backup.
+`EXPIREDAYS` is required. If it is unset or empty, the local backup plugin
+returns status `3` and skips both retention cleanup and the rsync backup.
 
-If deleting an expired backup directory fails, the local backup plugin returns that failure status
-and does not proceed to the rsync backup for that run.
+If deleting an expired backup directory fails, the local backup plugin returns
+that failure status and does not proceed to the rsync backup for that run.
 
 ## 11. Exclusions
 
 If `EXCLUDEFILE` exists, its contents are supplied to rsync as exclusion rules.
 
-Blank lines and comment-only lines are removed before the patterns are passed to rsync.
+Blank lines and comment-only lines are removed before the patterns are passed
+to rsync.
 
-If `EXCLUDEFILE` exists but is not readable, the local backup plugin returns status `3` and skips
-the backup instead of running rsync without the intended exclusions.
+If `EXCLUDEFILE` exists but is not readable, the local backup plugin returns
+status `3` and skips the backup instead of running rsync without the intended
+exclusions.
 
-This keeps backup exclusions in configuration data instead of hard-coding them into the backup implementation.
+This keeps backup exclusions in configuration data instead of hard-coding them
+into the backup implementation.
 
 ## 12. Dry-Run Behavior
 
@@ -382,9 +453,11 @@ The plugins that currently honor this setting include:
 - `80_backup_to_remote`
 - `85_get_remote_dir`
 
-Dry-run is intended to show what synchronization would do before write or deletion operations are performed.
+Dry-run is intended to show what synchronization would do before write or
+deletion operations are performed.
 
-It should not be treated as a universal no-op switch for every plugin in deferred-sync.
+It should not be treated as a universal no-op switch for every plugin in
+deferred-sync.
 
 ## 13. Remote Synchronization
 
@@ -395,9 +468,10 @@ deferred-sync supports synchronization in both directions.
 | Local → Remote | `80_backup_to_remote` | Sends the local backup tree to remote hosts |
 | Remote → Local | `85_get_remote_dir` | Retrieves remote directories into local storage |
 
-Neither plugin gates the transfer on `ping` or another independent network/security probe:
-network policy for a protocol other than the transfer itself must not block an otherwise valid
-rsync/SSH transfer. Each plugin attempts rsync directly and returns its actual status.
+Neither plugin gates the transfer on `ping` or another independent
+network/security probe: network policy for a protocol other than the transfer
+itself must not block an otherwise valid rsync/SSH transfer. Each plugin
+attempts rsync directly and returns its actual status.
 
 ### 13.1 `80_backup_to_remote`
 
@@ -407,10 +481,11 @@ rsync/SSH transfer. Each plugin attempts rsync directly and returns its actual s
 
 Multiple hosts can be listed in `REMOTE_HOSTS`.
 
-If rsync fails for one remote host, that host's rsync status is kept while processing continues
-for the remaining hosts.
+If rsync fails for one remote host, that host's rsync status is kept while
+processing continues for the remaining hosts.
 
-The rsync invocation uses `--delete`, so files absent from the local source can be removed from the remote destination.
+The rsync invocation uses `--delete`, so files absent from the local source can
+be removed from the remote destination.
 
 ### 13.2 `85_get_remote_dir`
 
@@ -444,11 +519,13 @@ The main configuration groups are:
 | Remote backup | `REMOTE_HOSTS`, `REMOTE_DIR`, `BACKUPUSER` | Configures local-to-remote synchronization |
 | Remote retrieval | `GET_HOSTS`, `GET_REMOTE_DIRS`, `GET_TARGET_DIR`, `REMOTE_USER` | Configures remote-to-local synchronization |
 
-For exact configuration semantics, refer to `config/sync.conf` and the header documentation and implementation of the plugin that reads each value.
+For exact configuration semantics, refer to `config/sync.conf` and the header
+documentation and implementation of the plugin that reads each value.
 
 ## 15. Missing Prerequisites
 
-deferred-sync does not generally treat a missing backup or dump destination as something it should silently create.
+deferred-sync does not generally treat a missing backup or dump destination as
+something it should silently create.
 
 A missing directory may indicate that:
 
@@ -456,9 +533,12 @@ A missing directory may indicate that:
 - Backup storage is disconnected
 - Configuration is incomplete
 
-Many plugins therefore return status `3` and skip the operation when a required local directory is absent.
+Many plugins therefore return status `3` and skip the operation when a required
+local directory is absent.
 
-This prevents a failed mount from being masked by automatically creating an ordinary directory on the root filesystem and then reporting a misleadingly successful backup.
+This prevents a failed mount from being masked by automatically creating an
+ordinary directory on the root filesystem and then reporting a misleadingly
+successful backup.
 
 ## 16. Warn and Continue
 
@@ -466,11 +546,14 @@ A major design property of deferred-sync is warn-and-continue behavior.
 
 The plugin loader sources each selected plugin in sequence.
 
-A nonzero return status from one plugin does not prevent later plugins from running.
+A nonzero return status from one plugin does not prevent later plugins from
+running.
 
 When several plugins fail, the loader preserves the first nonzero status.
 
-The same principle applies to the main phases: failure of `STARTSCRIPT`, the plugin loader, or `ENDSCRIPT` is logged, but does not automatically stop later phases.
+The same principle applies to the main phases: failure of `STARTSCRIPT`, the
+plugin loader, or `ENDSCRIPT` is logged, but does not automatically stop later
+phases.
 
 This avoids failure chains such as:
 
@@ -512,13 +595,17 @@ The main log prefixes are:
     [WARN]
     [ERROR]
 
-Because deferred-sync is designed for unattended execution, major phases and long-running operations record timestamps.
+Because deferred-sync is designed for unattended execution, major phases and
+long-running operations record timestamps.
 
-A command whose status a plugin treats as its own operation result also records that status in the log. Recording the status of every auxiliary reporting or diagnostic command is not guaranteed.
+A command whose status a plugin treats as its own operation result also records
+that status in the log. Recording the status of every auxiliary reporting or
+diagnostic command is not guaranteed.
 
 ## 19. Administrator Notification
 
-If `ADMIN_MAIL_ADDRESS` is configured, deferred-sync sends `JOBLOG` by mail after the job finishes.
+If `ADMIN_MAIL_ADDRESS` is configured, deferred-sync sends `JOBLOG` by mail
+after the job finishes.
 
 The subject contains:
 
@@ -529,8 +616,8 @@ If `nkf` is available, it is used in the mail pipeline.
 
 If `nkf` is unavailable, the log is passed directly to `mail`.
 
-This notification is an optional step that runs after the job has completed; a
-mail delivery failure does not change the recorded result of the backup or
+This notification is an optional step that runs after the job has completed.
+A mail delivery failure does not change the recorded result of the backup or
 synchronization work itself. A mail delivery failure is reported as an error,
 and because this happens after the job's main phases, that error may reach
 stderr directly rather than being captured in `JOBLOG`.
@@ -547,7 +634,8 @@ stderr directly rather than being captured in `JOBLOG`.
 | `--link` | Default installation model | Adds optional integration links | Used unless run as root | Integrates with `/etc/cron.config` and `/etc/cron.exec` |
 | `--uninstall` | Fixed at `/opt/deferred-sync` | Removes related installed components | Used unless run as root | Removes the default installation integration while preserving logs, backup data, and custom targets |
 
-A standard system-wide installation deploys the core components and can also configure cron, logrotate, configuration directories, and backup directories.
+A standard system-wide installation deploys the core components and can also
+configure cron, logrotate, configuration directories, and backup directories.
 
 Existing:
 
@@ -575,7 +663,8 @@ With `--link`, the installer can create:
     /etc/cron.exec/deferred-sync
         → /opt/deferred-sync/exec/deferred-sync
 
-This integrates deferred-sync with a centralized cron execution and configuration layout.
+This integrates deferred-sync with a centralized cron execution and
+configuration layout.
 
 ## 22. Cron Execution
 
@@ -591,11 +680,13 @@ For an exact schedule, the repository also provides:
 
 as a sample cron.d entry.
 
-If `/etc/cron.d/deferred-sync` already exists, the installer skips installation of `/etc/cron.daily/deferred-sync` to avoid duplicate scheduling.
+If `/etc/cron.d/deferred-sync` already exists, the installer skips installation
+of `/etc/cron.daily/deferred-sync` to avoid duplicate scheduling.
 
 ## 23. Destructive Operations
 
-deferred-sync is a backup and synchronization system, not a read-only inspection tool.
+deferred-sync is a backup and synchronization system, not a read-only
+inspection tool.
 
 Several features intentionally modify system state or stored data.
 
@@ -611,7 +702,8 @@ Several features intentionally modify system state or stored data.
 | Installation | `install.sh` | Changes the installation tree, cron, configuration, logrotate, and permissions |
 | Uninstallation | `install.sh --uninstall` | Removes default program, configuration, scheduling, and integration components; preserves logs and backup data |
 
-Configuration and target paths should therefore be reviewed before enabling state-changing plugins.
+Configuration and target paths should therefore be reviewed before enabling
+state-changing plugins.
 
 ## 24. Root Execution and Privilege
 
@@ -625,7 +717,8 @@ For example, PostgreSQL dumping uses:
 
 to perform the database operation under the configured PostgreSQL user.
 
-System-wide configuration files can contain credentials and are therefore deployed with restrictive permissions.
+System-wide configuration files can contain credentials and are therefore
+deployed with restrictive permissions.
 
 ## 25. Finding a Feature by Purpose
 
@@ -676,11 +769,13 @@ A database server can use an order such as:
         ↓
     backup_to_remote
 
-Creating the dumps first allows them to be included in the same local and remote backup cycle.
+Creating the dumps first allows them to be included in the same local and
+remote backup cycle.
 
 ### Backup Aggregation Server
 
-A backup server can combine its own local backup with retrieval from other hosts:
+A backup server can combine its own local backup with retrieval from other
+hosts:
 
     get_resources
         ↓
@@ -688,7 +783,8 @@ A backup server can combine its own local backup with retrieval from other hosts
         ↓
     get_remote_dir
 
-This allows local backup and remote backup collection to use the same execution framework.
+This allows local backup and remote backup collection to use the same execution
+framework.
 
 ## 27. Scope of This Document
 
@@ -723,11 +819,13 @@ It does not duplicate in full:
 - Host-specific configuration values
 - Credentials
 
-The implementation and each component's header documentation remain authoritative for exact behavior.
+The implementation and each component's header documentation remain
+authoritative for exact behavior.
 
 `doc/POLICY.md` defines the implementation and operational contract.
 
-The purpose of this `FEATURES.md` is to let a user determine, before reading the source tree in detail:
+The purpose of this `FEATURES.md` is to let a user determine, before reading
+the source tree in detail:
 
 - Which capabilities exist
 - Which plugin should be enabled

@@ -17,7 +17,7 @@
 #
 # Notes:
 #   - Plugins must be readable (`-r`) to be loaded.
-#   - This script does not stop on plugin failure; it only reports it.
+#   - This script does not stop on plugin failure. It only reports the failure.
 #
 # Exit / Return codes convention:
 #   0 - Success

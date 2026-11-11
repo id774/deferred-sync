@@ -7,7 +7,8 @@
 #                         Example: generic
 #
 # Note:
-#   - This script assumes that the system is running Ubuntu and has internet access.
+#   - This script assumes that the system is running Ubuntu and has internet
+#     access.
 
 start_message() {
     printf -- "[INFO] Loading: ubuntu_kernel_upgrade has been loaded at "
