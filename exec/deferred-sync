@@ -8,7 +8,8 @@
 #
 # Features:
 #   - Loads configuration from `config/sync.conf`
-#   - Executes pre-sync (`STARTSCRIPT`) and post-sync (`ENDSCRIPT`) scripts if defined
+#   - Executes pre-sync (`STARTSCRIPT`) and post-sync (`ENDSCRIPT`) scripts
+#     if defined
 #   - Dynamically loads plugins via `lib/load`
 #   - Logs all operations to `JOBLOG`
 #   - Sends a notification email upon completion (if configured)
@@ -22,7 +23,8 @@
 #
 # Notes:
 #   - Ensure that `config/sync.conf` and related scripts are properly configured.
-#   - This script follows POSIX compliance and does not abort on non-critical failures.
+#   - This script follows POSIX compliance and does not abort on non-critical
+#     failures.
 
 setup() {
     LANG=C
@@ -56,7 +58,8 @@ setup() {
 }
 
 send_mail_to_admin() {
-    # Send job log to administrator (fall back if nkf is absent, report mail failures)
+    # Send job log to administrator (fall back if nkf is absent, report mail
+    # failures)
     SUBJ="[cron][$(hostname)] Deferred Sync Log"
     if command -v nkf >/dev/null 2>&1; then
         nkf -w <"$JOBLOG" | mail -s "$SUBJ" "$ADMIN_MAIL_ADDRESS"

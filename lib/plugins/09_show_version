@@ -19,9 +19,10 @@
 #   - Aikido Safe Chain version
 #
 # Note:
-#   - This script assumes the respective software is installed in `/opt/<software>/current/bin/`,
-#     where `current` is managed manually. Java uses `/opt/java/jdk/current/bin/` and
-#     MeCab uses `/opt/mecab-stack/bin/`.
+#   - This script assumes the respective software is installed in
+#     `/opt/<software>/current/bin/`, where `current` is managed manually.
+#     Java uses `/opt/java/jdk/current/bin/` and MeCab uses
+#     `/opt/mecab-stack/bin/`.
 #   - Aikido Safe Chain is never executed. Its version is the directory name that
 #     the `/opt/safe-chain/current` symlink points to, read with `readlink`.
 #   - A single-line version is logged as `[INFO] <name>: <version>`. Multi-line

@@ -7,11 +7,11 @@
 #                  Example: /var/backups
 #   BACKUPUSER   : Username for remote SSH login.
 #                  Example: backupuser
-#   REMOTE_HOSTS : List of remote servers (space-separated). Required;
-#                  the remote backup is skipped if it is unset or empty.
+#   REMOTE_HOSTS : List of remote servers (space-separated). It is required.
+#                  The remote backup is skipped if it is unset or empty.
 #                  Example: "server1.example.com server2.example.com"
-#   REMOTE_DIR   : Target directory on remote servers. Required;
-#                  the remote backup is skipped if it is unset or empty.
+#   REMOTE_DIR   : Target directory on remote servers. It is required.
+#                  The remote backup is skipped if it is unset or empty.
 #                  Example: /remote/backup
 #
 # Optional environment variables:
@@ -20,8 +20,9 @@
 #
 # Note:
 #   - This script assumes that SSH authentication is configured via SSH keys.
-#   - No ping or other independent network/security probe gates the transfer;
-#     rsync/SSH is attempted directly and its own status is returned.
+#   - No ping or other independent network/security probe gates the transfer.
+#     The rsync/SSH transfer is attempted directly, and its own status is
+#     returned.
 
 start_message() {
     printf -- "[INFO] Loading: backup_to_remote has been loaded at "

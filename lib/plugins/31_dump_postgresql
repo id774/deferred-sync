@@ -3,7 +3,8 @@
 # 31_dump_postgresql - A script to dump the entire PostgreSQL database cluster and compress the dump.
 #
 # Required environment variables:
-#   PGDUMP   : Directory where the dump files (SQL and compressed files) will be stored.
+#   PGDUMP   : Directory where the dump files (SQL and compressed files) will
+#              be stored.
 #              Example: /var/lib/postgresql/pg_dump
 #   PG_USER  : PostgreSQL username.
 #              Example: postgres

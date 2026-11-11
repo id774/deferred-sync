@@ -7,14 +7,15 @@
 #   - RedHat/CentOS (via yum)
 #
 # Note:
-#   - This script assumes that the system is connected to the internet and package managers are configured correctly.
+#   - This script assumes that the system is connected to the internet and
+#     package managers are configured correctly.
 #   - OLDKERNELS_COUNT (for RHEL/CentOS) controls optional old-kernel cleanup.
 #     Example: 2
 #
 # Behavior:
 #   - Package maintenance keeps the existing command order.
 #   - If package-cleanup is available but OLDKERNELS_COUNT is unset or empty,
-#     old-kernel cleanup is skipped with a warning; package maintenance itself
+#     old-kernel cleanup is skipped with a warning. Package maintenance itself
 #     remains governed by the APT/YUM command results.
 
 start_message() {

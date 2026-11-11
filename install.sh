@@ -26,10 +26,13 @@
 #      -n, --no-sudo    Run without sudo (also accepted as nosudo).
 #
 #  Notes:
-#  - [target_path]: Path to the installation directory (default: /opt/deferred-sync).
-#  - Give [target_path] as an absolute path; a relative path is rejected as an unknown option.
+#  - [target_path]: Path to the installation directory
+#    (default: /opt/deferred-sync).
+#  - Give [target_path] as an absolute path. A relative path is rejected as an
+#    unknown option.
 #  - [nosudo|--no-sudo|-n]: If specified, the script runs without sudo.
-#  - Keep the uninstall target fixed at /opt/deferred-sync to prevent accidental deletion.
+#  - Keep the uninstall target fixed at /opt/deferred-sync to prevent
+#    accidental deletion.
 #  - Do not remove custom installation targets automatically.
 #  - --uninstall preserves /var/log/deferred-sync, /home/backup, and /home/remote.
 #
@@ -149,7 +152,8 @@ set_environment() {
     echo "[INFO] Owner: $OWNER"
 }
 
-# Copy specified components (e.g., exec, config, lib) to the installation target directory
+# Copy specified components (e.g., exec, config, lib) to the installation
+# target directory
 deploy() {
     echo "[INFO] Deploying components: $*"
     for item in "$@"; do
@@ -160,7 +164,8 @@ deploy() {
     done
 }
 
-# Remove existing target directory and recreate it before deploying core components
+# Remove existing target directory and recreate it before deploying core
+# components
 deploy_to_target() {
     echo "[INFO] Deploying to $TARGET."
     if [ -d "$TARGET" ]; then
@@ -176,7 +181,8 @@ deploy_to_target() {
     deploy exec config lib
 }
 
-# Install cron job and copy configuration files to /etc/opt/deferred-sync with proper permissions
+# Install cron job and copy configuration files to /etc/opt/deferred-sync
+# with proper permissions
 scheduling() {
     echo "[INFO] Setting up cron and configuration links..."
     if [ -f /etc/cron.d/deferred-sync ]; then
@@ -218,7 +224,7 @@ scheduling() {
     create_config_symlinks
 }
 
-# Create safe symlink; $1: source, $2: linkpath
+# Create a safe symlink, where $1 is the source and $2 is the link path
 safe_symlink() {
     src="$1"; link="$2"
 
@@ -237,7 +243,7 @@ safe_symlink() {
         fi
     fi
 
-    # Remove existing file or symlink; never remove directories
+    # Remove only an existing file or symlink. Never remove directories.
     if [ -L "$link" ] || [ -f "$link" ]; then
         ${SUDO:-} rm -f "$link" || { echo "[ERROR] Failed to remove $link" >&2; return 1; }
     elif [ -d "$link" ]; then
@@ -266,7 +272,8 @@ create_config_symlinks() {
     done
 }
 
-# Create system-wide config and execution symlinks under /etc/cron.config and /etc/cron.exec
+# Create system-wide config and execution symlinks under /etc/cron.config
+# and /etc/cron.exec
 link_configs_to_etc() {
     if [ -d /etc/cron.config ]; then
         for conf in sync.conf exclude.conf; do
@@ -283,7 +290,8 @@ link_configs_to_etc() {
     fi
 }
 
-# Configure log rotation and create log directory and initial log file with proper ownership
+# Configure log rotation and create log directory and initial log file with
+# proper ownership
 logrotate() {
     echo "[INFO] Setting up log rotation..."
     if ! $SUDO cp $OPTIONS "$SCRIPT_HOME/cron/logrotate.d/deferred-sync" /etc/logrotate.d/deferred-sync; then
@@ -309,7 +317,8 @@ logrotate() {
     fi
 }
 
-# Create default backup target directories (/home/backup, /home/remote) with secure permissions
+# Create default backup target directories (/home/backup, /home/remote) with
+# secure permissions
 create_backupdir() {
     echo "[INFO] Creating backup directories..."
     for dir in /home/backup /home/remote; do
@@ -349,7 +358,8 @@ set_permission() {
     fi
 }
 
-# Perform full installation routine including environment setup, deployment, permission settings, and optional symlinks
+# Perform full installation routine including environment setup, deployment,
+# permission settings, and optional symlinks
 install() {
     check_commands cp mkdir chmod chown ln rm id dirname uname touch
     set_environment "$1" "$2"

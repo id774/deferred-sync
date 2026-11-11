@@ -6,7 +6,8 @@
 # to automatically run `deferred-sync` every day.
 #
 # Note:
-#   - The main `deferred-sync` executable must be located at `/opt/deferred-sync/exec/deferred-sync`
+#   - The main `deferred-sync` executable must be located at
+#     `/opt/deferred-sync/exec/deferred-sync`.
 #   - Ensure that the script has executable permissions (`chmod +x`).
 
 EXEC_PATH="/opt/deferred-sync/exec/deferred-sync"

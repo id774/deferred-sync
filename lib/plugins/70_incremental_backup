@@ -5,12 +5,12 @@
 # Required environment variables:
 #   BACKUPTO   : Target backup directory.
 #                Example: /var/backups
-#   BACKUPDIRS : List of directories to back up (space-separated). Required;
-#                the backup is skipped if it is unset or empty.
+#   BACKUPDIRS : List of directories to back up (space-separated). It is
+#                required. The backup is skipped if it is unset or empty.
 #                Example: "/home /etc /var/www"
-#   EXPIREDAYS : Number of days before old backups are purged. Required;
-#                unset or empty skips both retention cleanup and the rsync
-#                backup.
+#   EXPIREDAYS : Number of days before old backups are purged. It is required.
+#                If it is unset or empty, both retention cleanup and the rsync
+#                backup are skipped.
 #
 # Optional environment variables:
 #   EXCLUDEFILE : File containing patterns of files/directories to exclude.
@@ -85,7 +85,8 @@ exec_rsync() {
     for BACKUPDIR in $BACKUPDIRS; do
         printf -- "[INFO] rsync %s %s %s\n" "$OPTS" "$BACKUPDIR" "$BACKUPTO"
         if [ -f "$EXCLUDEFILE" ]; then
-            # Strip blank lines and pipe the rest to --exclude-from=/dev/stdin, which skips # lines
+            # Strip blank lines and pipe the rest to --exclude-from=/dev/stdin,
+            # which skips # lines
             grep -v '^[# ]*$' "$EXCLUDEFILE" | rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
         else
             rsync $OPTS "$BACKUPDIR" "$BACKUPTO"
