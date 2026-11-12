@@ -18,26 +18,34 @@ they are used.
 - The installer: `install.sh`. It is an executable POSIX shell program run
   interactively to install, update, link, or uninstall deferred-sync.
 
+This document stands on its own. It is the whole implementation policy of this
+repository, and no rule here is completed by a document kept somewhere else. A
+subject it does not cover is a gap in this document, to be filled here rather
+than looked up elsewhere.
+
 ## 0. Governing Principle
 
 **Simplicity is robustness.**
 
 This is the governing principle for every rule below. It does not authorize
-dropping required behavior, compatibility, or safety; it requires meeting
-them with the least complexity justified by the actual requirement.
+dropping required behavior, compatibility, security, safety, documentation, or
+validation. It requires satisfying those requirements with no more complexity
+than the actual problem justifies.
 
-Complexity is itself a source of failure, compatibility risk, operational
-risk, and maintenance cost. Do not add a branch, state variable, helper,
-abstraction, dependency, retry, fallback, validation, or defensive check
-unless it is required by the specification or addresses a realistic failure
-mode with meaningful operational consequence. Do not re-check a condition
-already guaranteed by a preceding successful operation or an established
-invariant.
+Complexity is itself a source of failure, compatibility risk, operational risk,
+security risk, and maintenance cost. Do not add a branch, state variable,
+helper, abstraction, dependency, network boundary, retry, fallback, validation,
+configuration state, or framework unless the specification requires it or it
+addresses a realistic failure mode with meaningful consequence.
+
+Do not re-check a condition already guaranteed by a preceding successful
+operation or an established invariant. Do not create a layer merely to resemble
+a possible future architecture.
 
 When two designs satisfy the same requirements, choose the one with less
-control flow, less state, fewer dependencies, and fewer moving parts.
-Simplicity is judged by necessary concepts and behavior, not by line count
-alone.
+control flow, less state, fewer dependencies, fewer side effects, fewer moving
+parts, and fewer operational assumptions. Simplicity is judged by the number of
+necessary concepts and behaviors, not by line count alone.
 
 ## 1. About This Document
 
@@ -78,15 +86,17 @@ repository-wide design policy are maintainer decisions.
 
 ### 1.2 Wording Strength
 
-Reserve absolute wording such as `must`, `always`, and `never` for an
-invariant that admits no reasonable exception.
+Use `must`, `always`, and `never` only for invariants that admit no reasonable
+exception. Express preferences and situational decisions with `prefer`,
+`should`, or other qualified wording.
 
-Use wording such as `prefer`, `should`, or `when appropriate` for a design
-preference or situational rule.
+Do not apply a rule literally where doing so would defeat the repository's
+stated purpose, intended behavior, compatibility, safety, or approved change
+scope.
 
-A rule must not be written so that applying its wording literally produces a
-result contrary to Compatibility, Safety, or Efficiency. Where wording and
-purpose conflict, the priorities and intended behavior defined above govern.
+Where the applicable specifications and policy leave a legitimate choice
+open, an explicit maintainer decision governs that choice. General
+conventions do not override it.
 
 This is not a formal MUST/SHOULD/MAY taxonomy.
 
@@ -102,18 +112,16 @@ expand into one merely because an improvement opportunity is discovered.
 
 A safety-motivated change is not automatically justified by Safety having
 priority over Efficiency. Added complexity can itself create new failure
-modes, compatibility risk, operational risk, and maintenance cost. This is
-especially important in infrastructure software whose established behavior is
-part of the system it supports.
+modes, compatibility risk, operational risk, and maintenance cost. Evaluate
+the proposed change as a whole.
 
 Before changing established behavior, weigh the probability and impact of the
 failure being prevented against the added complexity, new failure modes,
 compatibility risk, operational cost, maintenance cost, and rollback cost.
 
 Behavior that has operated reliably over time is evidence and has value of
-its own. Do not refactor backup, synchronization, scheduling, installation,
-or other infrastructure behavior merely because another design appears
-cleaner, more modern, or more defensive.
+its own. Do not refactor established infrastructure merely because another
+design appears cleaner, more modern, or more defensive.
 
 Error handling should be proportional to the operational consequence of the
 failure. A possible failure mode alone does not justify additional control
@@ -123,12 +131,16 @@ loss, or a false success for the operation that matters.
 
 An implementation change is made only when that change has been explicitly
 chosen as part of the work being performed. Before deployment, validate it in
-the supported and representative operating systems, shells, utilities, and
-deployment conditions affected by the change. A successful check in one
-convenient environment is not sufficient evidence for a change whose
-compatibility or operational risk extends to other supported environments.
+the supported and representative environments affected by the change. A
+successful check in one convenient environment is not sufficient evidence for
+a change whose compatibility risk extends to other supported environments.
 
 ### 1.4 Documentation Roles and Sources of Truth
+
+A concrete specification has exactly one authoritative home appropriate to the
+responsibility that owns it. Other documents may link to or summarize that
+specification for navigation, but they do not create a competing normative
+copy.
 
 The documentation structure of this repository is:
 
@@ -603,6 +615,23 @@ external commands required by its execution path, checks sudo only when
 privileged operation is required, and uses the repository's
 `[INFO]` / `[WARN]` / `[ERROR]` diagnostic convention.
 
+These rules apply to individual source files that carry their own version
+history. Repository release versions are governed separately.
+
+- Source file versions use a two-level `major.minor` scheme.
+- When incrementing `minor` would reach `10`, roll over instead: increment
+  `major` by 1 and reset `minor` to `0` (for example `v0.9` -> `v1.0`,
+  `v1.9` -> `v2.0`, `v2.9` -> `v3.0`).
+- Do not continue `minor` past `9` as in standard semantic versioning
+  (do not use `v1.10`, `v1.11`, ...).
+- Raising `major` for a reason other than the rollover is a decision the
+  maintainer makes, not one this document derives from the change.
+- Removing or renaming an option, changing what an existing argument means,
+  changing a default so that an unchanged invocation does something else, and
+  changing how a path or a configuration value is resolved are all incompatible
+  changes. Say so in the `Version History` entry, so that the number the change
+  is released under can be chosen knowing that.
+
 Its own version history uses `major.minor` independently of the repository
 release version. A user-visible CLI, installation-behavior, safety, or
 significant structural change may form a new installer release.
@@ -645,9 +674,10 @@ that reads them.
 
 ## 8. Comments
 
-- A comment states why. The code already states what, and a comment that
-  restates it is a second implementation of the same fact, in a language no
-  interpreter checks.
+A comment preserves a reason, constraint, non-obvious intent, or decision that
+a later change could otherwise undo. Do not use comments merely to restate code
+whose operation is already evident.
+
 - This repository has the evidence. Release v26.07 carries five separate
   corrections of comments and headers that had drifted from the code they
   described: the exclude filter, the mail fallback, the credential note, the
@@ -662,15 +692,31 @@ that reads them.
 - English, imperative, and as short as the reason allows. No banner, no
   divider inside a function, no `Function to ...` preamble, and no comment
   that repeats the line below it.
-- Write English explanatory prose in clear, natural sentences. Do not replace a
-  sentence with a label and a colon, a status prefix such as `Implement:` or
-  `Incompatible:`, a symbol, or an unexplained abbreviation. Apply this to
-  English prose in comments, docstrings, documentation, version histories,
-  release notes, commit messages, and pull request descriptions. This rule does
-  not alter the established forms of headings, list labels, tables, code,
-  configuration syntax, machine-readable fields, literal interface strings, or
-  non-English content required by the repository's purpose. Do not rewrite
-  historical entries or unrelated text merely to align their style.
+
+Write English explanatory prose in clear, natural sentences. Do not replace a
+sentence with a label and a colon, a status prefix such as `Implement:` or
+`Incompatible:`, a symbol, or an unexplained abbreviation.
+
+Apply this to English prose in comments, docstrings, documentation, version
+histories, release notes, commit messages, and pull request descriptions.
+
+This rule does not alter the established forms of headings, list labels,
+tables, code, configuration syntax, machine-readable fields, literal
+interface strings, or non-English content required by the repository's
+purpose.
+
+Wrap ordinary prose at approximately 80 columns where practical. Preserve
+the logical structure of paragraphs, lists, and other document elements.
+Do not break URLs, code, tables, identifiers, or other elements whose
+structure requires a longer line.
+
+Shared boilerplate must retain its common wording, line breaks, blank lines,
+and formatting. Do not reformat it independently in individual repositories.
+Its established common form takes precedence over the ordinary line-wrapping
+guideline.
+
+Do not rewrite historical entries or unrelated text merely to align their
+style.
 
 ## 9. POSIX Shell
 
@@ -758,38 +804,59 @@ that reads them.
 
 ## 11. Pull Requests and History
 
-- A pull request has one coherent purpose.
+A pull request carries one coherent higher-level purpose, which may require
+coordinated changes across several files or responsibilities.
+
+Do not split one approved purpose mechanically by individual finding, file,
+or review comment, and do not include unrelated cleanup, formatting, or
+feature work.
+
+Represent one coherent change as one commit and amend review corrections
+instead of accumulating follow-up commits.
+
+Rewriting the history of a branch under review requires an explicit
+instruction from the maintainer. When such a rewrite is authorized, use
+`--force-with-lease` and limit the operation to the branch under review.
+
+Check the final branch against its base to remove abandoned intermediate
+wording and work. Merge only with explicit maintainer approval.
+
 - "Purpose" means the higher-level reason for the pull request, not an
   individual finding, issue, file, function, or review comment. Multiple
   findings from one cross-cutting investigation, maintenance task, defect
   class, migration, release preparation, or quality correction may belong
   to the same purpose.
-- Do not split an approved work group mechanically by finding or file.
-  Consider semantic coherence, shared files, merge conflicts, duplicated
+- Consider semantic coherence, shared files, merge conflicts, duplicated
   validation, branch and pull-request management cost, and whether
   independent review, release, rollback, or acceptance is actually
   required.
-- One coherent change is normally represented by one commit.
-- Independent changes may be separate commits.
-- Review corrections may amend and rewrite the branch so that the final
-  diff represents the intended change without abandoned intermediate
-  wording or code.
+- Changes with independent purposes are proposed separately. A single coherent
+  pull request remains one commit.
 - Conflict resolution does not add unrelated history to the branch.
 - `doc/VERSIONS` records release-level changes, not a chronological list
   of every commit or review correction.
-- An automated agent must not commit or push directly to `master`. It must
-  commit authorized changes to a work branch and submit them through a pull
-  request targeting the approved base branch. Creating or updating a pull
-  request does not authorize the agent to merge it or enable auto-merge.
-  Either action requires an explicit instruction from the maintainer. This
-  paragraph does not change a human maintainer's authority.
+
+Unless explicitly instructed otherwise by the maintainer, an automated agent
+must commit authorized changes to a work branch and submit them through a
+pull request targeting the approved base branch.
+
+An automated agent must not commit or push directly to `master` without
+explicit instructions from the maintainer authorizing that operation.
+
+Creating or updating a pull request does not authorize the agent to merge it
+or enable auto-merge. Either action requires an explicit instruction from
+the maintainer.
+
+Authorization for one operation does not imply authorization for another.
+These rules do not change a human maintainer's authority.
 
 ## 12. Versions and Documents
 
 - The repository version is `<year>.<month>`, recorded in
   [`VERSIONS`](VERSIONS) and used for the Git tag. The Version History
-  Guidelines at the foot of that file govern the entries, including the
-  two-line, 80-column bullet limit stated there and the first-version rule.
+  Guidelines at the foot of that file govern the entries. The established
+  form of an existing history takes precedence over the ordinary two-line,
+  80-column limit.
 - The repository never carries more than one version for the same calendar
   date, whatever the independence of the changes released. A same-date
   change joins that day's single entry.
@@ -806,8 +873,6 @@ that reads them.
   names the section it falls in. It is a diff aid and nothing more. No file is
   given `linguist-language`, and `doc/VERSIONS`, `doc/COPYING`, and
   `doc/COPYING.LESSER` are excluded.
-- Plain text is wrapped near 80 columns where that is practical. A URL, a
-  command, a table, or a line that is clearer whole may exceed it.
 
 ## 13. Judging a Change
 
@@ -825,6 +890,11 @@ Validation is selected according to the files and behavior changed.
   execution merely to satisfy a checklist.
 - No new test framework is required merely because a change is made.
 - This repository intentionally does not use GitHub Actions as its CI/CD platform.
+
+Before accepting a change, ask whether it is the smallest coherent change that
+serves its purpose, whether it alters behavior outside that purpose, whether it
+adds an unnecessary dependency or side effect, whether it exposes private
+information, and whether directly affected documentation remains correct.
 
 Before it is proposed, a change answers these:
 
@@ -859,3 +929,7 @@ Follow the terms defined by [LICENSE](LICENSE.md), [COPYING](COPYING), and
 Files of the run carry no licence header; the repository-wide terms cover
 them. `install.sh` repeats the licence line in its header, so that a script
 read on its own still states its terms.
+
+Content adapted from an external article, answer, documentation example, source
+file, dataset, or other third-party material credits its source and respects
+the license or redistribution terms that apply to it.

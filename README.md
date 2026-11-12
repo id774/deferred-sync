@@ -10,9 +10,8 @@
 6. [Policy](#policy)
 7. [Usage Example](#usage-example)
 8. [Directory Structure](#directory-structure)
-9. [Contribution](#contribution)
-10. [Primary Branch](#primary-branch)
-11. [License](#license)
+9. [Primary Branch](#primary-branch)
+10. [License](#license)
 
 ## Overview
 
@@ -230,6 +229,10 @@ What matters before writing or enabling a plugin:
   with the time, because the log is read hours after the run. See
   [Logging](doc/POLICY.md#6-logging).
 
+Everything under `lib/` is sourced by a root shell that cron starts
+unattended. See [doc/POLICY.md](doc/POLICY.md) for the execution and
+maintenance constraints.
+
 ## Usage Example
 
 Set up `cron` to execute deferred-sync periodically. This ensures that all
@@ -311,19 +314,6 @@ its numeric prefix chosen from the operational and data-flow order in which
 the task must run, following the
 [plugin contract](doc/POLICY.md#3-the-contract-between-the-core-and-a-plugin).
 
-## Contribution
-
-We welcome contributions! Here's how you can help:
-1. Fork the repository.
-2. Add or improve a feature, or fix an issue.
-3. Submit a pull request with clear documentation and changes.
-
-Please ensure your code is well-structured and documented, and follow
-[doc/POLICY.md](doc/POLICY.md). Everything under `lib/` is sourced by a root
-shell that cron starts unattended, so that document asks new code there to
-destroy nothing it was not asked to touch, to let the job continue when it
-fails, and to leave a log that answers the question the next morning.
-
 ## Primary Branch
 
 This repository uses `master` as its primary branch name.
@@ -338,8 +328,6 @@ ideology.
 This repository is dual licensed under the
 [GPL version 3](https://www.gnu.org/licenses/gpl-3.0.html) or the
 [LGPL version 3](https://www.gnu.org/licenses/lgpl-3.0.html), at your option.
-For full details, please refer to the [LICENSE](doc/LICENSE.md) file. See also
-[COPYING](doc/COPYING) and [COPYING.LESSER](doc/COPYING.LESSER) for the
+For full details, please refer to [doc/LICENSE.md](doc/LICENSE.md). See also
+[doc/COPYING](doc/COPYING) and [doc/COPYING.LESSER](doc/COPYING.LESSER) for the
 complete license texts.
-
-Thank you for using and contributing to this repository!
